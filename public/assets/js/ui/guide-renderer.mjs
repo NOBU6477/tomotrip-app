@@ -125,64 +125,40 @@ function ensurePaginationContainers() {
 // 全ガイドカードの描画（既存の機能）
 function renderAllGuideCards(guides) {
     // Try multiple ways to find the container - support both old and new IDs
-    let container = document.getElementById('guide-list') || 
-                    document.getElementById('guideCardsContainer') || 
-                    document.getElementById('guidesContainer') ||
+    let container = document.getElementById('guidesContainer') || 
+                    document.getElementById('guide-list') || 
+                    document.getElementById('guideCardsContainer') ||
                     document.querySelector('.guide-cards-container .row');
     
-    // Fallback: Try to find by class and create if needed
+    // Fallback: Try to find by section structure
     if (!container) {
-        console.warn('⚠️ guideCardsContainer/guidesContainer not found, searching for alternative...');
-        
-        // Search for specific empty rows that might be our container
+        const searchResultsRow = document.querySelector('section#search-results .row');
+        if (searchResultsRow) {
+            container = searchResultsRow;
+            container.id = 'guidesContainer';
+        }
+    }
+    
+    // Fallback: Search for specific empty rows that might be our container
+    if (!container) {
         const emptyRow = Array.from(document.querySelectorAll('.row')).find(row => 
-            row.innerHTML.includes('populated') || row.id.includes('List') === false && row.children.length === 0
+            row.innerHTML.includes('populated') || (row.id.includes('List') === false && row.children.length === 0)
         );
         
         if (emptyRow) {
             container = emptyRow;
             container.id = 'guidesContainer';
-            console.log('✅ Found suitable empty row and assigned guidesContainer');
         }
     }
     
     if (!container) {
-        // Look for any div with class "row" that might be our container
-        const rowContainers = document.querySelectorAll('div.row');
-        console.log(`🔍 Found ${rowContainers.length} row containers`);
-        
-        for (let i = 0; i < rowContainers.length; i++) {
-            const rowContainer = rowContainers[i];
-            const content = rowContainer.innerHTML;
-            console.log(`🔍 Row ${i}: id="${rowContainer.id}", content="${content.substring(0, 100)}..."`);
-            
-            if (content.includes('Guide cards will be populated') || 
-                content.includes('<!-- Guide cards will be populated here -->') ||
-                (content.trim() === '' && rowContainer.id === '') ||
-                rowContainer.previousElementSibling?.textContent?.includes('Guide Cards')) {
-                container = rowContainer;
-                if (!container.id) {
-                    container.id = 'guidesContainer'; // Set the ID for future use
-                }
-                console.log('✅ Found and assigned guidesContainer to row', i);
-                break;
-            }
-        }
+        console.warn('⚠️ No suitable container found for guide cards. Attempting to find any available row.');
+        container = document.querySelector('.row:not(#chatRow)');
     }
     
-    // Last resort: Create the container if it still doesn't exist
     if (!container) {
-        console.warn('⚠️ Creating guidesContainer element');
-        const mainContent = document.querySelector('.container-fluid, .container, main, #main');
-        if (mainContent) {
-            container = document.createElement('div');
-            container.id = 'guidesContainer';
-            container.className = 'row';
-            mainContent.appendChild(container);
-        } else {
-            console.error('❌ Unable to create guidesContainer - no suitable parent found');
-            return;
-        }
+        console.error('❌ Unable to find guidesContainer - no suitable parent found');
+        return;
     }
     
     if (!Array.isArray(guides) || guides.length === 0) {
