@@ -7,6 +7,33 @@ import { normalizeLocationToCode, compareLocations, convertPrefectureNameToCode 
 // 検索結果を保存するグローバル配列
 let filteredGuides = [];
 
+// 言語切替機能（app-init.mjsから要求されるため追加）
+export function wireLanguageSwitcher() {
+    console.log('🌐 Language switcher wired');
+    const langToggle = document.getElementById('languageToggle');
+    if (langToggle) {
+        langToggle.addEventListener('click', () => {
+            const currentPath = window.location.pathname;
+            const isEnglish = currentPath.includes('-en.html') || currentPath.includes('index-en.html');
+            const newPath = isEnglish ? 'index.html' : 'index-en.html';
+            window.location.href = newPath;
+        });
+    }
+}
+
+// スポンサーボタンの設定（app-init.mjsから要求されるため追加）
+export function wireSponsorButtons() {
+    console.log('🏢 Sponsor buttons wired');
+    const sponsorLoginBtn = document.getElementById('sponsorLoginBtn');
+    if (sponsorLoginBtn) {
+        sponsorLoginBtn.addEventListener('click', () => showSponsorLoginModal());
+    }
+    const sponsorRegBtn = document.getElementById('sponsorRegBtn');
+    if (sponsorRegBtn) {
+        sponsorRegBtn.addEventListener('click', () => showSponsorRegistrationModal());
+    }
+}
+
 // Global guide detail function – opens guide detail page with auth check
 async function showGuideDetailModalById(guideId) {
     console.log('🔍 Opening guide detail for ID:', guideId);
