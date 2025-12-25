@@ -501,8 +501,8 @@ export function createGuideCardHTML(guide) {
     : (guide.profilePhoto?.profileImageUrl
       ? guide.profilePhoto.profileImageUrl
       : (guide.profilePhoto
-        ? `/uploads/${guide.profilePhoto}`
-        : `assets/img/guides/default-1.svg`));
+        ? (String(guide.profilePhoto).startsWith('http') ? guide.profilePhoto : `/uploads/${guide.profilePhoto}`)
+        : `/assets/img/guides/default-1.svg`)); // パスを修正（/を追加）
 
   // 価格表記
   const priceNum = Number(guide.sessionRate || guide.guideSessionRate || guide.price || 0);
