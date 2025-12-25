@@ -125,12 +125,28 @@ function ensurePaginationContainers() {
 // 全ガイドカードの描画（既存の機能）
 function renderAllGuideCards(guides) {
     // Try multiple ways to find the container - support both old and new IDs
-    let container = document.getElementById('guide-list') || document.getElementById('guideCardsContainer') || document.getElementById('guidesContainer');
+    let container = document.getElementById('guide-list') || 
+                    document.getElementById('guideCardsContainer') || 
+                    document.getElementById('guidesContainer') ||
+                    document.querySelector('.guide-cards-container .row');
     
     // Fallback: Try to find by class and create if needed
     if (!container) {
         console.warn('⚠️ guideCardsContainer/guidesContainer not found, searching for alternative...');
         
+        // Search for specific empty rows that might be our container
+        const emptyRow = Array.from(document.querySelectorAll('.row')).find(row => 
+            row.innerHTML.includes('populated') || row.id.includes('List') === false && row.children.length === 0
+        );
+        
+        if (emptyRow) {
+            container = emptyRow;
+            container.id = 'guidesContainer';
+            console.log('✅ Found suitable empty row and assigned guidesContainer');
+        }
+    }
+    
+    if (!container) {
         // Look for any div with class "row" that might be our container
         const rowContainers = document.querySelectorAll('div.row');
         console.log(`🔍 Found ${rowContainers.length} row containers`);

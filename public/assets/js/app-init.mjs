@@ -281,6 +281,20 @@ async function appInit() {
     // 5) Setup event listeners only - DISABLE LEGACY RENDERING to prevent duplicates
     setupEventListeners(state);
 
+    // 🔧 FIX: ensure container exists before rendering
+    const container = document.getElementById('guidesContainer') || document.getElementById('guide-list') || document.getElementById('guideCardsContainer');
+    if (!container) {
+        console.warn('⚠️ guidesContainer not found in DOM, checking for fallback...');
+        const searchResults = document.getElementById('search-results');
+        if (searchResults) {
+            const row = searchResults.querySelector('.row');
+            if (row) {
+                row.id = 'guidesContainer';
+                console.log('✅ Fallback: Found row in search-results and assigned guidesContainer');
+            }
+        }
+    }
+
     // ✅ FIXED: Wait for DOM to be fully ready before rendering guides
     setTimeout(async () => {
         console.log('🎯 Starting guide rendering with delay for DOM readiness');
