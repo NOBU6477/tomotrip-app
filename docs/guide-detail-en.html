@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide Details - TomoTrip</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="ocean_background.css">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        body {
+            background: linear-gradient(135deg, #74b9ff, #0984e3, #6c5ce7);
+            background-attachment: fixed;
+            min-height: 100vh;
+            font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'BIZ UDPGothic', 'Meiryo', sans-serif;
+        }
+
+        .guide-header {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.90));
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 1200px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .guide-profile-img {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid white;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .guide-info-card {
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 50px;
+            padding: 12px 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        .rating-stars {
+            color: #ffc107;
+            font-size: 1.2rem;
+        }
+
+        .language-badge {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin: 2px;
+            display: inline-block;
+        }
+
+        .booking-card {
+            position: sticky;
+            top: 20px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
+        }
+
+        .price-display {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        .gallery-img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 15px;
+            margin-bottom: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .gallery-img:hover {
+            transform: scale(1.05);
+        }
+
+        .contact-info {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .specialty-tag {
+            background: linear-gradient(45deg, #e83e8c, #d91a72);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 25px;
+            margin: 5px;
+            display: inline-block;
+            font-size: 0.9rem;
+        }
+        
+        /* Pulse animation for chat button */
+        @keyframes pulse {
+            0%, 50%, 100% {
+                transform: scale(1);
+            }
+            25%, 75% {
+                transform: scale(1.05);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Back Button -->
+    <button class="back-btn" onclick="goBack()">
+        <i class="bi bi-arrow-left me-2"></i>Back
+    </button>
+
+    <div class="container-fluid py-4">
+        <!-- Guide Header Section -->
+        <div class="guide-header">
+            <div class="row align-items-center">
+                <div class="col-md-3 text-center">
+                    <img id="guideProfileImg" src="" alt="Guide Profile" class="guide-profile-img">
+                </div>
+                <div class="col-md-6">
+                    <h1 id="guideName" class="display-5 fw-bold mb-3"></h1>
+                    <div class="rating-stars mb-3">
+                        <span id="guideRating"></span>
+                        <span class="text-muted ms-2">(<span id="reviewCount"></span> reviews)</span>
+                    </div>
+                    <p id="guideLocation" class="lead text-muted mb-3">
+                        <i class="bi bi-geo-alt me-2"></i>
+                    </p>
+                    <div id="guideLanguages" class="mb-3"></div>
+                    <div id="guideSpecialties" class="mb-3"></div>
+                </div>
+                <div class="col-md-3">
+                    <div class="booking-card">
+                        <h4>Rate</h4>
+                        <div class="price-display">
+                            ¥<span id="guidePrice"></span>
+                        </div>
+                        <p class="mb-3">per day</p>
+                        <button class="btn btn-light btn-lg w-100 mb-2" onclick="bookGuide()">
+                            <i class="bi bi-calendar-check me-2"></i>Book Now
+                        </button>
+                        <button class="btn btn-warning btn-lg w-100 fw-bold text-dark shadow" onclick="openChatWithGuide()" style="border: 2px solid #ffd700; animation: pulse 2s infinite;">
+                            <i class="bi bi-chat-dots me-2"></i>💬 Chat with Guide
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guide Details Content -->
+        <div class="row" style="max-width: 1200px; margin: 0 auto;">
+            <div class="col-md-8">
+                <!-- About Section -->
+                <div class="guide-info-card">
+                    <h3 class="h4 mb-3">
+                        <i class="bi bi-person-circle me-2 text-primary"></i>About the Guide
+                    </h3>
+                    <p id="guideDescription" class="lh-lg"></p>
+                </div>
+
+                <!-- Experience Section -->
+                <div class="guide-info-card">
+                    <h3 class="h4 mb-3">
+                        <i class="bi bi-briefcase me-2 text-primary"></i>Experience & Achievements
+                    </h3>
+                    <div id="guideExperience"></div>
+                </div>
+
+                <!-- Gallery Section -->
+                <div class="guide-info-card">
+                    <h3 class="h4 mb-3">
+                        <i class="bi bi-images me-2 text-primary"></i>Tour Photo Gallery
+                    </h3>
+                    <div id="guideGallery" class="row g-3"></div>
+                </div>
+
+                <!-- Reviews Section -->
+                <div class="guide-info-card">
+                    <h3 class="h4 mb-3">
+                        <i class="bi bi-star me-2 text-primary"></i>Reviews
+                    </h3>
+                    <div id="guideReviews"></div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <!-- Recommended Guide Services Section -->
+                <section id="recommended-services" class="card shadow-sm" style="border-radius:16px; overflow:hidden;">
+                  <div class="card-header" style="background:#eaf2ff;">
+                    <h3 class="m-0" style="display:flex;align-items:center;gap:.5rem;">
+                      <span aria-hidden="true">📘</span> Recommended Guide Services
+                    </h3>
+                  </div>
+
+                  <div class="list-group list-group-flush">
+
+                    <!-- Half Day Tour -->
+                    <div class="list-group-item">
+                      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                        <div>
+                          <div class="fw-bold">Half Day Tour (Approx. 4 hours)</div>
+                          <ul class="mb-1 small" style="padding-left:1.2rem;">
+                            <li>Walking tour of city highlights</li>
+                            <li>Photo spot recommendations / Brief historical explanations</li>
+                          </ul>
+                          <div class="text-muted small">
+                            Guide Fee: <b>Set by each guide</b> (e.g., per hour / per session)<br>
+                            ※Transportation and accommodation arrangements are not included. Travel expenses are at your own cost.
+                          </div>
+                        </div>
+                        <a class="btn btn-primary" href="#contact-guide" style="white-space:nowrap;">Contact Guide</a>
+                      </div>
+                    </div>
+
+                    <!-- Cultural Experience Support -->
+                    <div class="list-group-item">
+                      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                        <div>
+                          <div class="fw-bold">Cultural Experience Support (Approx. 8 hours)</div>
+                          <ul class="mb-1 small" style="padding-left:1.2rem;">
+                            <li>Historical & cultural spot tours with explanations</li>
+                            <li>Accompaniment to experience venues & on-site support</li>
+                          </ul>
+                          <div class="text-muted small">
+                            Guide Fee: <b>Negotiable (freely set by guide)</b><br>
+                            ※Experience bookings, transportation, and accommodation arrangements are not included. Please make necessary reservations yourself.
+                          </div>
+                        </div>
+                        <a class="btn btn-primary" href="#contact-guide" style="white-space:nowrap;">Contact Guide</a>
+                      </div>
+                    </div>
+
+                    <!-- Custom Tour -->
+                    <div class="list-group-item">
+                      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                        <div>
+                          <div class="fw-bold">Custom Tour (Design together)</div>
+                          <ul class="mb-1 small" style="padding-left:1.2rem;">
+                            <li>Create itinerary together based on your preferences</li>
+                            <li>Flexible arrangements for dining, photography, sightseeing, etc.</li>
+                          </ul>
+                          <div class="text-muted small">
+                            Guide Fee: <b>Negotiable (confirmed after agreement)</b><br>
+                            ※This service is a matching platform between guides and travelers, <b>not tour package sales</b>.
+                          </div>
+                        </div>
+                        <a class="btn btn-outline-primary" href="#contact-guide" style="white-space:nowrap;">Share Your Wishes</a>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <!-- Legal Compliance Notice (Footer) -->
+                  <div class="card-footer bg-light small text-muted">
+                    TomoTrip is a <strong>matching platform</strong> connecting guides and users.
+                    We do not arrange transportation, accommodation, or sell packaged tours.
+                    Please make necessary arrangements yourself.
+                  </div>
+                </section>
+
+                <!-- Contact Information -->
+                <div class="contact-info" id="contact-guide">
+                    <h4 class="mb-3">
+                        <i class="bi bi-envelope me-2"></i>Contact Information
+                    </h4>
+                    <div id="guideContactInfo">
+                        <p class="mb-2">
+                            <i class="bi bi-phone me-2"></i>
+                            <span id="guidePhone"></span>
+                        </p>
+                        <p class="mb-2">
+                            <i class="bi bi-envelope me-2"></i>
+                            <span id="guideEmail"></span>
+                        </p>
+                        <p class="mb-3">
+                            <i class="bi bi-clock me-2"></i>
+                            Available: <span id="guideAvailability">9:00 - 18:00</span>
+                        </p>
+                        
+                        <!-- Chat Button -->
+                        <div class="d-grid">
+                            <button class="btn btn-primary btn-lg" onclick="openChatWithGuide()" style="background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 15px;">
+                                <i class="bi bi-chat-heart me-2"></i>Start Real-time Chat
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Widget Container -->
+                <div id="chatWidget" style="display: none;">
+                    <div class="guide-info-card">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">
+                                <i class="bi bi-chat-dots me-2"></i>Chat with Guide
+                            </h5>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="closeChatWidget()">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Chat Messages Container -->
+                        <div id="chatMessages" style="height: 300px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: #f8f9fa;">
+                            <div class="chat-message system mb-3">
+                                <div class="d-flex align-items-start">
+                                    <div class="me-2">
+                                        <i class="bi bi-robot" style="color: #6c757d; font-size: 1.2rem;"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="bg-light rounded p-2 small">
+                                            <strong>System:</strong> Chat with guide has started. Feel free to ask questions.
+                                        </div>
+                                        <small class="text-muted">${new Date().toLocaleTimeString('en-US')}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Chat Input -->
+                        <div class="d-flex gap-2">
+                            <input type="text" id="chatInput" class="form-control" placeholder="Enter message..." style="border-radius: 20px;" onkeypress="handleChatKeyPress(event)">
+                            <button class="btn btn-primary" onclick="sendChatMessage()" style="background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 20px; padding: 8px 16px;">
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Quick Reply Buttons -->
+                        <div class="mt-3">
+                            <small class="text-muted">Quick questions:</small>
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-outline-primary me-2 mb-2" onclick="sendQuickReply('Tell me about pricing')">About pricing</button>
+                                <button class="btn btn-sm btn-outline-primary me-2 mb-2" onclick="sendQuickReply('Recommend tourist spots')">Recommended spots</button>
+                                <button class="btn btn-sm btn-outline-primary me-2 mb-2" onclick="sendQuickReply('Can we change time or content?')">Schedule changes</button>
+                                <button class="btn btn-sm btn-outline-primary me-2 mb-2" onclick="sendQuickReply('Are you available this weekend?')">Availability</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Info -->
+                <div class="guide-info-card mt-3">
+                    <h5 class="mb-3">Additional Information</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="bi bi-shield-check me-2 text-success"></i>
+                            Identity Verified
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-translate me-2 text-info"></i>
+                            Multilingual Support
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-heart me-2 text-danger"></i>
+                            Hospitality Focused
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-geo me-2 text-warning"></i>
+                            Local Expert
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Get guide ID from URL parameters (enhanced with debugging)
+        function getGuideId() {
+            console.log('🔍 Getting guide ID from URL:', window.location.href);
+            console.log('🔍 Search params:', window.location.search);
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const guideId = urlParams.get('id');
+            
+            console.log('🔍 Extracted guide ID:', guideId);
+            console.log('🔍 All URL params:', Object.fromEntries(urlParams));
+            
+            if (!guideId || guideId.trim() === '') {
+                console.error('❌ No guide ID found in URL parameters');
+                return null;
+            }
+            
+            console.log('✅ Guide ID validated:', guideId);
+            return guideId.trim();
+        }
+
+        // Load guide data
+        async function loadGuideData() {
+            const guideId = getGuideId();
+            if (!guideId) {
+                alert('Guide ID not specified.');
+                goBack();
+                return;
+            }
+
+            // Check authentication - allow both tourist and guide login
+            const touristAuth = sessionStorage.getItem('touristAuth');
+            const touristData = sessionStorage.getItem('touristData') || localStorage.getItem('touristRegistrationData');
+            const guideAuth = sessionStorage.getItem('guideAuth');
+            const guideAuthData = sessionStorage.getItem('guideData');
+            
+            // Allow access if user is logged in as either tourist or guide
+            if (!touristAuth && !touristData && !guideAuth && !guideAuthData) {
+                alert('Please log in as a tourist or guide to access this feature.');
+                window.location.href = '/index-en.html';
+                return;
+            }
+            
+            if (touristAuth || touristData) {
+                console.log('✅ Tourist authentication verified');
+            } else if (guideAuth || guideAuthData) {
+                console.log('✅ Guide authentication verified');
+            }
+
+            // Load guide data from API (with personal info removed)
+            const guideData = await getGuideData(guideId);
+            if (!guideData) {
+                alert('Guide information not found.');
+                goBack();
+                return;
+            }
+
+            displayGuideData(guideData);
+        }
+
+        // Get guide data (from API with fallback to stored data)
+        async function getGuideData(guideId) {
+            try {
+                console.log('🔍 Loading guide data for ID:', guideId);
+                
+                // Primary: Try to get guide data from API
+                try {
+                    const response = await fetch(`/api/guides/${guideId}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('📥 Primary API Response:', result);
+                    
+                    if (result.success && result.guide) {
+                        console.log('✅ Loaded guide from API:', result.guide);
+                        // Remove personal information for tourist view
+                        return sanitizeGuideDataForTourists(result.guide);
+                    } else {
+                        throw new Error(result.message || 'Guide not found in primary API');
+                    }
+                } catch (apiError) {
+                    console.warn('⚠️ Primary API request failed:', apiError.message);
+                }
+                
+                // Fallback: Try to get all guides from API
+                try {
+                    const response = await fetch('/api/guides');
+                    const result = await response.json();
+                    
+                    if (result.success && result.guides) {
+                        const guide = result.guides.find(g => g.id === guideId);
+                        if (guide) {
+                            console.log('✅ Found guide in all guides list:', guide);
+                            return sanitizeGuideDataForTourists(guide);
+                        }
+                    }
+                } catch (fallbackError) {
+                    console.warn('⚠️ Fallback API request failed:', fallbackError);
+                }
+                
+                // Final fallback: Check opener window or stored data
+                if (window.opener && window.opener.AppState && window.opener.AppState.guides) {
+                    const guide = window.opener.AppState.guides.find(g => g.id === guideId || g.id === parseInt(guideId));
+                    if (guide) {
+                        console.log('✅ Found guide in opener window state:', guide);
+                        return sanitizeGuideDataForTourists(guide);
+                    }
+                }
+                
+                console.error('❌ Guide not found anywhere:', guideId);
+                return null;
+            } catch (error) {
+                console.error('❌ Error loading guide data:', error);
+                return null;
+            }
+        }
+
+        // Sanitize guide data for tourist view (remove personal info)
+        function sanitizeGuideDataForTourists(guide) {
+            return {
+                ...guide,
+                // Remove sensitive personal info
+                phoneNumber: 'Available after booking',
+                guideEmail: 'Available after booking'
+            };
+        }
+
+        // Display guide data
+        function displayGuideData(guide) {
+            // Profile image
+            document.getElementById('guideProfileImg').src = guide.photoURL || 'https://via.placeholder.com/200';
+            
+            // Basic info
+            document.getElementById('guideName').textContent = guide.guideName || 'Guide Name';
+            document.getElementById('guideLocation').innerHTML = `<i class="bi bi-geo-alt me-2"></i>${guide.guideLocation || 'Location not specified'}`;
+            document.getElementById('guidePrice').textContent = guide.guideRate || 'TBD';
+            
+            // Rating
+            const rating = guide.rating || 4.5;
+            const reviewCount = guide.reviewCount || 0;
+            document.getElementById('guideRating').innerHTML = '★'.repeat(Math.floor(rating)) + '☆'.repeat(5 - Math.floor(rating));
+            document.getElementById('reviewCount').textContent = reviewCount;
+            
+            // Languages
+            const languages = guide.guideLanguages || [];
+            document.getElementById('guideLanguages').innerHTML = languages.map(lang => 
+                `<span class="language-badge">${lang}</span>`
+            ).join('');
+            
+            // Specialties
+            const specialties = guide.guideSpecialties || [];
+            document.getElementById('guideSpecialties').innerHTML = specialties.map(specialty => 
+                `<span class="specialty-tag">${specialty}</span>`
+            ).join('');
+            
+            // Description
+            document.getElementById('guideDescription').textContent = guide.guideIntroduction || 'No introduction provided.';
+            
+            // Experience
+            const experience = guide.guideExperience || 'beginner';
+            const experienceText = {
+                'beginner': 'Less than 1 year',
+                'intermediate': '1-3 years',
+                'expert': 'More than 3 years'
+            };
+            document.getElementById('guideExperience').innerHTML = `
+                <p><strong>Guide Experience:</strong> ${experienceText[experience] || experience}</p>
+                <p>${guide.experienceDetails || 'No detailed experience information provided.'}</p>
+            `;
+            
+            // Gallery (if available)
+            const gallery = guide.tourPhotos || [];
+            const galleryHtml = gallery.map(photo => `
+                <div class="col-md-6">
+                    <img src="${photo}" class="gallery-img" alt="Tour photo">
+                </div>
+            `).join('');
+            document.getElementById('guideGallery').innerHTML = galleryHtml || '<p class="text-muted">No tour photos available yet.</p>';
+            
+            // Reviews (mock data for now)
+            const reviews = guide.reviews || [];
+            const reviewsHtml = reviews.length > 0 
+                ? reviews.map(review => `
+                    <div class="border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between">
+                            <strong>${review.touristName}</strong>
+                            <span class="rating-stars">★★★★★</span>
+                        </div>
+                        <p class="text-muted small">${review.date}</p>
+                        <p>${review.comment}</p>
+                    </div>
+                `).join('')
+                : '<p class="text-muted">No reviews yet. Be the first to book and review!</p>';
+            document.getElementById('guideReviews').innerHTML = reviewsHtml;
+            
+            // Contact info (sanitized for tourists)
+            document.getElementById('guidePhone').textContent = guide.phoneNumber || 'Available after booking';
+            document.getElementById('guideEmail').textContent = guide.guideEmail || 'Available after booking';
+        }
+
+        // Book guide function
+        function bookGuide() {
+            const guideId = getGuideId();
+            if (!guideId) {
+                alert('Error: Guide ID not found');
+                return;
+            }
+            
+            console.log('📅 Booking guide:', guideId);
+            // Redirect to booking page with guide ID
+            window.location.href = `/booking-en.html?guideId=${guideId}`;
+        }
+
+        // Open chat with guide
+        function openChatWithGuide() {
+            const chatWidget = document.getElementById('chatWidget');
+            if (chatWidget) {
+                chatWidget.style.display = 'block';
+                chatWidget.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // Close chat widget
+        function closeChatWidget() {
+            const chatWidget = document.getElementById('chatWidget');
+            if (chatWidget) {
+                chatWidget.style.display = 'none';
+            }
+        }
+
+        // Send chat message
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message to chat
+            const chatMessages = document.getElementById('chatMessages');
+            const userMessageHtml = `
+                <div class="chat-message user mb-3 text-end">
+                    <div class="d-inline-block text-start">
+                        <div class="bg-primary text-white rounded p-2 small">
+                            ${message}
+                        </div>
+                        <small class="text-muted">${new Date().toLocaleTimeString('en-US')}</small>
+                    </div>
+                </div>
+            `;
+            chatMessages.insertAdjacentHTML('beforeend', userMessageHtml);
+            
+            // Clear input
+            input.value = '';
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Simulate guide response after 1 second
+            setTimeout(() => {
+                const guideResponseHtml = `
+                    <div class="chat-message guide mb-3">
+                        <div class="d-flex align-items-start">
+                            <div class="me-2">
+                                <i class="bi bi-person-circle" style="color: #007bff; font-size: 1.5rem;"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="bg-light rounded p-2 small">
+                                    Thank you for your message! I'll get back to you shortly.
+                                </div>
+                                <small class="text-muted">${new Date().toLocaleTimeString('en-US')}</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                chatMessages.insertAdjacentHTML('beforeend', guideResponseHtml);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 1000);
+        }
+
+        // Handle chat key press (Enter to send)
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendChatMessage();
+            }
+        }
+
+        // Send quick reply
+        function sendQuickReply(message) {
+            document.getElementById('chatInput').value = message;
+            sendChatMessage();
+        }
+
+        // Go back function
+        function goBack() {
+            // Check if there's a referring page in the history
+            if (document.referrer && document.referrer.includes(window.location.hostname)) {
+                window.history.back();
+            } else {
+                // Default: go to home page (English version)
+                window.location.href = '/index-en.html';
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', loadGuideData);
+    </script>
+</body>
+</html>

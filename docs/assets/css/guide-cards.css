@@ -1,0 +1,307 @@
+/**
+ * ✅ CODEX-OPTIMIZED Guide Cards CSS
+ * スマホ最適化 + UI/UX改善（Codex推奨）
+ * Last updated: 2025-11-23
+ */
+
+/* ===== Guide Card Container (Grid Layout) ===== */
+.guide-cards-container,
+.guide-list,
+.cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+    padding: 0;
+    list-style: none;
+}
+
+/* ===== Base Guide Card Style ===== */
+.guide-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.guide-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    background-color: #f9fafb;
+}
+
+/* ===== Guide Card Image ===== */
+.guide-card img {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    border-bottom: 1px solid #f1f5f9;
+    display: block;
+}
+
+/* ===== Guide Card Body (Content) ===== */
+.guide-card-body {
+    padding: 16px 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+/* ===== Guide Name (Title) ===== */
+.guide-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+    line-height: 1.3;
+}
+
+/* ===== Guide Location (Meta) ===== */
+.guide-location {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* ===== Guide Description ===== */
+.guide-desc {
+    font-size: 14px;
+    color: #374151;
+    line-height: 1.5;
+    margin: 4px 0 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ===== Guide Languages ===== */
+.guide-languages {
+    display: flex;
+    gap: 0.5rem;
+    margin: 8px 0 0;
+    flex-wrap: wrap;
+}
+
+.language-badge {
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    color: #1976d2;
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* ===== Guide Rating ===== */
+.guide-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 4px 0;
+    font-size: 14px;
+}
+
+.stars {
+    color: #ffc107;
+    letter-spacing: 2px;
+}
+
+/* ===== Guide Price ===== */
+.guide-price {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #28a745;
+    margin: 8px 0 0;
+}
+
+/* ===== Action Buttons Container ===== */
+.guide-actions {
+    display: flex;
+    gap: 12px;
+    padding: 0 0 16px 0;
+    margin-top: auto;
+}
+
+/* ===== Action Buttons ===== */
+.btn-guide {
+    flex: 1;
+    text-align: center;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #2563eb;
+    background: #2563eb;
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.btn-guide:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(37, 99, 235, 0.25);
+    background-color: #1d4ed8;
+}
+
+/* Ghost button variant */
+.btn-guide.btn-outline-guide,
+.btn-bookmark {
+    background: #fff;
+    color: #2563eb;
+    border-color: #2563eb;
+}
+
+.btn-guide.btn-outline-guide:hover,
+.btn-bookmark:hover {
+    background: #f0f7ff;
+    border-color: #1d4ed8;
+    color: #1d4ed8;
+}
+
+/* View button styling */
+.btn-view {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    border: none;
+}
+
+.btn-view:hover {
+    background: linear-gradient(135deg, #0056b3, #004085);
+    transform: translateY(-2px);
+}
+
+/* ===== Smartphone Optimization (768px以下) ===== */
+@media (max-width: 768px) {
+    /* General Container */
+    html, body {
+        width: 100%;
+        overflow-x: hidden;
+        font-size: 16px;
+        margin: 0;
+    }
+
+    header, nav, main, footer {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    /* Grid to single column */
+    .guide-cards-container,
+    .guide-list,
+    .cards-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    /* Card adjustments */
+    .guide-card {
+        border-radius: 10px;
+    }
+
+    .guide-card img {
+        height: auto;
+        aspect-ratio: auto;
+    }
+
+    /* Text size adjustments */
+    .guide-name {
+        font-size: 17px;
+    }
+
+    .guide-location,
+    .guide-desc {
+        font-size: 14px;
+    }
+
+    .language-badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.6rem;
+    }
+
+    /* Button layout - stack on mobile */
+    .guide-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn-guide {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 14px;
+    }
+
+    /* Navigation adjustments */
+    .nav {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    /* Image responsiveness */
+    img, .card img {
+        max-width: 100%;
+        height: auto;
+        object-fit: cover;
+    }
+}
+
+/* ===== Extra Small Screens (480px以下) ===== */
+@media (max-width: 480px) {
+    html, body {
+        font-size: 14px;
+    }
+
+    .guide-card-body {
+        padding: 12px 12px 10px;
+        gap: 6px;
+    }
+
+    .guide-name {
+        font-size: 16px;
+    }
+
+    .guide-location,
+    .guide-desc {
+        font-size: 13px;
+    }
+
+    .guide-actions {
+        flex-direction: column;
+        gap: 8px;
+        padding: 0 0 12px 0;
+    }
+
+    .btn-guide {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+}
+
+/* ===== Tablet Size (769px - 1024px) ===== */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .guide-cards-container,
+    .guide-list,
+    .cards-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* ===== Desktop Large (1025px+) ===== */
+@media (min-width: 1025px) {
+    .guide-cards-container,
+    .guide-list,
+    .cards-container {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+}

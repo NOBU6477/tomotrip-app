@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ガイド詳細 - TomoTrip</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="ocean_background.css">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        body {
+            background: linear-gradient(135deg, #74b9ff, #0984e3, #6c5ce7);
+            background-attachment: fixed;
+            min-height: 100vh;
+            font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'BIZ UDPGothic', 'Meiryo', sans-serif;
+        }
+
+        .guide-header {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.90));
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem auto;
+            max-width: 1200px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .guide-profile-img {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid white;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+
+        .guide-info-card {
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 50px;
+            padding: 12px 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        .rating-stars {
+            color: #ffc107;
+            font-size: 1.2rem;
+        }
+
+        .language-badge {
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin: 2px;
+            display: inline-block;
+        }
+
+        .booking-card {
+            position: sticky;
+            top: 20px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.3);
+        }
+
+        .price-display {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        .gallery-img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 15px;
+            margin-bottom: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .gallery-img:hover {
+            transform: scale(1.05);
+        }
+
+        .contact-info {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .specialty-tag {
+            background: linear-gradient(45deg, #e83e8c, #d91a72);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 25px;
+            margin: 5px;
+            display: inline-block;
+            font-size: 0.9rem;
+        }
+        
+        /* Pulse animation for chat button */
+        @keyframes pulse {
+            0%, 50%, 100% {
+                transform: scale(1);
+            }
+            25%, 75% {
+                transform: scale(1.05);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Back Button -->
+    <button class="back-btn" onclick="goBack()">
+        <i class="bi bi-arrow-left me-2"></i>戻る
+    </button>
+
+    <div class="container-fluid py-4">
+        <!-- Guide Header Section -->
+        <div class="guide-header">
+            <div class="row align-items-center">
+                <div class="col-md-3 text-center">
+                    <img id="guideProfileImg" src="" alt="ガイドプロフィール" class="guide-profile-img">
+                </div>
+                <div class="col-md-6">
+                    <h1 id="guideName" class="display-5 fw-bold mb-3"></h1>
+                    <div class="rating-stars mb-3">
+                        <span id="guideRating"></span>
+                        <span class="text-muted ms-2">(<span id="reviewCount"></span>件のレビュー)</span>
+                    </div>
+                    <p id="guideLocation" class="lead text-muted mb-3">
+                        <i class="bi bi-geo-alt me-2"></i>
+                    </p>
+                    <div id="guideLanguages" class="mb-3"></div>
+                    <div id="guideSpecialties" class="mb-3"></div>
+                </div>
+                <div class="col-md-3">
+                    <div class="booking-card">
+                        <h4>料金</h4>
+                        <div class="price-display">
+                            ¥<span id="guidePrice"></span>
+                        </div>
+                        <p class="mb-3">1日あたり</p>
+                        <button class="btn btn-light btn-lg w-100 mb-2" onclick="bookGuide()">
+                            <i class="bi bi-calendar-check me-2"></i>予約する
+                        </button>
+                        <button class="btn btn-warning btn-lg w-100 fw-bold text-dark shadow" onclick="openChatWithGuide()" style="border: 2px solid #ffd700; animation: pulse 2s infinite;">
+                            <i class="bi bi-chat-dots me-2"></i>💬 チャットで相談
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guide Details Content -->
+        <div class="row" style="max-width: 1200px; margin: 0 auto;">
+            <div class="col-md-8">
+                <!-- About Section -->
+                <div class="guide-info-card">
+                    <h3 class="h4 mb-3">
+                        <i class="bi bi-person-circle me-2 text-primary"></i>ガイドについて
+                    </h3>
+                    <p id="guideDescription" class="lh-lg"></p>
+                </div>
+
+                <!-- Experience Section -->
+                <div class="guide-info-card">
+                    <h3 class="h4 mb-3">
+                        <i class="bi bi-briefcase me-2 text-primary"></i>経験・実績
+                    </h3>
+                    <div id="guideExperience"></div>
+                </div>
+
+                <!-- Gallery Section -->
+                <div class="guide-info-card">
+                    <h3 class="h4 mb-3">
+                        <i class="bi bi-images me-2 text-primary"></i>ツアー写真ギャラリー
+                    </h3>
+                    <div id="guideGallery" class="row g-3"></div>
+                </div>
+
+                <!-- Reviews Section -->
+                <div class="guide-info-card">
+                    <h3 class="h4 mb-3">
+                        <i class="bi bi-star me-2 text-primary"></i>レビュー
+                    </h3>
+                    <div id="guideReviews"></div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <!-- ✅ 旅行業法回避版：おすすめ"案内サービス" セクション -->
+                <section id="recommended-services" class="card shadow-sm" style="border-radius:16px; overflow:hidden;">
+                  <div class="card-header" style="background:#eaf2ff;">
+                    <h3 class="m-0" style="display:flex;align-items:center;gap:.5rem;">
+                      <span aria-hidden="true">📘</span> おすすめ案内サービス
+                    </h3>
+                  </div>
+
+                  <div class="list-group list-group-flush">
+
+                    <!-- 半日ご案内 -->
+                    <div class="list-group-item">
+                      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                        <div>
+                          <div class="fw-bold">半日ご案内（約4時間目安）</div>
+                          <ul class="mb-1 small" style="padding-left:1.2rem;">
+                            <li>市内の見どころを一緒に歩いてご紹介</li>
+                            <li>写真スポットのご提案／軽い歴史解説</li>
+                          </ul>
+                          <div class="text-muted small">
+                            ガイド報酬：<b>各ガイドが設定</b>（例：時間あたり／セッションあたり）<br>
+                            ※交通機関・宿泊の手配は行いません。移動費等は実費・お客様ご負担です。
+                          </div>
+                        </div>
+                        <a class="btn btn-primary" href="#contact-guide" style="white-space:nowrap;">ガイドに相談する</a>
+                      </div>
+                    </div>
+
+                    <!-- 文化体験サポート -->
+                    <div class="list-group-item">
+                      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                        <div>
+                          <div class="fw-bold">文化体験サポート（約8時間目安）</div>
+                          <ul class="mb-1 small" style="padding-left:1.2rem;">
+                            <li>歴史・文化のスポット同行＆解説</li>
+                            <li>体験施設までの同行・現地サポート</li>
+                          </ul>
+                          <div class="text-muted small">
+                            ガイド報酬：<b>相談可（ガイドが自由設定）</b><br>
+                            ※体験予約・運送手配・宿泊手配は行いません。必要な予約はお客様ご自身でお願いします。
+                          </div>
+                        </div>
+                        <a class="btn btn-primary" href="#contact-guide" style="white-space:nowrap;">ガイドに相談する</a>
+                      </div>
+                    </div>
+
+                    <!-- オーダーメイド案内 -->
+                    <div class="list-group-item">
+                      <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                        <div>
+                          <div class="fw-bold">オーダーメイド案内（内容を一緒に設計）</div>
+                          <ul class="mb-1 small" style="padding-left:1.2rem;">
+                            <li>ご希望に合わせて行程（目安時間）を共同で作成</li>
+                            <li>食事処・撮影・散策など柔軟にアレンジ</li>
+                          </ul>
+                          <div class="text-muted small">
+                            ガイド報酬：<b>要相談（ガイド提示の条件に同意後に確定）</b><br>
+                            ※当サービスはガイドと旅行者のマッチングであり、<b>旅行商品の販売ではありません</b>。
+                          </div>
+                        </div>
+                        <a class="btn btn-outline-primary" href="#contact-guide" style="white-space:nowrap;">希望を伝える</a>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <!-- 法令対応の注意書き（フッター） -->
+                  <div class="card-footer bg-light small text-muted">
+                    TomoTrip（旅友）はガイドと利用者をつなぐ<strong>マッチングプラットフォーム</strong>です。
+                    交通機関・宿泊・運送・旅行契約の取次や企画旅行の販売は行っていません。
+                    必要な手配はお客様ご自身でお願いします。
+                  </div>
+                </section>
+
+                <!-- Contact Information -->
+                <div class="contact-info" id="contact-guide">
+                    <h4 class="mb-3">
+                        <i class="bi bi-envelope me-2"></i>連絡先情報
+                    </h4>
+                    <div id="guideContactInfo">
+                        <p class="mb-2">
+                            <i class="bi bi-phone me-2"></i>
+                            <span id="guidePhone"></span>
+                        </p>
+                        <p class="mb-2">
+                            <i class="bi bi-envelope me-2"></i>
+                            <span id="guideEmail"></span>
+                        </p>
+                        <p class="mb-3">
+                            <i class="bi bi-clock me-2"></i>
+                            対応時間: <span id="guideAvailability">9:00 - 18:00</span>
+                        </p>
+                        
+                        <!-- Chat Button -->
+                        <div class="d-grid">
+                            <button class="btn btn-primary btn-lg" onclick="openChatWithGuide()" style="background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 15px;">
+                                <i class="bi bi-chat-heart me-2"></i>リアルタイムチャット開始
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Widget Container -->
+                <div id="chatWidget" style="display: none;">
+                    <div class="guide-info-card">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">
+                                <i class="bi bi-chat-dots me-2"></i>ガイドとチャット
+                            </h5>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="closeChatWidget()">
+                                <i class="bi bi-x"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Chat Messages Container -->
+                        <div id="chatMessages" style="height: 300px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 10px; padding: 15px; margin-bottom: 15px; background: #f8f9fa;">
+                            <div class="chat-message system mb-3">
+                                <div class="d-flex align-items-start">
+                                    <div class="me-2">
+                                        <i class="bi bi-robot" style="color: #6c757d; font-size: 1.2rem;"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <div class="bg-light rounded p-2 small">
+                                            <strong>システム:</strong> ガイドとのチャットが開始されました。お気軽にご質問ください。
+                                        </div>
+                                        <small class="text-muted">${new Date().toLocaleTimeString('ja-JP')}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Chat Input -->
+                        <div class="d-flex gap-2">
+                            <input type="text" id="chatInput" class="form-control" placeholder="メッセージを入力..." style="border-radius: 20px;" onkeypress="handleChatKeyPress(event)">
+                            <button class="btn btn-primary" onclick="sendChatMessage()" style="background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 20px; padding: 8px 16px;">
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Quick Reply Buttons -->
+                        <div class="mt-3">
+                            <small class="text-muted">よく使われる質問:</small>
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-outline-primary me-2 mb-2" onclick="sendQuickReply('料金について詳しく教えてください')">料金について</button>
+                                <button class="btn btn-sm btn-outline-primary me-2 mb-2" onclick="sendQuickReply('観光スポットのおすすめを教えてください')">おすすめスポット</button>
+                                <button class="btn btn-sm btn-outline-primary me-2 mb-2" onclick="sendQuickReply('時間や内容の変更は可能ですか？')">時間・内容変更</button>
+                                <button class="btn btn-sm btn-outline-primary me-2 mb-2" onclick="sendQuickReply('今度の休日は空いていますか？')">空き状況</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Info -->
+                <div class="guide-info-card mt-3">
+                    <h5 class="mb-3">その他の情報</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="bi bi-shield-check me-2 text-success"></i>
+                            身元確認済み
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-translate me-2 text-info"></i>
+                            多言語対応
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-heart me-2 text-danger"></i>
+                            ホスピタリティ重視
+                        </li>
+                        <li class="mb-2">
+                            <i class="bi bi-geo me-2 text-warning"></i>
+                            地元密着型ガイド
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Get guide ID from URL parameters (enhanced with debugging)
+        function getGuideId() {
+            console.log('🔍 Getting guide ID from URL:', window.location.href);
+            console.log('🔍 Search params:', window.location.search);
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const guideId = urlParams.get('id');
+            
+            console.log('🔍 Extracted guide ID:', guideId);
+            console.log('🔍 All URL params:', Object.fromEntries(urlParams));
+            
+            if (!guideId || guideId.trim() === '') {
+                console.error('❌ No guide ID found in URL parameters');
+                return null;
+            }
+            
+            console.log('✅ Guide ID validated:', guideId);
+            return guideId.trim();
+        }
+
+        // Load guide data
+        async function loadGuideData() {
+            const guideId = getGuideId();
+            if (!guideId) {
+                alert('ガイドIDが指定されていません。');
+                goBack();
+                return;
+            }
+
+            // Check authentication - allow both tourist and guide login
+            const touristAuth = sessionStorage.getItem('touristAuth');
+            const touristData = sessionStorage.getItem('touristData') || localStorage.getItem('touristRegistrationData');
+            const guideAuth = sessionStorage.getItem('guideAuth');
+            const guideAuthData = sessionStorage.getItem('guideData');
+            
+            // Allow access if user is logged in as either tourist or guide
+            if (!touristAuth && !touristData && !guideAuth && !guideAuthData) {
+                alert('この機能をご利用いただくには観光客またはガイドとしてログインする必要があります。');
+                window.location.href = '/';
+                return;
+            }
+            
+            if (touristAuth || touristData) {
+                console.log('✅ Tourist authentication verified');
+            } else if (guideAuth || guideAuthData) {
+                console.log('✅ Guide authentication verified');
+            }
+
+            // Load guide data from API (with personal info removed)
+            const guideData = await getGuideData(guideId);
+            if (!guideData) {
+                alert('ガイド情報が見つかりません。');
+                goBack();
+                return;
+            }
+
+            displayGuideData(guideData);
+        }
+
+        // Get guide data (from API with fallback to stored data)
+        async function getGuideData(guideId) {
+            try {
+                console.log('🔍 Loading guide data for ID:', guideId);
+                
+                // Primary: Try to get guide data from API
+                try {
+                    const response = await fetch(`/api/guides/${guideId}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    console.log('📥 Primary API Response:', result);
+                    
+                    if (result.success && result.guide) {
+                        console.log('✅ Loaded guide from API:', result.guide);
+                        // Remove personal information for tourist view
+                        return sanitizeGuideDataForTourists(result.guide);
+                    } else {
+                        throw new Error(result.message || 'Guide not found in primary API');
+                    }
+                } catch (apiError) {
+                    console.warn('⚠️ Primary API request failed:', apiError.message);
+                }
+                
+                // Fallback: Try to get all guides from API
+                try {
+                    const response = await fetch('/api/guides');
+                    const result = await response.json();
+                    
+                    if (result.success && result.guides) {
+                        const guide = result.guides.find(g => g.id === guideId);
+                        if (guide) {
+                            console.log('✅ Found guide in all guides list:', guide);
+                            return sanitizeGuideDataForTourists(guide);
+                        }
+                    }
+                } catch (fallbackError) {
+                    console.warn('⚠️ Fallback API request failed:', fallbackError);
+                }
+                
+                // Final fallback: Check opener window or stored data
+                if (window.opener && window.opener.AppState && window.opener.AppState.guides) {
+                    const guide = window.opener.AppState.guides.find(g => g.id === guideId || g.id === parseInt(guideId));
+                    if (guide) {
+                        console.log('✅ Found guide in opener window state:', guide);
+                        return sanitizeGuideDataForTourists(guide);
+                    }
+                }
+                
+                // Super-final fallback: Try to match numeric ID with string ID or vice versa
+                if (window.opener && window.opener.AppState && window.opener.AppState.guides) {
+                    console.log('🔄 Attempting ID format matching...');
+                    const allGuides = window.opener.AppState.guides;
+                    
+                    // Try different ID matching strategies
+                    for (const guide of allGuides) {
+                        if (guide.id === guideId || 
+                            guide.id === parseInt(guideId) || 
+                            guide.id.toString() === guideId ||
+                            (guide.guideName && guide.guideName.includes('テスト'))) { // Fallback for test guides
+                            console.log('✅ Found guide with flexible matching:', guide);
+                            return sanitizeGuideDataForTourists(guide);
+                        }
+                    }
+                }
+                
+                console.error('❌ Guide not found with ID:', guideId);
+                return null;
+                
+            } catch (error) {
+                console.error('❌ Error loading guide data:', error);
+                return null;
+            }
+        }
+
+        // Remove personal information for tourist view
+        function sanitizeGuideDataForTourists(guide) {
+            // Create a sanitized copy without personal information
+            const sanitized = {
+                ...guide,
+                // Remove personal contact information
+                phone: undefined,
+                phoneNumber: undefined,
+                guideEmail: undefined,
+                email: undefined,
+                // Keep public profile information
+                id: guide.id,
+                name: guide.name || guide.guideName,
+                profileImage: guide.profilePhoto || guide.profileImage,
+                location: guide.location || guide.city || 'tokyo',
+                introduction: guide.introduction || guide.guideIntroduction,
+                experience: guide.experience || guide.guideExperience,
+                languages: guide.languages || guide.guideLanguages || ['日本語'],
+                specialties: guide.specialties || guide.guideSpecialties || [],
+                sessionRate: guide.sessionRate || guide.guideSessionRate || guide.price,
+                availability: guide.availability || guide.guideAvailability,
+                rating: guide.rating || guide.averageRating || 4.8,
+                status: guide.status
+            };
+            
+            console.log('🔒 Sanitized guide data for tourist view');
+            return sanitized;
+        }
+
+        // Display guide data
+        function displayGuideData(guide) {
+            document.title = `${guide.name} - ガイド詳細 - TomoTrip`;
+            
+            // Basic info (personal information excluded for tourist view)
+            document.getElementById('guideName').textContent = guide.name || '名前未設定';
+            document.getElementById('guideProfileImg').src = guide.profileImage || '/assets/images/default-avatar.jpg';
+            document.getElementById('guideLocation').innerHTML = `<i class="bi bi-geo-alt me-2"></i>${guide.location || '場所未設定'}`;
+            document.getElementById('guidePrice').textContent = guide.sessionRate || guide.price || '0';
+            
+            // Hide personal contact information from tourists
+            const phoneElement = document.getElementById('guidePhone');
+            const emailElement = document.getElementById('guideEmail');
+            
+            if (phoneElement) {
+                phoneElement.textContent = '予約確定後にお知らせします';
+                phoneElement.style.fontStyle = 'italic';
+                phoneElement.style.color = '#6c757d';
+            }
+            
+            if (emailElement) {
+                emailElement.textContent = '予約確定後にお知らせします';
+                emailElement.style.fontStyle = 'italic';
+                emailElement.style.color = '#6c757d';
+            }
+            
+            // Rating
+            const rating = guide.rating || 4.5;
+            const reviewCount = guide.reviewCount || 12;
+            document.getElementById('guideRating').innerHTML = generateStars(rating);
+            document.getElementById('reviewCount').textContent = reviewCount;
+            
+            // Languages - ローカライズして日本語表示
+            const languageMap = {
+                'japanese': '日本語',
+                'english': '英語',
+                'chinese': '中国語',
+                'korean': '韓国語',
+                'spanish': 'スペイン語',
+                'french': 'フランス語',
+                'german': 'ドイツ語',
+                'italian': 'イタリア語',
+                'portuguese': 'ポルトガル語',
+                'russian': 'ロシア語'
+            };
+            
+            let languages = guide.languages || ['日本語'];
+            if (!Array.isArray(languages)) {
+                languages = String(languages).split(',').map(l => l.trim());
+            }
+            
+            const languagesHtml = languages.map(lang => {
+                const langLower = String(lang).toLowerCase().trim();
+                const displayLang = languageMap[langLower] || lang;
+                return `<span class="language-badge">${displayLang}</span>`;
+            }).join('');
+            document.getElementById('guideLanguages').innerHTML = languagesHtml;
+            
+            // Specialties
+            let specialties = guide.specialties || [guide.specialty || '一般ガイド'];
+            if (!Array.isArray(specialties)) {
+                specialties = String(specialties).split(',').map(s => s.trim());
+            }
+            
+            const specialtiesHtml = specialties.map(spec => 
+                `<span class="specialty-tag">${spec}</span>`
+            ).join('');
+            document.getElementById('guideSpecialties').innerHTML = specialtiesHtml;
+            
+            // Description - introductionフィールドを優先
+            const description = guide.introduction || guide.description || 
+                `${guide.name}さんは経験豊富な地元ガイドです。この地域の魅力を知り尽くし、お客様に最高の体験をお届けします。`;
+            document.getElementById('guideDescription').textContent = description;
+            
+            // Experience
+            document.getElementById('guideExperience').innerHTML = `
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="bi bi-check-circle me-2 text-success"></i>ガイド歴: ${guide.experience || '3年'}</li>
+                    <li class="mb-2"><i class="bi bi-check-circle me-2 text-success"></i>実績: ${guide.tourCount || '200'}回以上のツアー実施</li>
+                    <li class="mb-2"><i class="bi bi-check-circle me-2 text-success"></i>満足度: ${rating}/5.0</li>
+                    <li class="mb-2"><i class="bi bi-check-circle me-2 text-success"></i>得意分野: ${guide.specialty || '文化・歴史ガイド'}</li>
+                </ul>
+            `;
+            
+            // Gallery
+            const galleryImages = guide.gallery || [
+                '/assets/images/tour1.jpg',
+                '/assets/images/tour2.jpg',
+                '/assets/images/tour3.jpg'
+            ];
+            const galleryHtml = galleryImages.map(img => `
+                <div class="col-md-6">
+                    <img src="${img}" alt="ツアー写真" class="gallery-img">
+                </div>
+            `).join('');
+            document.getElementById('guideGallery').innerHTML = galleryHtml;
+            
+            // Tour Plans section is now static HTML (recommended-services)
+            
+            // Reviews
+            const reviews = guide.reviews || [
+                { name: '田中様', rating: 5, comment: '素晴らしいガイドでした！地元の隠れた名所を教えてもらい、とても楽しい時間を過ごせました。' },
+                { name: '佐藤様', rating: 4, comment: '親切で丁寧な説明をしてくれました。また機会があればお願いしたいです。' }
+            ];
+            const reviewsHtml = reviews.map(review => `
+                <div class="border-bottom pb-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <strong>${review.name}</strong>
+                        <div class="rating-stars">${generateStars(review.rating)}</div>
+                    </div>
+                    <p class="mb-0 text-muted">${review.comment}</p>
+                </div>
+            `).join('');
+            document.getElementById('guideReviews').innerHTML = reviewsHtml;
+        }
+
+        // Generate star rating
+        function generateStars(rating) {
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 !== 0;
+            let stars = '';
+            
+            for (let i = 0; i < fullStars; i++) {
+                stars += '<i class="bi bi-star-fill"></i>';
+            }
+            
+            if (hasHalfStar) {
+                stars += '<i class="bi bi-star-half"></i>';
+            }
+            
+            const emptyStars = 5 - Math.ceil(rating);
+            for (let i = 0; i < emptyStars; i++) {
+                stars += '<i class="bi bi-star"></i>';
+            }
+            
+            return stars;
+        }
+
+        // Default guide data fallback
+        function getDefaultGuides() {
+            return [
+                {
+                    id: 1,
+                    name: "田中 太郎",
+                    location: "東京",
+                    price: 8000,
+                    rating: 4.8,
+                    languages: ["日本語", "英語"],
+                    specialty: "歴史・文化ガイド",
+                    description: "東京の歴史と文化に精通した経験豊富なガイドです。",
+                    phone: "090-1234-5678",
+                    email: "tanaka@example.com"
+                }
+            ];
+        }
+
+        // Navigation functions
+        function goBack() {
+            if (window.history.length > 1) {
+                window.history.back();
+            } else {
+                window.location.href = '/index.html';
+            }
+        }
+
+        function bookGuide() {
+            const guideId = getGuideId();
+            
+            // Check authentication - allow both tourist and guide login
+            const touristAuth = sessionStorage.getItem('touristAuth');
+            const touristData = sessionStorage.getItem('touristData') || localStorage.getItem('touristRegistrationData');
+            const guideAuth = sessionStorage.getItem('guideAuth');
+            const guideAuthData = sessionStorage.getItem('guideData');
+            
+            if (!touristAuth && !touristData && !guideAuth && !guideAuthData) {
+                alert('予約機能をご利用いただくには観光客またはガイドとしてログインする必要があります。');
+                window.location.href = '/';
+                return;
+            }
+            
+            console.log('🎯 予約ボタンが押されました - ガイドID:', guideId);
+            alert('予約機能は開発中です。まもなく利用可能になります。');
+            // TODO: 実際の予約システムが実装されたら有効化
+            // window.location.href = `/booking.html?guide=${guideId}`;
+        }
+
+        function contactGuide() {
+            const guideId = getGuideId();
+            
+            // Check authentication - allow both tourist and guide login
+            const touristAuth = sessionStorage.getItem('touristAuth');
+            const touristData = sessionStorage.getItem('touristData') || localStorage.getItem('touristRegistrationData');
+            const guideAuth = sessionStorage.getItem('guideAuth');
+            const guideAuthData = sessionStorage.getItem('guideData');
+            
+            if (!touristAuth && !touristData && !guideAuth && !guideAuthData) {
+                alert('問い合わせ機能をご利用いただくには観光客またはガイドとしてログインする必要があります。');
+                window.location.href = '/';
+                return;
+            }
+            
+            console.log('🎯 問い合わせボタンが押されました - ガイドID:', guideId);
+            
+            // Scroll to contact information section
+            const contactSection = document.getElementById('contact-guide');
+            if (contactSection) {
+                contactSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+                // Highlight the contact section briefly
+                contactSection.style.border = '3px solid #007bff';
+                contactSection.style.borderRadius = '15px';
+                setTimeout(() => {
+                    contactSection.style.border = '';
+                }, 2000);
+                
+                alert('連絡先情報をご確認ください。直接お電話またはメールでお問い合わせいただけます。');
+            } else {
+                alert(`ガイドID: ${guideId} への問い合わせ機能は開発中です。`);
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', loadGuideData);
+
+        // Chat functionality
+        let chatMessages = [];
+        let guideOnline = Math.random() > 0.3; // Simulate guide online status
+
+        function openChatWithGuide() {
+            console.log('🗨️ Opening chat with guide');
+            
+            const chatWidget = document.getElementById('chatWidget');
+            if (chatWidget) {
+                chatWidget.style.display = 'block';
+                
+                // Initialize chat if first time opening
+                if (chatMessages.length === 0) {
+                    initializeChat();
+                }
+                
+                // Scroll to chat widget
+                chatWidget.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function closeChatWidget() {
+            console.log('🗨️ Closing chat widget');
+            const chatWidget = document.getElementById('chatWidget');
+            if (chatWidget) {
+                chatWidget.style.display = 'none';
+            }
+        }
+
+        function initializeChat() {
+            console.log('🗨️ Initializing chat');
+            
+            // Add welcome message from guide
+            setTimeout(() => {
+                const guideName = document.getElementById('guideName')?.textContent || 'ガイド';
+                addChatMessage('guide', `こんにちは！${guideName}です。ご質問やご要望がございましたら、お気軽にどうぞ！`, true);
+            }, 1000);
+            
+            // Show guide status
+            setTimeout(() => {
+                const statusMessage = guideOnline ? 
+                    'ガイドは現在オンラインです 🟢' : 
+                    'ガイドは現在オフラインです 🔴 返信に時間がかかる場合があります';
+                addChatMessage('system', statusMessage, false);
+            }, 2000);
+        }
+
+        function sendChatMessage() {
+            const chatInput = document.getElementById('chatInput');
+            const message = chatInput.value.trim();
+            
+            if (!message) return;
+            
+            console.log('🗨️ Sending message:', message);
+            
+            // Add user message
+            addChatMessage('user', message, true);
+            chatInput.value = '';
+            
+            // Simulate guide response
+            simulateGuideResponse(message);
+        }
+
+        function sendQuickReply(message) {
+            console.log('🗨️ Sending quick reply:', message);
+            
+            // Add user message
+            addChatMessage('user', message, true);
+            
+            // Simulate guide response
+            simulateGuideResponse(message);
+        }
+
+        function addChatMessage(sender, message, showTime) {
+            console.log('🗨️ Adding chat message:', sender, message);
+            
+            const chatMessagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${sender} mb-3`;
+            
+            const currentTime = new Date().toLocaleTimeString('ja-JP');
+            
+            let senderIcon = '';
+            let senderName = '';
+            let messageClass = '';
+            
+            switch(sender) {
+                case 'user':
+                    senderIcon = '<i class="bi bi-person-circle" style="color: #007bff; font-size: 1.2rem;"></i>';
+                    senderName = 'あなた';
+                    messageClass = 'bg-primary text-white ms-auto';
+                    break;
+                case 'guide':
+                    senderIcon = '<i class="bi bi-person-badge" style="color: #28a745; font-size: 1.2rem;"></i>';
+                    senderName = document.getElementById('guideName')?.textContent || 'ガイド';
+                    messageClass = 'bg-light';
+                    break;
+                case 'system':
+                    senderIcon = '<i class="bi bi-info-circle" style="color: #6c757d; font-size: 1.2rem;"></i>';
+                    senderName = 'システム';
+                    messageClass = 'bg-warning';
+                    break;
+            }
+            
+            messageDiv.innerHTML = `
+                <div class="d-flex align-items-start ${sender === 'user' ? 'justify-content-end' : ''}">
+                    ${sender !== 'user' ? `<div class="me-2">${senderIcon}</div>` : ''}
+                    <div class="flex-grow-1 ${sender === 'user' ? 'text-end' : ''}">
+                        <div class="${messageClass} rounded p-2 small" style="max-width: 80%; ${sender === 'user' ? 'margin-left: auto;' : ''}">
+                            ${sender !== 'user' ? `<strong>${senderName}:</strong> ` : ''}${message}
+                        </div>
+                        ${showTime ? `<small class="text-muted">${currentTime}</small>` : ''}
+                    </div>
+                    ${sender === 'user' ? `<div class="ms-2">${senderIcon}</div>` : ''}
+                </div>
+            `;
+            
+            chatMessagesContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+            
+            // Add to chat history
+            chatMessages.push({
+                sender,
+                message,
+                timestamp: currentTime
+            });
+        }
+
+        function simulateGuideResponse(userMessage) {
+            if (!guideOnline) return;
+            
+            // Simulate typing delay
+            setTimeout(() => {
+                let response = getGuideResponse(userMessage);
+                addChatMessage('guide', response, true);
+            }, Math.random() * 2000 + 1000); // 1-3 seconds delay
+        }
+
+        function getGuideResponse(userMessage) {
+            const message = userMessage.toLowerCase();
+            
+            // Predefined responses based on keywords
+            if (message.includes('料金') || message.includes('価格') || message.includes('費用')) {
+                return 'ガイド料金は時間制となっております。詳細については個別にご相談させていただきますが、基本的には表示されている料金が目安となります。交通費等は別途実費をお願いしています。';
+            }
+            
+            if (message.includes('おすすめ') || message.includes('スポット') || message.includes('観光')) {
+                return 'この地域には素晴らしい観光スポットがたくさんあります！お客様の興味やご希望に合わせて、最適なコースをご提案いたします。歴史、グルメ、自然、文化など、何に興味がおありでしょうか？';
+            }
+            
+            if (message.includes('時間') || message.includes('変更') || message.includes('内容')) {
+                return 'はい、時間や内容の変更は可能です！お客様のご都合や興味に合わせて柔軟に対応いたします。事前にご相談いただければ、最適なプランを一緒に考えさせていただきます。';
+            }
+            
+            if (message.includes('空い') || message.includes('予約') || message.includes('日程')) {
+                return '空き状況については、具体的なご希望日時をお教えいただければ確認いたします。平日・土日問わず対応可能ですが、人気の時期は早めのご予約をおすすめします。';
+            }
+            
+            if (message.includes('言語') || message.includes('英語') || message.includes('中国語')) {
+                return '多言語対応しております！プロフィールに記載の言語でガイドできますので、お客様のご希望言語でご案内いたします。';
+            }
+            
+            // Default responses
+            const defaultResponses = [
+                'ありがとうございます！詳しくお話をお聞かせください。',
+                'お気軽にご質問ください。この地域のことでしたら何でもお答えします！',
+                'ご要望に合わせて最適なプランをご提案いたします。',
+                'お客様に素晴らしい体験をしていただけるよう努めます！',
+                'どのようなことでもお気軽にお尋ねください。'
+            ];
+            
+            return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+        }
+
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendChatMessage();
+            }
+        }
+    </script>
+</body>
+</html>

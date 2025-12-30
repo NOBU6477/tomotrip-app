@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>店舗管理ダッシュボード - TomoTrip</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/icons.css">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; script-src 'self' https://cdn.jsdelivr.net; font-src 'self' data:; img-src 'self' data:; connect-src 'self';">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f8f9ff, #e6f3ff);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .store-header {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 2rem 0;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+        
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+            border: none;
+            height: 100%;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stats-card.primary {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+        
+        .stats-card.success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+        
+        .stats-card.warning {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            color: white;
+        }
+        
+        .stats-card.info {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+        }
+        
+        .content-container {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .btn-store {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-store:hover {
+            background: linear-gradient(135deg, #20c997, #17a2b8);
+            transform: translateY(-2px);
+            color: white;
+        }
+        
+        .nav-pills .nav-link.active {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border-radius: 10px;
+        }
+        
+        .store-logo {
+            width: 100px;
+            height: 100px;
+            border-radius: 15px;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .status-badge.active {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+        }
+        
+        .status-badge.pending {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- ヘッダー -->
+    <div class="store-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-2">
+                    <img src="assets/img/guides/default-1.svg" alt="店舗ロゴ" class="store-logo">
+                </div>
+                <div class="col-md-6">
+                    <h1 class="h2 mb-1" id="storeName">浅草観光案内所</h1>
+                    <p class="mb-0 opacity-75" id="storeCategory">観光案内・文化体験</p>
+                    <p class="mb-0 opacity-75" id="storeLocation">
+                        <i class="bi bi-geo-alt me-1"></i>東京都台東区浅草
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <span class="status-badge active mb-2 d-inline-block">
+                        <i class="bi bi-check-circle me-1"></i>アクティブ
+                    </span>
+                    <br>
+                    <a href="index.html" class="btn btn-outline-light me-2">
+                        <i class="bi bi-house me-1"></i>ホーム
+                    </a>
+                    <button class="btn btn-light" id="logoutBtn">
+                        <i class="bi bi-box-arrow-right me-1"></i>ログアウト
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container my-5">
+        <!-- 統計カード -->
+        <div class="row mb-5">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stats-card primary">
+                    <i class="bi bi-eye" style="font-size: 2.5rem;"></i>
+                    <h3 class="mt-3 mb-1">245</h3>
+                    <p class="mb-0">今月の閲覧数</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stats-card success">
+                    <i class="bi bi-calendar-check" style="font-size: 2.5rem;"></i>
+                    <h3 class="mt-3 mb-1">18</h3>
+                    <p class="mb-0">今月の予約</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stats-card warning">
+                    <i class="bi bi-star-fill" style="font-size: 2.5rem;"></i>
+                    <h3 class="mt-3 mb-1">4.8</h3>
+                    <p class="mb-0">平均評価</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="stats-card info">
+                    <i class="bi bi-chat-dots" style="font-size: 2.5rem;"></i>
+                    <h3 class="mt-3 mb-1">24</h3>
+                    <p class="mb-0">レビュー数</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 効果測定カード -->
+        <div class="row mb-5">
+            <div class="col-md-6 mb-4">
+                <div id="store-effect-card">
+                    <div class="placeholder-glow">
+                        <div class="placeholder col-12" style="height: 200px;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div id="top-contributors">
+                    <div class="placeholder-glow">
+                        <div class="placeholder col-12" style="height: 200px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- タブナビゲーション -->
+        <div class="row">
+            <div class="col-12">
+                <ul class="nav nav-pills mb-4" id="storeTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="profile-tab" data-bs-toggle="pill" data-bs-target="#profile" type="button" role="tab">
+                            <i class="bi bi-building me-2"></i>店舗プロフィール
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="reservations-tab" data-bs-toggle="pill" data-bs-target="#reservations" type="button" role="tab">
+                            <i class="bi bi-calendar-event me-2"></i>予約管理
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="reviews-tab" data-bs-toggle="pill" data-bs-target="#reviews" type="button" role="tab">
+                            <i class="bi bi-star me-2"></i>レビュー
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="analytics-tab" data-bs-toggle="pill" data-bs-target="#analytics" type="button" role="tab">
+                            <i class="bi bi-graph-up me-2"></i>分析
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- タブコンテンツ -->
+        <div class="tab-content" id="storeTabsContent">
+            <!-- 店舗プロフィールタブ -->
+            <div class="tab-pane fade show active" id="profile" role="tabpanel">
+                <div class="content-container">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5 class="mb-4">店舗情報</h5>
+                            <form id="storeProfileForm">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="editStoreName" class="form-label">店舗名</label>
+                                        <input type="text" class="form-control" id="editStoreName" value="浅草観光案内所">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="editStoreCategory" class="form-label">カテゴリ</label>
+                                        <select class="form-select" id="editStoreCategory">
+                                            <option value="観光案内" selected>観光案内</option>
+                                            <option value="レストラン">レストラン</option>
+                                            <option value="文化体験">文化体験</option>
+                                            <option value="ショッピング">ショッピング</option>
+                                            <option value="宿泊施設">宿泊施設</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="editStoreDescription" class="form-label">店舗説明</label>
+                                    <textarea class="form-control" id="editStoreDescription" rows="4">浅草の伝統と文化を深く知ることができる観光案内所です。地元のガイドが親切丁寧にご案内いたします。</textarea>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="editStoreAddress" class="form-label">住所</label>
+                                        <input type="text" class="form-control" id="editStoreAddress" value="東京都台東区浅草1-1-1">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="editStorePhone" class="form-label">電話番号</label>
+                                        <input type="tel" class="form-control" id="editStorePhone" value="03-1234-5678">
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="editStoreEmail" class="form-label">メールアドレス</label>
+                                        <input type="email" class="form-control" id="editStoreEmail" value="info@asakusa-guide.jp">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="editStoreWebsite" class="form-label">ウェブサイト</label>
+                                        <input type="url" class="form-control" id="editStoreWebsite" value="https://asakusa-guide.jp">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="editStoreHours" class="form-label">営業時間</label>
+                                    <input type="text" class="form-control" id="editStoreHours" value="9:00-18:00（年中無休）">
+                                </div>
+                                
+                                <button type="submit" class="btn btn-store">
+                                    <i class="bi bi-check-circle me-2"></i>変更を保存
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <h5 class="mb-4">店舗画像</h5>
+                            <div class="text-center mb-3">
+                                <img src="assets/img/guides/default-1.svg" alt="店舗画像" class="store-logo mb-3" style="width: 150px; height: 150px;">
+                                <br>
+                                <button class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-camera me-1"></i>画像を変更
+                                </button>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h6>観光案内所情報</h6>
+                                <ul class="list-unstyled">
+                                    <li class="mb-2">
+                                        <i class="bi bi-calendar3 text-primary me-2"></i>
+                                        開業日: 2024-01-15
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="bi bi-people text-success me-2"></i>
+                                        アクティブガイド: 8名
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="bi bi-star text-warning me-2"></i>
+                                        体験プログラム: 12種類
+                                    </li>
+                                    <li class="mb-2">
+                                        <i class="bi bi-translate text-info me-2"></i>
+                                        対応言語: 日本語・英語・中国語
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h6>今月の実績</h6>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <div class="bg-light p-2 rounded text-center">
+                                            <small class="text-muted">総予約数</small>
+                                            <div class="fw-bold text-success">156件</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="bg-light p-2 rounded text-center">
+                                            <small class="text-muted">満足度</small>
+                                            <div class="fw-bold text-primary">4.8★</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 予約管理タブ -->
+            <div class="tab-pane fade" id="reservations" role="tabpanel">
+                <div class="content-container">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5>予約一覧</h5>
+                        <div>
+                            <a href="guide-registration.html" class="btn btn-outline-success me-2">
+                                <i class="bi bi-person-plus me-1"></i>ガイド募集
+                            </a>
+                            <button class="btn btn-store" onclick="addReservation()">
+                                <i class="bi bi-plus-circle me-2"></i>手動予約追加
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>予約日時</th>
+                                    <th>お客様名</th>
+                                    <th>人数</th>
+                                    <th>連絡先</th>
+                                    <th>ステータス</th>
+                                    <th>アクション</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2024-08-30 14:00</td>
+                                    <td>田中太郎</td>
+                                    <td>4名</td>
+                                    <td>tanaka@example.com</td>
+                                    <td><span class="badge bg-success">確定</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary me-1">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-chat"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>2024-08-31 10:00</td>
+                                    <td>佐藤花子</td>
+                                    <td>2名</td>
+                                    <td>sato@example.com</td>
+                                    <td><span class="badge bg-warning">保留中</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary me-1">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-chat"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- レビュータブ -->
+            <div class="tab-pane fade" id="reviews" role="tabpanel">
+                <div class="content-container">
+                    <h5 class="mb-4">お客様レビュー</h5>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-3 text-center">
+                            <h2 class="text-primary">4.8</h2>
+                            <div class="mb-2">
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-fill text-warning"></i>
+                                <i class="bi bi-star-half text-warning"></i>
+                            </div>
+                            <p class="text-muted">24件のレビュー</p>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="mb-2">
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">5星</span>
+                                    <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                        <div class="progress-bar bg-warning" style="width: 70%"></div>
+                                    </div>
+                                    <span class="text-muted">17</span>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">4星</span>
+                                    <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                        <div class="progress-bar bg-warning" style="width: 20%"></div>
+                                    </div>
+                                    <span class="text-muted">5</span>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">3星</span>
+                                    <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                        <div class="progress-bar bg-warning" style="width: 8%"></div>
+                                    </div>
+                                    <span class="text-muted">2</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- レビュー一覧 -->
+                    <div class="border-top pt-4">
+                        <div class="mb-4">
+                            <div class="d-flex align-items-start">
+                                <div class="me-3">
+                                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        <span class="text-white fw-bold">田</span>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <strong class="me-2">田中太郎</strong>
+                                        <div class="me-2">
+                                            <i class="bi bi-star-fill text-warning"></i>
+                                            <i class="bi bi-star-fill text-warning"></i>
+                                            <i class="bi bi-star-fill text-warning"></i>
+                                            <i class="bi bi-star-fill text-warning"></i>
+                                            <i class="bi bi-star-fill text-warning"></i>
+                                        </div>
+                                        <small class="text-muted">2024-08-25</small>
+                                    </div>
+                                    <p class="mb-2">とても親切で丁寧なガイドをしていただきました。浅草の歴史や文化について詳しく教えてもらい、とても勉強になりました。また利用したいです。</p>
+                                    <button class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-reply me-1"></i>返信
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 分析タブ -->
+            <div class="tab-pane fade" id="analytics" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="content-container">
+                            <h5 class="mb-3">月別閲覧数推移</h5>
+                            <div class="text-center p-4">
+                                <i class="bi bi-graph-up" style="font-size: 3rem; color: #28a745;"></i>
+                                <p class="mt-3 text-muted">チャート機能は開発中です</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="content-container">
+                            <h5 class="mb-3">予約傾向</h5>
+                            <div class="text-center p-4">
+                                <i class="bi bi-calendar-event" style="font-size: 3rem; color: #007bff;"></i>
+                                <p class="mt-3 text-muted">分析機能は開発中です</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Store Dashboard External JavaScript (CSP Compliant) -->
+    <script src="assets/js/store-dashboard.js?v=1761882644"></script>
+    <!-- Feature Flags and Effect Cards -->
+    <script src="/js/feature-flags.js"></script>
+    <script src="/js/store-effect-card.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        // Accept both 'id' (new) and 'storeId' (legacy) parameters for compatibility
+        const storeId = urlParams.get('id') || urlParams.get('storeId');
+        if (storeId) {
+            document.body.dataset.storeId = storeId;
+            window.STORE_ID = storeId;
+            console.log('✅ Store ID loaded from URL:', storeId);
+        } else {
+            const storageId = localStorage.getItem('currentStoreId');
+            if (storageId) {
+                document.body.dataset.storeId = storageId;
+                window.STORE_ID = storageId;
+                console.log('✅ Store ID loaded from localStorage:', storageId);
+            } else {
+                console.warn('⚠️ No store ID found in URL or localStorage');
+            }
+        }
+    </script>
+</body>
+</html>

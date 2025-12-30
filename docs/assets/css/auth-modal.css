@@ -1,0 +1,83 @@
+/* Authentication Modal Styles */
+
+/* Force proper modal positioning */
+.modal {
+    z-index: 9999 !important;
+}
+
+.modal-backdrop {
+    z-index: 9998 !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Centered modal positioning */
+.modal-dialog-centered {
+    display: flex !important;
+    align-items: center !important;
+    min-height: calc(100% - 3.5rem) !important;
+}
+
+/* Enhanced modal appearance */
+.modal-content {
+    border: none !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
+    border-radius: 15px !important;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #007bff, #0056b3) !important;
+    color: white !important;
+    border-radius: 15px 15px 0 0 !important;
+    border-bottom: none !important;
+}
+
+.modal-header .modal-title {
+    color: white !important;
+}
+
+.modal-header .btn-close {
+    filter: invert(1) !important;
+    opacity: 0.8 !important;
+}
+
+.modal-header .btn-close:hover {
+    opacity: 1 !important;
+}
+
+/* Form styling */
+.modal-body .form-control {
+    border-radius: 8px !important;
+    border: 1px solid #ddd !important;
+    padding: 10px 15px !important;
+}
+
+.modal-body .form-control:focus {
+    border-color: #007bff !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25) !important;
+}
+
+.modal-body .btn {
+    border-radius: 8px !important;
+    padding: 10px 20px !important;
+}
+
+/* Prevent body scroll when modal is open */
+body.modal-open {
+    overflow: hidden !important;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 576px) {
+    .modal-dialog {
+        max-width: calc(100% - 2rem) !important;
+        margin: 1rem !important;
+    }
+    
+    .modal-content {
+        border-radius: 10px !important;
+    }
+    
+    .modal-header {
+        border-radius: 10px 10px 0 0 !important;
+    }
+}

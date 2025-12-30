@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ガイド登録 - TomoTrip</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .guide-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+            margin: 2rem 0;
+            overflow: hidden;
+        }
+        
+        .guide-header {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .progress-container {
+            background: #f8f9fa;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .progress-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .step-number.active {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+        
+        .step-number.completed {
+            background: #28a745;
+            color: white;
+        }
+        
+        .step-number.pending {
+            background: #e9ecef;
+            color: #6c757d;
+        }
+        
+        .step-content {
+            padding: 2rem;
+        }
+        
+        .form-floating {
+            margin-bottom: 1rem;
+        }
+        
+        .btn-guide {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-guide:hover {
+            background: linear-gradient(135deg, #20c997, #17a2b8);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .verification-code-input {
+            text-align: center;
+            font-size: 24px;
+            letter-spacing: 10px;
+            padding: 15px;
+            border: 2px solid #28a745;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        
+        .upload-area {
+            border: 2px dashed #28a745;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            background: #f8f9fa;
+            margin: 1rem 0;
+            transition: all 0.3s ease;
+        }
+        
+        .upload-area:hover {
+            background: #e8f5e8;
+            border-color: #20c997;
+        }
+        
+        .upload-area.drag-over {
+            background: #d4edda;
+            border-color: #155724;
+        }
+        
+        .preview-image {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 10px;
+            border: 2px solid #28a745;
+            margin: 10px;
+            object-fit: cover;
+        }
+        
+        .file-info {
+            background: #e8f5e8;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #28a745;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .step-content {
+            display: none;
+        }
+        
+        .step-content.active {
+            display: block;
+        }
+        
+        .alert {
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+        
+        .countdown {
+            font-weight: bold;
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="guide-container">
+                    <div class="guide-header">
+                        <h1><i class="bi bi-person-plus-fill me-2"></i>ガイド登録</h1>
+                        <p class="mb-0">TomoTrip - プロフェッショナルガイド登録システム</p>
+                    </div>
+                    
+                    <!-- Progress Indicator -->
+                    <div class="progress-container">
+                        <div class="progress-step">
+                            <div class="step-number active" id="step1-indicator">1</div>
+                            <span>基本情報入力</span>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-number pending" id="step2-indicator">2</div>
+                            <span>電話番号認証</span>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-number pending" id="step3-indicator">3</div>
+                            <span>書類提出・登録完了</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 1: Basic Information -->
+                    <div id="step1" class="step-content active">
+                        <div class="step-content">
+                            <h3 class="mb-4"><i class="bi bi-person-circle me-2"></i>基本情報</h3>
+                            
+                            <form id="basicInfoForm">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="text" class="form-control" id="guideName" required>
+                                            <label for="guideName"><i class="bi bi-person me-1"></i>お名前 *</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="email" class="form-control" id="guideEmail" required>
+                                            <label for="guideEmail"><i class="bi bi-envelope me-1"></i>メールアドレス *</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="tel" class="form-control" id="guidePhone" required placeholder="090-1234-5678">
+                                            <label for="guidePhone"><i class="bi bi-telephone me-1"></i>電話番号 *</label>
+                                        </div>
+                                        <small class="text-muted">SMS認証に使用します</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <select class="form-control" id="guideGender" required>
+                                                <option value="">選択してください</option>
+                                                <option value="male">男性</option>
+                                                <option value="female">女性</option>
+                                                <option value="other">その他</option>
+                                            </select>
+                                            <label for="guideGender"><i class="bi bi-people me-1"></i>性別 *</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="number" class="form-control" id="guideAge" min="18" max="80" required>
+                                            <label for="guideAge"><i class="bi bi-calendar me-1"></i>年齢 *</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <select class="form-control" id="guideExperience" required>
+                                                <option value="">選択してください</option>
+                                                <option value="beginner">初心者（1年未満）</option>
+                                                <option value="intermediate">中級者（1-3年）</option>
+                                                <option value="advanced">上級者（3年以上）</option>
+                                            </select>
+                                            <label for="guideExperience"><i class="bi bi-award me-1"></i>ガイド経験 *</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-floating">
+                                    <select class="form-control" id="guideLocation" required>
+                                        <option value="">選択してください</option>
+                                        <option value="北海道">北海道</option>
+                                        <option value="青森県">青森県</option>
+                                        <option value="岩手県">岩手県</option>
+                                        <option value="宮城県">宮城県</option>
+                                        <option value="秋田県">秋田県</option>
+                                        <option value="山形県">山形県</option>
+                                        <option value="福島県">福島県</option>
+                                        <option value="茨城県">茨城県</option>
+                                        <option value="栃木県">栃木県</option>
+                                        <option value="群馬県">群馬県</option>
+                                        <option value="埼玉県">埼玉県</option>
+                                        <option value="千葉県">千葉県</option>
+                                        <option value="東京都">東京都</option>
+                                        <option value="神奈川県">神奈川県</option>
+                                        <option value="新潟県">新潟県</option>
+                                        <option value="富山県">富山県</option>
+                                        <option value="石川県">石川県</option>
+                                        <option value="福井県">福井県</option>
+                                        <option value="山梨県">山梨県</option>
+                                        <option value="長野県">長野県</option>
+                                        <option value="岐阜県">岐阜県</option>
+                                        <option value="静岡県">静岡県</option>
+                                        <option value="愛知県">愛知県</option>
+                                        <option value="三重県">三重県</option>
+                                        <option value="滋賀県">滋賀県</option>
+                                        <option value="京都府">京都府</option>
+                                        <option value="大阪府">大阪府</option>
+                                        <option value="兵庫県">兵庫県</option>
+                                        <option value="奈良県">奈良県</option>
+                                        <option value="和歌山県">和歌山県</option>
+                                        <option value="鳥取県">鳥取県</option>
+                                        <option value="島根県">島根県</option>
+                                        <option value="岡山県">岡山県</option>
+                                        <option value="広島県">広島県</option>
+                                        <option value="山口県">山口県</option>
+                                        <option value="徳島県">徳島県</option>
+                                        <option value="香川県">香川県</option>
+                                        <option value="愛媛県">愛媛県</option>
+                                        <option value="高知県">高知県</option>
+                                        <option value="福岡県">福岡県</option>
+                                        <option value="佐賀県">佐賀県</option>
+                                        <option value="長崎県">長崎県</option>
+                                        <option value="熊本県">熊本県</option>
+                                        <option value="大分県">大分県</option>
+                                        <option value="宮崎県">宮崎県</option>
+                                        <option value="鹿児島県">鹿児島県</option>
+                                        <option value="沖縄県">沖縄県</option>
+                                    </select>
+                                    <label for="guideLocation"><i class="bi bi-geo-alt me-1"></i>主な活動エリア *</label>
+                                </div>
+                                
+                                <div class="form-floating">
+                                    <select class="form-control" id="guideLanguages" multiple required size="6">
+                                        <option value="japanese">日本語</option>
+                                        <option value="english">英語</option>
+                                        <option value="chinese">中国語</option>
+                                        <option value="korean">韓国語</option>
+                                        <option value="spanish">スペイン語</option>
+                                        <option value="french">フランス語</option>
+                                        <option value="german">ドイツ語</option>
+                                        <option value="portuguese">ポルトガル語</option>
+                                        <option value="thai">タイ語</option>
+                                        <option value="vietnamese">ベトナム語</option>
+                                        <option value="indonesian">インドネシア語</option>
+                                    </select>
+                                    <label for="guideLanguages"><i class="bi bi-translate me-1"></i>対応言語 * (複数選択可)</label>
+                                </div>
+                                
+                                <div class="form-floating">
+                                    <textarea class="form-control" id="guideIntroduction" style="height: 120px" required maxlength="500"></textarea>
+                                    <label for="guideIntroduction"><i class="bi bi-card-text me-1"></i>自己紹介・PR *</label>
+                                </div>
+                                <small class="text-muted">500文字以内でご入力ください</small>
+                                
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="guideSpecialties" required placeholder="例: 歴史・文化, 食べ歩き, 自然散策">
+                                    <label for="guideSpecialties"><i class="bi bi-star me-1"></i>専門分野・得意ジャンル *</label>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <input type="number" class="form-control" id="guideSessionRate" min="1000" max="50000" step="500" required>
+                                            <label for="guideSessionRate"><i class="bi bi-currency-yen me-1"></i>料金（1時間あたり） *</label>
+                                        </div>
+                                        <small class="text-muted">税込み価格を入力してください</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-floating">
+                                            <select class="form-control" id="guideAvailability" required>
+                                                <option value="">選択してください</option>
+                                                <option value="weekdays">平日のみ</option>
+                                                <option value="weekends">週末のみ</option>
+                                                <option value="flexible">平日・週末問わず</option>
+                                            </select>
+                                            <label for="guideAvailability"><i class="bi bi-calendar-week me-1"></i>対応可能時間 *</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-end mt-4">
+                                    <button type="submit" class="btn btn-guide">
+                                        <i class="bi bi-arrow-right me-1"></i>電話番号認証へ進む
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Phone Verification -->
+                    <div id="step2" class="step-content">
+                        <div class="step-content">
+                            <h3 class="mb-4"><i class="bi bi-phone me-2"></i>電話番号認証</h3>
+                            
+                            <div id="phoneVerificationSend">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    入力された電話番号にSMS認証コードを送信します。
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <strong>電話番号:</strong> <span id="displayPhoneNumber"></span>
+                                </div>
+                                
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-guide" id="sendVerificationBtn">
+                                        <i class="bi bi-send me-1"></i>認証コードを送信
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" onclick="goToStep(1)">
+                                        <i class="bi bi-arrow-left me-1"></i>戻る
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div id="phoneVerificationVerify" style="display: none;">
+                                <div class="alert alert-success">
+                                    <i class="bi bi-check-circle me-2"></i>
+                                    認証コードを <strong id="sentToNumber"></strong> に送信しました。
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">認証コード（6桁）</label>
+                                    <input type="text" class="form-control verification-code-input" id="verificationCode" 
+                                           maxlength="6" pattern="[0-9]{6}" placeholder="123456">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <small class="text-muted">
+                                        コードの有効期限: <span class="countdown" id="codeExpiry">5:00</span>
+                                    </small>
+                                </div>
+                                
+                                <div class="d-flex gap-2">
+                                    <button type="button" class="btn btn-guide" id="verifyCodeBtn">
+                                        <i class="bi bi-check-lg me-1"></i>認証する
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" id="resendCodeBtn">
+                                        <i class="bi bi-arrow-repeat me-1"></i>再送信
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Document Upload -->
+                    <div id="step3" class="step-content">
+                        <div class="step-content">
+                            <h3 class="mb-4"><i class="bi bi-file-earmark-upload me-2"></i>書類提出・登録完了</h3>
+                            
+                            <!-- Profile Photo Upload -->
+                            <div class="mb-4">
+                                <h5><i class="bi bi-person-circle me-2"></i>プロフィール写真</h5>
+                                <div class="upload-area" id="profilePhotoUpload">
+                                    <i class="bi bi-camera display-4 text-muted"></i>
+                                    <p class="mt-2 mb-1">プロフィール写真をアップロード</p>
+                                    <small class="text-muted">JPG, PNG形式 / 最大5MB</small>
+                                    <input type="file" class="d-none" id="profilePhotoInput" accept="image/jpeg,image/png">
+                                </div>
+                                <div id="profilePhotoPreview"></div>
+                            </div>
+                            
+                            <!-- Document Upload -->
+                            <div class="mb-4">
+                                <h5><i class="bi bi-file-earmark-text me-2"></i>身分証明書類</h5>
+                                <div class="upload-area" id="documentUpload">
+                                    <i class="bi bi-file-earmark-plus display-4 text-muted"></i>
+                                    <p class="mt-2 mb-1">身分証明書をアップロード</p>
+                                    <small class="text-muted">運転免許証、パスポート、マイナンバーカード等 / JPG, PNG形式 / 最大5MB / 複数可</small>
+                                    <input type="file" class="d-none" id="documentInput" accept="image/jpeg,image/png" multiple>
+                                </div>
+                                <div id="documentPreview"></div>
+                            </div>
+                            
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                <strong>注意:</strong> アップロードされた書類は審査のためにのみ使用され、適切に管理されます。
+                            </div>
+                            
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-guide" id="completeRegistrationBtn">
+                                    <i class="bi bi-check-circle me-1"></i>登録を完了する
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="goToStep(2)">
+                                    <i class="bi bi-arrow-left me-1"></i>戻る
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center p-4">
+                    <div class="loading-spinner mx-auto mb-3"></div>
+                    <h5 id="loadingMessage">処理中...</h5>
+                    <p class="text-muted mb-0" id="loadingSubtext">しばらくお待ちください</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global state management
+        let currentStep = 1;
+        let sessionId = null;
+        let basicInfoData = {};
+        let countdownTimer = null;
+        let verificationSid = null;
+        
+        // Initialize the form
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            generateSessionId();
+        });
+        
+        function generateSessionId() {
+            sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            console.log('Generated session ID:', sessionId);
+        }
+        
+        function setupEventListeners() {
+            // Basic info form submission
+            document.getElementById('basicInfoForm').addEventListener('submit', handleBasicInfoSubmit);
+            
+            // Phone verification
+            document.getElementById('sendVerificationBtn').addEventListener('click', sendVerificationCode);
+            document.getElementById('verifyCodeBtn').addEventListener('click', verifyCode);
+            document.getElementById('resendCodeBtn').addEventListener('click', resendVerificationCode);
+            
+            // File uploads
+            setupFileUpload('profilePhotoInput', 'profilePhotoUpload', 'profilePhotoPreview', handleProfilePhotoUpload);
+            setupFileUpload('documentInput', 'documentUpload', 'documentPreview', handleDocumentUpload);
+            
+            // Complete registration
+            document.getElementById('completeRegistrationBtn').addEventListener('click', completeRegistration);
+        }
+        
+        function goToStep(stepNumber) {
+            // Hide all steps
+            document.querySelectorAll('.step-content').forEach(step => {
+                step.classList.remove('active');
+            });
+            
+            // Update step indicators
+            document.querySelectorAll('.step-number').forEach((indicator, index) => {
+                indicator.classList.remove('active', 'completed', 'pending');
+                if (index + 1 < stepNumber) {
+                    indicator.classList.add('completed');
+                } else if (index + 1 === stepNumber) {
+                    indicator.classList.add('active');
+                } else {
+                    indicator.classList.add('pending');
+                }
+            });
+            
+            // Show target step
+            document.getElementById(`step${stepNumber}`).classList.add('active');
+            currentStep = stepNumber;
+        }
+        
+        // Step 1: Basic Information
+        async function handleBasicInfoSubmit(e) {
+            e.preventDefault();
+            
+            // Collect form data
+            basicInfoData = {
+                guideName: document.getElementById('guideName').value,
+                guideEmail: document.getElementById('guideEmail').value,
+                guidePhone: document.getElementById('guidePhone').value,
+                guideGender: document.getElementById('guideGender').value,
+                guideAge: parseInt(document.getElementById('guideAge').value),
+                guideExperience: document.getElementById('guideExperience').value,
+                guideLocation: document.getElementById('guideLocation').value,
+                guideLanguages: Array.from(document.getElementById('guideLanguages').selectedOptions).map(option => option.value),
+                guideIntroduction: document.getElementById('guideIntroduction').value,
+                guideSpecialties: document.getElementById('guideSpecialties').value,
+                guideSessionRate: parseInt(document.getElementById('guideSessionRate').value),
+                guideAvailability: document.getElementById('guideAvailability').value
+            };
+            
+            // Validate required fields
+            const requiredFields = ['guideName', 'guideEmail', 'guidePhone', 'guideGender', 'guideAge', 'guideExperience', 'guideLocation', 'guideLanguages', 'guideIntroduction', 'guideSpecialties', 'guideSessionRate', 'guideAvailability'];
+            
+            for (const field of requiredFields) {
+                if (!basicInfoData[field] || (Array.isArray(basicInfoData[field]) && basicInfoData[field].length === 0)) {
+                    alert(`必須項目が入力されていません: ${field}`);
+                    return;
+                }
+            }
+            
+            // Display phone number in step 2
+            document.getElementById('displayPhoneNumber').textContent = basicInfoData.guidePhone;
+            
+            // Move to step 2
+            goToStep(2);
+        }
+        
+        // Step 2: Phone Verification
+        async function sendVerificationCode() {
+            try {
+                showLoading('認証コードを送信中...', 'SMSを送信しています');
+                
+                const response = await fetch('/api/guides/send-verification', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phoneNumber: basicInfoData.guidePhone
+                    })
+                });
+                
+                const result = await response.json();
+                hideLoading();
+                
+                if (result.success) {
+                    verificationSid = result.sid;
+                    
+                    // Show verification code input
+                    document.getElementById('phoneVerificationSend').style.display = 'none';
+                    document.getElementById('phoneVerificationVerify').style.display = 'block';
+                    document.getElementById('sentToNumber').textContent = basicInfoData.guidePhone;
+                    
+                    // Start countdown timer
+                    startCountdown(300); // 5 minutes
+                    
+                    // Show simulation code if available (for testing)
+                    if (result.simulationCode) {
+                        alert(`テスト用認証コード: ${result.simulationCode}`);
+                    }
+                } else {
+                    alert('SMS送信に失敗しました: ' + result.message);
+                }
+            } catch (error) {
+                hideLoading();
+                console.error('Verification send error:', error);
+                alert('SMS送信中にエラーが発生しました');
+            }
+        }
+        
+        async function verifyCode() {
+            const code = document.getElementById('verificationCode').value;
+            
+            if (!code || code.length !== 6) {
+                alert('6桁の認証コードを入力してください');
+                return;
+            }
+            
+            try {
+                showLoading('認証コードを確認中...', '電話番号を認証しています');
+                
+                const response = await fetch('/api/guides/verify-phone', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sessionId: sessionId,
+                        phoneNumber: basicInfoData.guidePhone,
+                        code: code
+                    })
+                });
+                
+                const result = await response.json();
+                hideLoading();
+                
+                if (result.success) {
+                    // Clear countdown timer
+                    if (countdownTimer) {
+                        clearInterval(countdownTimer);
+                    }
+                    
+                    // Move to step 3
+                    goToStep(3);
+                } else {
+                    alert('認証に失敗しました: ' + result.message);
+                }
+            } catch (error) {
+                hideLoading();
+                console.error('Verification error:', error);
+                alert('認証中にエラーが発生しました');
+            }
+        }
+        
+        async function resendVerificationCode() {
+            await sendVerificationCode();
+        }
+        
+        function startCountdown(seconds) {
+            let timeLeft = seconds;
+            const expiryElement = document.getElementById('codeExpiry');
+            
+            countdownTimer = setInterval(() => {
+                const minutes = Math.floor(timeLeft / 60);
+                const secs = timeLeft % 60;
+                expiryElement.textContent = `${minutes}:${secs.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(countdownTimer);
+                    expiryElement.textContent = '期限切れ';
+                    document.getElementById('verifyCodeBtn').disabled = true;
+                }
+                
+                timeLeft--;
+            }, 1000);
+        }
+        
+        // Step 3: File Upload
+        function setupFileUpload(inputId, uploadAreaId, previewId, uploadHandler) {
+            const input = document.getElementById(inputId);
+            const uploadArea = document.getElementById(uploadAreaId);
+            const preview = document.getElementById(previewId);
+            
+            // Click to upload
+            uploadArea.addEventListener('click', () => input.click());
+            
+            // File input change
+            input.addEventListener('change', (e) => uploadHandler(e.target.files, preview));
+            
+            // Drag and drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('drag-over');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('drag-over');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+                uploadHandler(e.dataTransfer.files, preview);
+            });
+        }
+        
+        async function handleProfilePhotoUpload(files, previewContainer) {
+            if (files.length === 0) return;
+            
+            const file = files[0];
+            
+            // Validate file
+            if (!file.type.startsWith('image/')) {
+                alert('画像ファイルを選択してください');
+                return;
+            }
+            
+            if (file.size > 5 * 1024 * 1024) {
+                alert('ファイルサイズは5MB以下にしてください');
+                return;
+            }
+            
+            try {
+                showLoading('プロフィール写真をアップロード中...', 'しばらくお待ちください');
+                
+                const formData = new FormData();
+                formData.append('profilePhoto', file);
+                formData.append('sessionId', sessionId);
+                
+                const response = await fetch('/api/guides/upload-profile-photo', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                hideLoading();
+                
+                if (result.success) {
+                    // Show preview
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        previewContainer.innerHTML = `
+                            <div class="text-center">
+                                <img src="${e.target.result}" class="preview-image" alt="プロフィール写真">
+                                <div class="mt-2">
+                                    <small class="text-success"><i class="bi bi-check-circle me-1"></i>アップロード完了</small>
+                                </div>
+                            </div>
+                        `;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    alert('アップロードに失敗しました: ' + result.message);
+                }
+            } catch (error) {
+                hideLoading();
+                console.error('Upload error:', error);
+                alert('アップロード中にエラーが発生しました');
+            }
+        }
+        
+        async function handleDocumentUpload(files, previewContainer) {
+            if (files.length === 0) return;
+            
+            // Validate files
+            for (const file of files) {
+                if (!file.type.startsWith('image/')) {
+                    alert('画像ファイルを選択してください');
+                    return;
+                }
+                
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('ファイルサイズは5MB以下にしてください');
+                    return;
+                }
+            }
+            
+            try {
+                showLoading('書類をアップロード中...', 'しばらくお待ちください');
+                
+                const formData = new FormData();
+                for (const file of files) {
+                    formData.append('documents', file);
+                }
+                formData.append('sessionId', sessionId);
+                formData.append('documentType', 'identification');
+                
+                const response = await fetch('/api/guides/upload-document', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                hideLoading();
+                
+                if (result.success) {
+                    // Show previews
+                    let previewHTML = '';
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            const fileInfo = document.createElement('div');
+                            fileInfo.className = 'file-info';
+                            fileInfo.innerHTML = `
+                                <div class="d-flex align-items-center">
+                                    <img src="${e.target.result}" class="preview-image me-3" style="width: 60px; height: 60px;" alt="書類">
+                                    <div>
+                                        <div class="fw-bold">${file.name}</div>
+                                        <small class="text-muted">${(file.size / 1024).toFixed(1)} KB</small>
+                                    </div>
+                                </div>
+                                <small class="text-success"><i class="bi bi-check-circle me-1"></i>アップロード完了</small>
+                            `;
+                            previewContainer.appendChild(fileInfo);
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                } else {
+                    alert('アップロードに失敗しました: ' + result.message);
+                }
+            } catch (error) {
+                hideLoading();
+                console.error('Upload error:', error);
+                alert('アップロード中にエラーが発生しました');
+            }
+        }
+        
+        // Complete Registration
+        async function completeRegistration() {
+            try {
+                showLoading('登録を完了しています...', '審査情報を送信中です');
+                
+                const response = await fetch('/api/guides/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sessionId: sessionId,
+                        guideData: basicInfoData
+                    })
+                });
+                
+                const result = await response.json();
+                hideLoading();
+                
+                if (result.success) {
+                    // Show success message
+                    alert('ガイド登録が完了しました！審査結果をメールでお知らせいたします。');
+                    
+                    // Redirect to main page or close window
+                    if (window.opener) {
+                        // Send success message to parent window
+                        window.opener.postMessage({
+                            type: 'guideRegistered',
+                            action: 'register',
+                            message: '新しいガイドが登録されました！'
+                        }, '*');
+                        
+                        // Refresh parent window guide data
+                        if (window.opener.refreshGuideData) {
+                            window.opener.refreshGuideData();
+                        }
+                        
+                        window.close();
+                    } else {
+                        window.location.href = 'index.html';
+                    }
+                } else {
+                    alert('登録に失敗しました: ' + result.message);
+                }
+            } catch (error) {
+                hideLoading();
+                console.error('Registration error:', error);
+                alert('登録中にエラーが発生しました');
+            }
+        }
+        
+        // Utility functions
+        function showLoading(title, subtitle) {
+            document.getElementById('loadingMessage').textContent = title;
+            document.getElementById('loadingSubtext').textContent = subtitle;
+            const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+            loadingModal.show();
+        }
+        
+        function hideLoading() {
+            const loadingModal = bootstrap.Modal.getInstance(document.getElementById('loadingModal'));
+            if (loadingModal) {
+                loadingModal.hide();
+            }
+        }
+    </script>
+</body>
+</html>

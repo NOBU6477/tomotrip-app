@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ガイド情報編集 - TomoTrip</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .ocean-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .edit-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+        .section-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+        .section-header {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 15px 15px 0 0;
+            margin: -1px -1px 0 -1px;
+        }
+        .rating-display {
+            color: #ffc107;
+        }
+        .photo-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+            object-fit: cover;
+            margin: 5px;
+        }
+        .language-tag {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            margin: 2px;
+            display: inline-block;
+        }
+        .specialty-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin: 3px;
+            display: inline-block;
+        }
+        .edit-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        .edit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .save-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+        }
+    </style>
+</head>
+<body class="ocean-bg">
+    <div class="container py-4">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <button class="btn btn-outline-light" onclick="history.back()">
+                <i class="bi bi-arrow-left me-2"></i>戻る
+            </button>
+            <h1 class="text-white mb-0">
+                <i class="bi bi-person-gear me-2"></i>ガイド情報編集
+            </h1>
+            <div></div>
+        </div>
+
+        <div class="edit-container p-4">
+            <!-- 基本情報セクション -->
+            <div class="section-card p-3">
+                <div class="section-header">
+                    <h4 class="mb-0"><i class="bi bi-person-circle me-2"></i>基本情報</h4>
+                </div>
+                <div class="p-3">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <div class="profile-photo-container mb-3">
+                                <img id="profilePhotoPreview" src="/assets/images/default-guide.jpg" 
+                                     class="rounded-circle border" width="120" height="120" 
+                                     style="object-fit: cover;">
+                                <div class="mt-2">
+                                    <input type="file" id="profilePhotoInput" class="d-none" accept="image/*">
+                                    <button class="btn btn-sm edit-btn" onclick="document.getElementById('profilePhotoInput').click()">
+                                        <i class="bi bi-camera me-1"></i>写真変更
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">ガイド名</label>
+                                    <input type="text" class="form-control" id="guideName" placeholder="ガイド名を入力">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">料金（1日あたり）</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">¥</span>
+                                        <input type="number" class="form-control" id="dailyRate" placeholder="0">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">活動地域</label>
+                                    <input type="text" class="form-control" id="location" placeholder="例: 京都府 京都市">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">ガイドタイプ</label>
+                                    <select class="form-control" id="guideType">
+                                        <option value="day">日帰りガイド</option>
+                                        <option value="overnight">一泊ガイド</option>
+                                        <option value="multi-day">長期ガイド</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">対応言語</label>
+                                <div id="languagesContainer">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="lang_japanese" value="日本語">
+                                        <label class="form-check-label" for="lang_japanese">日本語</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="lang_english" value="英語">
+                                        <label class="form-check-label" for="lang_english">英語</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="lang_chinese" value="中国語">
+                                        <label class="form-check-label" for="lang_chinese">中国語</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="lang_korean" value="韓国語">
+                                        <label class="form-check-label" for="lang_korean">韓国語</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="lang_taiwanese" value="台湾語">
+                                        <label class="form-check-label" for="lang_taiwanese">台湾語</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 自己紹介セクション -->
+            <div class="section-card p-3">
+                <div class="section-header">
+                    <h4 class="mb-0"><i class="bi bi-chat-text me-2"></i>ガイドについて</h4>
+                </div>
+                <div class="p-3">
+                    <textarea class="form-control" id="introduction" rows="4" 
+                              placeholder="自己紹介文をご記入ください。お客様に対するアピールポイントやガイドとしての想いを書いてください。"></textarea>
+                </div>
+            </div>
+
+            <!-- 経験・実績セクション -->
+            <div class="section-card p-3">
+                <div class="section-header">
+                    <h4 class="mb-0"><i class="bi bi-award me-2"></i>経験・実績</h4>
+                </div>
+                <div class="p-3">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">ガイド歴</label>
+                            <select class="form-control" id="experience">
+                                <option value="beginner">初心者（1年未満）</option>
+                                <option value="intermediate">中級者（1-3年）</option>
+                                <option value="advanced">ベテラン（3年以上）</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">実績</label>
+                            <input type="text" class="form-control" id="achievements" 
+                                   placeholder="例: 200回以上のツアー実績">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">得意分野</label>
+                        <div id="specialtiesContainer">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="spec_culture" value="文化・歴史ガイド">
+                                <label class="form-check-label" for="spec_culture">文化・歴史</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="spec_food" value="グルメガイド">
+                                <label class="form-check-label" for="spec_food">グルメ</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="spec_nature" value="自然ガイド">
+                                <label class="form-check-label" for="spec_nature">自然・アウトドア</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="spec_shopping" value="ショッピング">
+                                <label class="form-check-label" for="spec_shopping">ショッピング</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="spec_photo" value="写真撮影">
+                                <label class="form-check-label" for="spec_photo">写真撮影</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ツアー写真ギャラリーセクション -->
+            <div class="section-card p-3">
+                <div class="section-header">
+                    <h4 class="mb-0"><i class="bi bi-images me-2"></i>ツアー写真ギャラリー</h4>
+                </div>
+                <div class="p-3">
+                    <div id="galleryPreview" class="mb-3">
+                        <!-- ツアー写真プレビューエリア -->
+                    </div>
+                    <input type="file" id="galleryInput" class="d-none" accept="image/*" multiple>
+                    <button class="btn edit-btn" onclick="document.getElementById('galleryInput').click()">
+                        <i class="bi bi-plus-circle me-2"></i>写真を追加
+                    </button>
+                    <small class="text-muted d-block mt-2">最大6枚まで追加できます</small>
+                </div>
+            </div>
+
+            <!-- 連絡先情報セクション -->
+            <div class="section-card p-3">
+                <div class="section-header">
+                    <h4 class="mb-0"><i class="bi bi-envelope me-2"></i>連絡先情報</h4>
+                </div>
+                <div class="p-3">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">メールアドレス</label>
+                            <input type="email" class="form-control" id="email" readonly>
+                            <small class="text-muted">メールアドレスは変更できません</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">電話番号</label>
+                            <input type="tel" class="form-control" id="phone" readonly>
+                            <small class="text-muted">電話番号は変更できません</small>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">対応可能時間</label>
+                        <input type="text" class="form-control" id="availability" 
+                               placeholder="例: 9:00 - 18:00">
+                    </div>
+                </div>
+            </div>
+
+            <!-- その他の情報セクション -->
+            <div class="section-card p-3">
+                <div class="section-header">
+                    <h4 class="mb-0"><i class="bi bi-info-circle me-2"></i>その他の情報</h4>
+                </div>
+                <div class="p-3">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="multiLingual">
+                                <label class="form-check-label" for="multiLingual">多言語対応</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="hospitalitySupport">
+                                <label class="form-check-label" for="hospitalitySupport">ホスピタリティ重視</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="emergencySupport">
+                                <label class="form-check-label" for="emergencySupport">緊急時サポート</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="localExpert">
+                                <label class="form-check-label" for="localExpert">地元密着ガイド</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 保存ボタン -->
+            <div class="text-center mt-4">
+                <button type="button" class="btn save-btn me-3" id="saveChanges">
+                    <i class="bi bi-check-circle me-2"></i>変更を保存
+                </button>
+                <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
+                    <i class="bi bi-x-circle me-2"></i>キャンセル
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center p-4">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <h5>ガイド情報を保存中...</h5>
+                    <p class="text-muted mb-0">しばらくお待ちください</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentGuideId = null;
+        
+        // URLから guide ID を取得 (デバッグ情報追加)
+        console.log('🔍 Current URL:', window.location.href);
+        console.log('🔍 Search params:', window.location.search);
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        currentGuideId = urlParams.get('id');
+        
+        console.log('🔍 Extracted guide ID:', currentGuideId);
+        console.log('🔍 All URL params:', Object.fromEntries(urlParams));
+        
+        if (!currentGuideId || currentGuideId.trim() === '') {
+            console.error('❌ No guide ID found in URL parameters');
+            alert('ガイドIDが指定されていません。URLパラメータを確認してください。\n\nURL: ' + window.location.href);
+            window.location.href = 'index.html';
+        } else {
+            console.log('✅ Guide ID validated:', currentGuideId);
+        }
+
+        // ページ読み込み時にガイド情報を取得
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadGuideData();
+            setupEventListeners();
+        });
+
+        // ガイド情報を読み込み
+        async function loadGuideData() {
+            try {
+                console.log('🔍 Loading guide data for ID:', currentGuideId);
+                const response = await fetch(`/api/guides/${currentGuideId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('📥 API Response:', result);
+                
+                if (result.success && result.guide) {
+                    console.log('✅ Guide data loaded successfully');
+                    populateForm(result.guide);
+                } else {
+                    console.error('❌ Failed to get guide data:', result);
+                    alert('ガイド情報の取得に失敗しました: ' + (result.message || '不明なエラー'));
+                    window.location.href = 'index.html';
+                }
+            } catch (error) {
+                console.error('❌ Error loading guide data:', error);
+                alert('ガイド情報の読み込み中にエラーが発生しました: ' + error.message);
+                window.location.href = 'index.html';
+            }
+        }
+
+        // フォームにデータを入力
+        function populateForm(guide) {
+            document.getElementById('guideName').value = guide.guideName || '';
+            document.getElementById('dailyRate').value = guide.guideSessionRate || '';
+            document.getElementById('location').value = guide.location || '京都府 京都市';
+            document.getElementById('guideType').value = guide.guideType || 'day';
+            document.getElementById('introduction').value = guide.guideIntroduction || '';
+            document.getElementById('experience').value = guide.guideExperience || 'intermediate';
+            document.getElementById('achievements').value = guide.achievements || '';
+            document.getElementById('email').value = guide.guideEmail || '';
+            document.getElementById('phone').value = guide.phoneNumber || '';
+            document.getElementById('availability').value = guide.guideAvailability || '';
+            
+            // 対応言語のチェックボックス設定
+            if (guide.guideLanguages && Array.isArray(guide.guideLanguages)) {
+                const languageMap = {
+                    '日本語': 'lang_japanese',
+                    '英語': 'lang_english',
+                    '中国語': 'lang_chinese',
+                    '韓国語': 'lang_korean',
+                    '台湾語': 'lang_taiwanese'
+                };
+                
+                guide.guideLanguages.forEach(lang => {
+                    const checkbox = document.getElementById(languageMap[lang]);
+                    if (checkbox) checkbox.checked = true;
+                });
+            }
+            
+            // 得意分野のチェックボックス設定
+            if (guide.guideSpecialties) {
+                const specialties = guide.guideSpecialties.split(',').map(s => s.trim());
+                const specialtyMap = {
+                    '文化・歴史ガイド': 'spec_culture',
+                    'グルメガイド': 'spec_food', 
+                    '自然ガイド': 'spec_nature',
+                    'ショッピング': 'spec_shopping',
+                    '写真撮影': 'spec_photo'
+                };
+                
+                specialties.forEach(spec => {
+                    const checkbox = document.getElementById(specialtyMap[spec]);
+                    if (checkbox) checkbox.checked = true;
+                });
+            }
+            
+            // プロフィール写真設定
+            if (guide.profilePhoto && guide.profilePhoto.fileName) {
+                document.getElementById('profilePhotoPreview').src = `/uploads/${guide.profilePhoto.fileName}`;
+            }
+        }
+
+        // イベントリスナーセットアップ
+        function setupEventListeners() {
+            // 保存ボタン
+            document.getElementById('saveChanges').addEventListener('click', saveGuideData);
+            
+            // ファイル入力
+            document.getElementById('profilePhotoInput').addEventListener('change', handleProfilePhotoChange);
+            document.getElementById('galleryInput').addEventListener('change', handleGalleryChange);
+        }
+
+        // プロフィール写真変更処理
+        function handleProfilePhotoChange(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('profilePhotoPreview').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // ギャラリー写真追加処理
+        function handleGalleryChange(event) {
+            const files = Array.from(event.target.files);
+            const galleryPreview = document.getElementById('galleryPreview');
+            
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'photo-preview';
+                    img.onclick = function() { this.remove(); };
+                    galleryPreview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // ガイド情報保存
+        async function saveGuideData() {
+            const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+            loadingModal.show();
+            
+            try {
+                // フォームデータ収集
+                const formData = collectFormData();
+                
+                const response = await fetch(`/api/guides/${currentGuideId}/edit`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    loadingModal.hide();
+                    showToast('ガイド情報を正常に更新しました！', 'success');
+                    
+                    // メインページをリロードして最新情報を反映
+                    if (window.opener) {
+                        // Send message to parent window to trigger refresh
+                        try {
+                            window.opener.postMessage({
+                                type: 'guideUpdated',
+                                guideId: currentGuideId,
+                                action: 'edit',
+                                message: 'ガイド情報が更新されました！'
+                            }, '*');
+                            console.log('✅ Update message sent to parent window');
+                        } catch (messageError) {
+                            console.warn('⚠️ Failed to send message to parent:', messageError);
+                        }
+                        
+                        // Use the global refresh function if available
+                        if (window.opener.refreshGuideData) {
+                            await window.opener.refreshGuideData();
+                        } else {
+                            window.opener.location.reload();
+                        }
+                        
+                        // Show success notification in parent window
+                        if (window.opener.showNewGuideNotification) {
+                            window.opener.showNewGuideNotification(1, false, 'ガイド情報が更新されました！');
+                        }
+                    }
+                    
+                    // 自動的にメインページ（ガイドカード表示）に戻る
+                    setTimeout(() => {
+                        console.log('✅ ガイド編集完了 - 自動的にメインページに戻ります');
+                        if (window.opener) {
+                            window.close();
+                        } else {
+                            window.location.href = 'index.html';
+                        }
+                    }, 1500);
+                    
+                } else {
+                    throw new Error(result.message || '更新に失敗しました');
+                }
+                
+            } catch (error) {
+                console.error('Save error:', error);
+                loadingModal.hide();
+                alert('保存中にエラーが発生しました: ' + error.message);
+            }
+        }
+
+        // フォームデータ収集
+        function collectFormData() {
+            // 選択された言語を収集
+            const selectedLanguages = [];
+            const languageCheckboxes = document.querySelectorAll('#languagesContainer input[type="checkbox"]:checked');
+            languageCheckboxes.forEach(cb => selectedLanguages.push(cb.value));
+            
+            // 選択された得意分野を収集
+            const selectedSpecialties = [];
+            const specialtyCheckboxes = document.querySelectorAll('#specialtiesContainer input[type="checkbox"]:checked');
+            specialtyCheckboxes.forEach(cb => selectedSpecialties.push(cb.value));
+            
+            return {
+                guideName: document.getElementById('guideName').value,
+                guideSessionRate: document.getElementById('dailyRate').value,
+                location: document.getElementById('location').value,
+                guideType: document.getElementById('guideType').value,
+                guideLanguages: selectedLanguages,
+                guideIntroduction: document.getElementById('introduction').value,
+                guideExperience: document.getElementById('experience').value,
+                achievements: document.getElementById('achievements').value,
+                guideSpecialties: selectedSpecialties.join(', '),
+                guideAvailability: document.getElementById('availability').value,
+                multiLingual: document.getElementById('multiLingual').checked,
+                hospitalitySupport: document.getElementById('hospitalitySupport').checked,
+                emergencySupport: document.getElementById('emergencySupport').checked,
+                localExpert: document.getElementById('localExpert').checked
+            };
+        }
+
+        // Toast通知システム
+        function showToast(message, type = 'success') {
+            const toastHtml = `
+                <div class="toast-container position-fixed top-0 end-0 p-3">
+                    <div class="toast show" role="alert">
+                        <div class="toast-header">
+                            <i class="bi bi-${type === 'success' ? 'check-circle-fill text-success' : 'exclamation-triangle-fill text-danger'} me-2"></i>
+                            <strong class="me-auto">TomoTrip</strong>
+                            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                        </div>
+                        <div class="toast-body">${message}</div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', toastHtml);
+            
+            setTimeout(() => {
+                const toastElement = document.querySelector('.toast-container');
+                if (toastElement) toastElement.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

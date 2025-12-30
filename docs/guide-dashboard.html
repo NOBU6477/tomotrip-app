@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ガイドダッシュボード - TomoTrip</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .ocean-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .dashboard-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+            border: none;
+        }
+        .card-title {
+            color: #667eea;
+            font-weight: 600;
+        }
+        .display-4 {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .progress {
+            border-radius: 10px;
+        }
+        .progress-bar {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+</head>
+<body class="ocean-bg" data-guide-id="">
+    <div class="container py-4">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <button class="btn btn-outline-light" onclick="window.location.href='/'">
+                <i class="bi bi-house me-2"></i>ホーム
+            </button>
+            <h1 class="text-white mb-0">
+                <i class="bi bi-speedometer2 me-2"></i>ガイドダッシュボード
+            </h1>
+            <button class="btn btn-outline-light" onclick="editProfile()">
+                <i class="bi bi-pencil me-2"></i>プロフィール編集
+            </button>
+        </div>
+
+        <div class="dashboard-container p-4">
+            <div class="row">
+                <!-- 配当カード -->
+                <div class="col-md-6">
+                    <div id="guide-income-card">
+                        <div class="placeholder-glow">
+                            <div class="placeholder col-12" style="height: 150px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ランクカード -->
+                <div class="col-md-6">
+                    <div id="guide-rank-card">
+                        <div class="placeholder-glow">
+                            <div class="placeholder col-12" style="height: 150px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ランク早見表 -->
+            <div class="row">
+                <div class="col-12">
+                    <div id="guide-rank-table">
+                        <div class="placeholder-glow">
+                            <div class="placeholder col-12" style="height: 200px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- アクションボタン -->
+            <div class="row mt-4">
+                <div class="col-12 text-center">
+                    <button class="btn btn-primary me-2" onclick="editProfile()">
+                        <i class="bi bi-person-gear me-2"></i>プロフィール編集
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="window.location.href='/sponsor-registration.html'">
+                        <i class="bi bi-shop me-2"></i>協賛店を紹介
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/feature-flags.js"></script>
+    <script src="/js/guide-cards.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const guideId = urlParams.get('id');
+        
+        if (guideId) {
+            document.body.dataset.guideId = guideId;
+            window.GUIDE_ID = guideId;
+        } else {
+            console.warn('No guide ID provided in URL');
+            // Show error if no guide ID
+            setTimeout(() => {
+                alert('ガイドIDが指定されていません。ガイド登録ページから登録してください。');
+                window.location.href = '/guide-registration-v2.html';
+            }, 500);
+        }
+        
+        // Function to edit profile with guide ID
+        function editProfile() {
+            if (guideId) {
+                window.location.href = `/guide-edit.html?id=${guideId}`;
+            } else {
+                alert('ガイドIDが取得できません');
+            }
+        }
+    </script>
+</body>
+</html>

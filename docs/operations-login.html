@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>運営ログイン - TomoTrip</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/icons.css">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            padding: 3rem;
+            max-width: 450px;
+            width: 100%;
+        }
+        
+        .logo-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .logo-section h1 {
+            color: #1e3c72;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .logo-section p {
+            color: #6c757d;
+            margin-bottom: 0;
+        }
+        
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: #1e3c72;
+            box-shadow: 0 0 0 0.2rem rgba(30, 60, 114, 0.25);
+        }
+        
+        .btn-operations {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-operations:hover {
+            background: linear-gradient(135deg, #2a5298, #3d72b4);
+            transform: translateY(-2px);
+        }
+        
+        .alert-danger {
+            border-radius: 10px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo-section">
+            <h1><i class="bi bi-shield-lock"></i> 運営ログイン</h1>
+            <p>TomoTrip 運営管理システム</p>
+        </div>
+        
+        <form id="operationsLoginForm">
+            <div class="mb-3">
+                <label for="adminEmail" class="form-label">管理者メールアドレス</label>
+                <input type="email" class="form-control" id="adminEmail" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="adminPassword" class="form-label">管理者パスワード</label>
+                <input type="password" class="form-control" id="adminPassword" required>
+            </div>
+            
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="rememberAdmin">
+                <label class="form-check-label" for="rememberAdmin">
+                    ログイン状態を保持する
+                </label>
+            </div>
+            
+            <div class="d-grid mb-3">
+                <button type="submit" class="btn btn-operations text-white">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>管理画面にログイン
+                </button>
+            </div>
+            
+            <div class="text-center">
+                <a href="index.html" class="text-decoration-none text-muted">
+                    <i class="bi bi-arrow-left me-1"></i>メインサイトに戻る
+                </a>
+            </div>
+        </form>
+        
+        <div id="errorMessage" class="alert alert-danger mt-3" style="display: none;">
+            管理者認証に失敗しました。正しい認証情報を入力してください。
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('operationsLoginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            const remember = document.getElementById('rememberAdmin').checked;
+            
+            // Simple admin authentication (replace with actual admin auth)
+            if (email === 'admin@tomotrip.com' && password === 'admin2024') {
+                // Set admin login
+                localStorage.setItem('adminLogin', JSON.stringify({
+                    email: email,
+                    loginTime: new Date().toISOString(),
+                    userType: 'operations_admin',
+                    remember: remember
+                }));
+                
+                // Redirect to operations dashboard
+                window.location.href = 'sponsor-dashboard.html';
+            } else {
+                // Show error
+                document.getElementById('errorMessage').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('errorMessage').style.display = 'none';
+                }, 5000);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+/* Bug fixes for TomoTrip visual artifacts and functionality issues */
+
+/* Fix for mysterious square box artifacts */
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* Remove any stray borders or backgrounds that might cause artifacts */
+.btn::before,
+.btn::after,
+.card::before,
+.card::after {
+    display: none !important;
+}
+
+/* Ensure admin checkboxes don't create visual artifacts */
+.admin-checkbox {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    transform: scale(1.2);
+    background: white !important;
+    border: 2px solid #666 !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
+}
+
+/* Fix modal positioning conflicts */
+.modal {
+    z-index: 9999 !important;
+}
+
+.modal-backdrop {
+    z-index: 9998 !important;
+}
+
+/* Management center modal scrolling fixes */
+#managementModal .modal-content {
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#managementModal .modal-body {
+    flex: 1;
+    overflow-y: auto;
+    max-height: calc(90vh - 140px);
+}
+
+/* Fix any floating elements that might cause artifacts */
+.floating-element,
+.position-absolute,
+.position-fixed {
+    box-sizing: border-box;
+}
+
+/* Ensure buttons have proper boundaries */
+.btn {
+    box-sizing: border-box;
+    border: none;
+    outline: none;
+}
+
+/* Fix for compare buttons and their states */
+.compare-btn {
+    transition: all 0.3s ease;
+}
+
+.compare-btn.btn-success {
+    background: linear-gradient(135deg, #28a745, #20c997) !important;
+    border-color: #28a745 !important;
+}
+
+.compare-btn.btn-outline-success {
+    color: #28a745 !important;
+    border-color: #28a745 !important;
+    background: transparent !important;
+}
+
+/* Prevent overflow artifacts */
+.container,
+.container-fluid {
+    overflow-x: hidden;
+}
+
+/* Fix language switcher positioning - Complete white line removal */
+.language-switcher-center {
+    box-sizing: border-box !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.language-switcher-center::before,
+.language-switcher-center::after {
+    display: none !important;
+}
+
+.language-switcher-center .d-flex {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Management buttons positioning fixes */
+.management-center,
+.management-center-mobile,
+.admin-mode-toggle {
+    box-sizing: border-box;
+    border: none;
+    outline: none;
+}
+
+/* Remove any mysterious borders */
+div:not(.card):not(.btn):not(.form-control) {
+    border: none !important;
+}
+
+/* Fix for hero section artifacts */
+.hero-section::before,
+.hero-section::after {
+    box-sizing: border-box;
+}
+
+/* Ensure proper z-index stacking */
+.navbar {
+    z-index: 1030;
+}
+
+.hero-section {
+    z-index: 1;
+}
+
+.main-content {
+    z-index: 1;
+    position: relative;
+}
+
+/* Fix for any stray positioned elements */
+[style*="position: absolute"][style*="width"][style*="height"] {
+    display: none !important;
+}
+
+/* Emergency fix for any 3cm square artifacts */
+[style*="width: 3cm"],
+[style*="height: 3cm"],
+[style*="width: 85px"],
+[style*="height: 85px"] {
+    display: none !important;
+}
+
+/* Responsive fixes */
+@media (max-width: 768px) {
+    #managementModal .modal-content {
+        max-height: 95vh;
+    }
+    
+    #managementModal .modal-body {
+        max-height: calc(95vh - 120px);
+    }
+}

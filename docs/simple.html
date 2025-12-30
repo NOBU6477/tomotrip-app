@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TomoTrip - Ready</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; min-height: 100vh; }
+        .container { max-width: 800px; margin: 0 auto; text-align: center; }
+        .btn { background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; text-decoration: none; display: inline-block; margin: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 TomoTrip - Local Guide Platform</h1>
+        <p>地元ガイドと特別な旅を発見しよう</p>
+        
+        <div style="margin: 30px 0;">
+            <h2>🎯 Application Status: Ready</h2>
+            <p>✅ Server: Running on port 5000</p>
+            <p>✅ Database: PostgreSQL connected</p>
+            <p>✅ API: Available</p>
+        </div>
+        
+        <div>
+            <a href="/" class="btn">📱 Japanese Version (メインアプリ)</a>
+            <a href="/index-en.html" class="btn">🌐 English Version</a>
+            <a href="/test.html" class="btn">🔧 Simple Test Page</a>
+        </div>
+        
+        <div style="margin-top: 40px;">
+            <h3>🔗 Quick Links</h3>
+            <a href="/sponsor-list.html" class="btn">🏪 Sponsor List</a>
+            <a href="/health" class="btn">🏥 Health Check</a>
+        </div>
+    </div>
+    
+    <script>
+        console.log('✅ TomoTrip simple page loaded successfully');
+        document.body.setAttribute('data-ready', 'true');
+    </script>
+</body>
+</html>
