@@ -2,10 +2,10 @@
   "name": "tomotrip-tourism-guide-platform",
   "version": "1.0.0",
   "description": "Multilingual tourism guide platform connecting tourists with local Japanese and international guides",
-  "main": "server.js",
+  "main": "replit-server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js",
+    "start": "node replit-server.js",
+    "dev": "node replit-server.js",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },

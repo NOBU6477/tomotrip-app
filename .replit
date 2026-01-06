@@ -6,10 +6,6 @@ modules = ["nodejs-20", "python-3.11", "postgresql-16"]
 language = "nodejs"
 
 [[ports]]
-localPort = 3000
-externalPort = 80
-
-[[ports]]
 localPort = 5000
 externalPort = 80
 
