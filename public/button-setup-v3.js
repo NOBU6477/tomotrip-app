@@ -136,6 +136,108 @@ function setupDashboardButton() {
     } else {
         console.warn('⚠️ Dashboard button not found');
     }
+    
+    // Setup Sponsor Edit Button
+    const sponsorEditBtn = document.getElementById('sponsorEditBtn');
+    if (sponsorEditBtn) {
+        sponsorEditBtn.addEventListener('click', handleSponsorEditClick);
+        console.log('✅ Sponsor edit button handler attached');
+    }
+}
+
+function handleSponsorEditClick(e) {
+    e.preventDefault();
+    console.log('✏️ Sponsor edit button clicked');
+    
+    // Show modal to identify store owner
+    const existingModal = document.getElementById('sponsorEditModal');
+    if (existingModal) existingModal.remove();
+    
+    const modalHTML = `
+        <div class="modal fade" id="sponsorEditModal" tabindex="-1" aria-hidden="true" style="z-index: 9999;">
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 450px;">
+                <div class="modal-content" style="border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                    <div class="modal-header border-0" style="background: linear-gradient(135deg, #f0ad4e, #ec971f); color: white; border-radius: 15px 15px 0 0;">
+                        <h5 class="modal-title fw-bold">
+                            <i class="bi bi-pencil-square me-2"></i>協賛店編集ログイン
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="alert alert-warning mb-4">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>協賛店オーナー専用</strong><br>
+                            登録時に使用したメールアドレスでログインしてください
+                        </div>
+                        
+                        <form id="sponsorEditForm">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">登録メールアドレス</label>
+                                <input type="email" class="form-control" id="sponsorEditEmail" placeholder="example@store.com" required style="border-radius: 10px; padding: 12px;">
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">電話番号（確認用）</label>
+                                <input type="tel" class="form-control" id="sponsorEditPhone" placeholder="090-1234-5678" required style="border-radius: 10px; padding: 12px;">
+                            </div>
+                            
+                            <button type="submit" class="btn btn-warning w-100 fw-bold" style="border-radius: 10px; padding: 12px;">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>店舗編集画面へ
+                            </button>
+                        </form>
+                        
+                        <div class="text-center mt-3">
+                            <a href="sponsor-registration.html" class="text-decoration-none">
+                                <i class="bi bi-plus-circle me-1"></i>新規協賛店登録はこちら
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    const form = document.getElementById('sponsorEditForm');
+    if (form) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const email = document.getElementById('sponsorEditEmail').value.trim().toLowerCase();
+            const phone = document.getElementById('sponsorEditPhone').value.trim();
+            
+            try {
+                const response = await fetch('/api/sponsor-stores');
+                const stores = await response.json();
+                
+                const matchedStore = stores.find(s => 
+                    s.email && s.email.toLowerCase() === email && 
+                    s.phone && s.phone.replace(/[-\s]/g, '') === phone.replace(/[-\s]/g, '')
+                );
+                
+                if (matchedStore) {
+                    localStorage.setItem('currentSponsorStore', JSON.stringify({
+                        id: matchedStore.id,
+                        storeName: matchedStore.storeName,
+                        email: matchedStore.email,
+                        loginTime: Date.now()
+                    }));
+                    
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('sponsorEditModal'));
+                    if (modal) modal.hide();
+                    
+                    window.location.href = 'store-dashboard.html?id=' + matchedStore.id;
+                } else {
+                    alert('登録情報が見つかりませんでした。メールアドレスと電話番号をご確認ください。');
+                }
+            } catch (error) {
+                console.error('Store lookup error:', error);
+                alert('エラーが発生しました。もう一度お試しください。');
+            }
+        });
+    }
+    
+    const modal = new bootstrap.Modal(document.getElementById('sponsorEditModal'));
+    modal.show();
 }
 
 function handleDashboardClick(e) {
