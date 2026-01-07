@@ -577,6 +577,9 @@
                         <a href="sponsor-registration.html" class="btn cta-primary" data-cta="hero_sponsor_register">
                             <i class="bi bi-plus-circle me-1"></i>協賛店登録
                         </a>
+                        <button class="btn btn-warning" id="sponsorEditBtn" data-cta="hero_sponsor_edit" style="border-radius: 25px;">
+                            <i class="bi bi-pencil-square me-1"></i>協賛店編集
+                        </button>
                     </div>
                 </div>
                 <div class="col-lg-5 text-center">
@@ -1444,6 +1447,115 @@
             div.textContent = text;
             return div.innerHTML;
         }
+        // 協賛店編集ボタンのセットアップ
+        function setupSponsorEditButton() {
+            const sponsorEditBtn = document.getElementById('sponsorEditBtn');
+            if (!sponsorEditBtn) return;
+            
+            sponsorEditBtn.addEventListener('click', function() {
+                // 既存のモーダルがあれば削除
+                const existingModal = document.getElementById('sponsorLoginModal');
+                if (existingModal) {
+                    existingModal.remove();
+                }
+                
+                // ログインモーダルを作成
+                const modalHtml = `
+                    <div class="modal fade" id="sponsorLoginModal" tabindex="-1" aria-labelledby="sponsorLoginModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content" style="border-radius: 20px; overflow: hidden;">
+                                <div class="modal-header" style="background: linear-gradient(135deg, #ffc107, #ff8c42); border: none;">
+                                    <h5 class="modal-title text-white" id="sponsorLoginModalLabel">
+                                        <i class="bi bi-shop me-2"></i>協賛店ログイン
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body p-4">
+                                    <p class="text-muted mb-4">登録時のメールアドレスと電話番号を入力してください</p>
+                                    <div class="mb-3">
+                                        <label for="sponsorEmail" class="form-label">メールアドレス</label>
+                                        <input type="email" class="form-control" id="sponsorEmail" placeholder="example@email.com" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="sponsorPhone" class="form-label">電話番号</label>
+                                        <input type="tel" class="form-control" id="sponsorPhone" placeholder="090-1234-5678" required>
+                                    </div>
+                                    <div id="sponsorLoginError" class="alert alert-danger d-none" role="alert"></div>
+                                    <div id="sponsorLoginSuccess" class="alert alert-success d-none" role="alert"></div>
+                                </div>
+                                <div class="modal-footer border-0">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                                    <button type="button" class="btn btn-warning" id="sponsorLoginSubmit">
+                                        <i class="bi bi-box-arrow-in-right me-1"></i>ログイン
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                
+                const modal = new bootstrap.Modal(document.getElementById('sponsorLoginModal'));
+                modal.show();
+                
+                // ログインボタンのイベント
+                document.getElementById('sponsorLoginSubmit').addEventListener('click', async function() {
+                    const email = document.getElementById('sponsorEmail').value.trim();
+                    const phone = document.getElementById('sponsorPhone').value.trim();
+                    const errorDiv = document.getElementById('sponsorLoginError');
+                    const successDiv = document.getElementById('sponsorLoginSuccess');
+                    
+                    errorDiv.classList.add('d-none');
+                    successDiv.classList.add('d-none');
+                    
+                    if (!email || !phone) {
+                        errorDiv.textContent = 'メールアドレスと電話番号を入力してください';
+                        errorDiv.classList.remove('d-none');
+                        return;
+                    }
+                    
+                    try {
+                        const response = await fetch('/api/sponsor-stores');
+                        const stores = await response.json();
+                        
+                        const normalizedPhone = phone.replace(/[-\s]/g, '');
+                        const matchedStore = stores.find(store => {
+                            const storePhone = (store.phone || '').replace(/[-\s]/g, '');
+                            return store.email === email && storePhone === normalizedPhone;
+                        });
+                        
+                        if (matchedStore) {
+                            successDiv.textContent = 'ログイン成功！編集ページに移動します...';
+                            successDiv.classList.remove('d-none');
+                            
+                            localStorage.setItem('sponsorSession', JSON.stringify({
+                                storeId: matchedStore.id,
+                                storeName: matchedStore.storeName,
+                                email: matchedStore.email,
+                                loginTime: new Date().toISOString()
+                            }));
+                            
+                            setTimeout(() => {
+                                window.location.href = 'store-dashboard.html?id=' + matchedStore.id;
+                            }, 1000);
+                        } else {
+                            errorDiv.textContent = '登録情報が見つかりません。メールアドレスと電話番号を確認してください。';
+                            errorDiv.classList.remove('d-none');
+                        }
+                    } catch (error) {
+                        console.error('Login error:', error);
+                        errorDiv.textContent = 'サーバーエラーが発生しました。しばらくしてからお試しください。';
+                        errorDiv.classList.remove('d-none');
+                    }
+                });
+            });
+        }
+        
+        // DOMContentLoaded時に協賛店編集ボタンをセットアップ
+        document.addEventListener('DOMContentLoaded', function() {
+            setupSponsorEditButton();
+        });
     </script>
 </body>
 </html>
