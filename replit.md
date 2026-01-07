@@ -12,6 +12,12 @@ Local Guide is a multilingual platform connecting tourists with local guides for
   - Stats always computed from full reservation set (not filtered subset)
   - Client-side filtering with persisted filter state across CRUD operations
   - CSP-compliant event handlers throughout (no inline onclick)
+- **Sponsor Detail Page Booking Form**: Added reservation request form to sponsor-detail.html
+  - Sidebar reservation card with form fields (name, email, phone, date, time, guests, notes)
+  - Date validation (must be future date, min tomorrow)
+  - Loading spinner during submission, success/error alerts
+  - Form resets after successful submission
+  - Duplicate listener prevention with initialization flag
 - **Sponsor List Pagination Fix**: Changed default sort from "newest" to "oldest"
   - New stores now appear on later pages instead of displacing existing stores
   - Reset filters function also uses "oldest" as default
