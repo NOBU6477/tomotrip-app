@@ -10,6 +10,7 @@ const { guideAPIService } = require("./server/guideAPI");
 const { adminAuthService } = require("./server/adminAuth");
 const { sponsorStoreAPIService } = require("./server/sponsorStoreAPI");
 const { sponsorReferralAPIService } = require("./server/sponsorReferralAPI");
+const { reservationAPIService } = require("./server/reservationAPI");
 const { FileStorageService } = require("./server/fileStorage");
 const { storeDashboardAPIService } = require("./server/storeDashboardAPI");
 const { guideDashboardAPIService } = require("./server/guideDashboardAPI");
@@ -211,6 +212,9 @@ sponsorStoreAPIService.setupRoutes(app, upload);
 
 // Setup Sponsor Referral API routes
 sponsorReferralAPIService.setupRoutes(app);
+
+// Setup Reservation API routes
+reservationAPIService.setupRoutes(app);
 
 // Store Dashboard API routes
 app.get("/api/stores/:id/dashboard", async (req, res) => {

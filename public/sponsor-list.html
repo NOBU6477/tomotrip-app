@@ -710,8 +710,8 @@
                 <!-- ソート -->
                 <div class="col-md-2">
                     <select id="sortSelect" class="form-select sort-dropdown">
+                        <option value="oldest" selected>登録順</option>
                         <option value="newest">新着順</option>
-                        <option value="oldest">登録順</option>
                         <option value="name">名前順</option>
                         <option value="views">人気順</option>
                     </select>
@@ -1417,7 +1417,7 @@
             document.getElementById('searchInput').value = '';
             document.getElementById('categoryFilter').value = '';
             document.getElementById('areaFilter').value = '';
-            document.getElementById('sortSelect').value = 'newest';
+            document.getElementById('sortSelect').value = 'oldest';
             
             // タブをリセット
             document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));

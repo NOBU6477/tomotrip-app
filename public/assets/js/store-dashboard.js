@@ -230,6 +230,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Setup event listeners
     setupEventListeners();
+    
+    // Initialize reservation system
+    initReservationSystem();
 });
 
 function translateUI() {
@@ -717,9 +720,360 @@ function previewMainImage(input) {
     }
 }
 
+// ============================================
+// Reservation Management System
+// ============================================
+
+let allReservations = [];
+let displayedReservations = [];
+let currentFilter = '';
+let reservationModal = null;
+
+function initReservationSystem() {
+    const storeLogin = localStorage.getItem('storeLogin');
+    if (!storeLogin) return;
+    const { storeId } = JSON.parse(storeLogin);
+    
+    loadReservations(storeId);
+    setupReservationEventListeners();
+}
+
+async function loadReservations(storeId) {
+    try {
+        const url = `/api/reservations/store/${storeId}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.success) {
+            allReservations = data.reservations;
+            updateReservationStats(data.stats);
+            applyFilterAndRender();
+        }
+    } catch (error) {
+        console.error('Failed to load reservations:', error);
+        renderEmptyReservations();
+    }
+}
+
+function applyFilterAndRender() {
+    if (currentFilter) {
+        displayedReservations = allReservations.filter(r => r.status === currentFilter);
+    } else {
+        displayedReservations = [...allReservations];
+    }
+    displayedReservations.sort((a, b) => {
+        const dateA = new Date(`${a.reservationDate}T${a.reservationTime}`);
+        const dateB = new Date(`${b.reservationDate}T${b.reservationTime}`);
+        return dateB - dateA;
+    });
+    renderReservations(displayedReservations);
+}
+
+function renderReservations(reservations) {
+    const tbody = document.getElementById('reservationsTableBody');
+    if (!tbody) return;
+    
+    if (reservations.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                    <i class="bi bi-calendar-x fs-1 d-block mb-2"></i>
+                    予約がありません
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    const statusMap = {
+        'pending': { class: 'bg-warning', text: '保留中' },
+        'confirmed': { class: 'bg-success', text: '確定' },
+        'completed': { class: 'bg-info', text: '完了' },
+        'cancelled': { class: 'bg-danger', text: 'キャンセル' }
+    };
+    
+    tbody.innerHTML = reservations.map(r => {
+        const status = statusMap[r.status] || { class: 'bg-secondary', text: r.status };
+        return `
+            <tr data-reservation-id="${r.id}">
+                <td>${r.reservationDate} ${r.reservationTime}</td>
+                <td>${escapeHtml(r.customerName)}</td>
+                <td>${r.numberOfGuests}名</td>
+                <td>
+                    ${r.customerEmail ? `<div><i class="bi bi-envelope me-1"></i>${escapeHtml(r.customerEmail)}</div>` : ''}
+                    ${r.customerPhone ? `<div><i class="bi bi-telephone me-1"></i>${escapeHtml(r.customerPhone)}</div>` : ''}
+                    ${!r.customerEmail && !r.customerPhone ? '<span class="text-muted">未設定</span>' : ''}
+                </td>
+                <td><span class="badge ${status.class}">${status.text}</span></td>
+                <td>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary reservation-edit-btn" data-id="${r.id}" title="編集">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-outline-success reservation-confirm-btn" data-id="${r.id}" title="確定" ${r.status === 'confirmed' ? 'disabled' : ''}>
+                            <i class="bi bi-check-circle"></i>
+                        </button>
+                        <button class="btn btn-outline-danger reservation-cancel-btn" data-id="${r.id}" title="キャンセル" ${r.status === 'cancelled' ? 'disabled' : ''}>
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary reservation-delete-btn" data-id="${r.id}" title="削除">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+    
+    attachReservationRowListeners();
+}
+
+function attachReservationRowListeners() {
+    document.querySelectorAll('.reservation-edit-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            openEditReservation(id);
+        });
+    });
+    
+    document.querySelectorAll('.reservation-confirm-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            updateReservationStatus(id, 'confirmed');
+        });
+    });
+    
+    document.querySelectorAll('.reservation-cancel-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            if (confirm('この予約をキャンセルしますか？')) {
+                updateReservationStatus(id, 'cancelled');
+            }
+        });
+    });
+    
+    document.querySelectorAll('.reservation-delete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            if (confirm('この予約を完全に削除しますか？この操作は取り消せません。')) {
+                deleteReservation(id);
+            }
+        });
+    });
+}
+
+function updateReservationStats(stats) {
+    if (!stats) return;
+    document.getElementById('statTotal').textContent = stats.total || 0;
+    document.getElementById('statPending').textContent = stats.pending || 0;
+    document.getElementById('statConfirmed').textContent = stats.confirmed || 0;
+    document.getElementById('statCompleted').textContent = stats.completed || 0;
+}
+
+function renderEmptyReservations() {
+    const tbody = document.getElementById('reservationsTableBody');
+    if (tbody) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                    <i class="bi bi-calendar-x fs-1 d-block mb-2"></i>
+                    予約がありません
+                </td>
+            </tr>
+        `;
+    }
+}
+
+function setupReservationEventListeners() {
+    const addBtn = document.getElementById('addReservationBtn');
+    if (addBtn) {
+        addBtn.addEventListener('click', openAddReservation);
+    }
+    
+    const saveBtn = document.getElementById('saveReservationBtn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', saveReservation);
+    }
+    
+    const filterGroup = document.getElementById('statusFilterGroup');
+    if (filterGroup) {
+        filterGroup.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                filterGroup.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentFilter = this.getAttribute('data-status');
+                applyFilterAndRender();
+            });
+        });
+    }
+    
+    const reservationsTab = document.getElementById('reservations-tab');
+    if (reservationsTab) {
+        reservationsTab.addEventListener('shown.bs.tab', function() {
+            const storeLogin = localStorage.getItem('storeLogin');
+            if (storeLogin) {
+                const { storeId } = JSON.parse(storeLogin);
+                loadReservations(storeId);
+            }
+        });
+    }
+}
+
+function openAddReservation() {
+    document.getElementById('reservationModalTitle').textContent = '予約を追加';
+    document.getElementById('reservationId').value = '';
+    document.getElementById('reservationForm').reset();
+    
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('reservationDate').value = today;
+    document.getElementById('reservationTime').value = '10:00';
+    
+    if (!reservationModal) {
+        reservationModal = new bootstrap.Modal(document.getElementById('reservationModal'));
+    }
+    reservationModal.show();
+}
+
+function openEditReservation(id) {
+    const reservation = allReservations.find(r => r.id === id);
+    if (!reservation) return;
+    
+    document.getElementById('reservationModalTitle').textContent = '予約を編集';
+    document.getElementById('reservationId').value = reservation.id;
+    document.getElementById('customerName').value = reservation.customerName || '';
+    document.getElementById('customerEmail').value = reservation.customerEmail || '';
+    document.getElementById('customerPhone').value = reservation.customerPhone || '';
+    document.getElementById('reservationDate').value = reservation.reservationDate || '';
+    document.getElementById('reservationTime').value = reservation.reservationTime || '';
+    document.getElementById('numberOfGuests').value = reservation.numberOfGuests || 1;
+    document.getElementById('reservationNotes').value = reservation.notes || '';
+    
+    if (!reservationModal) {
+        reservationModal = new bootstrap.Modal(document.getElementById('reservationModal'));
+    }
+    reservationModal.show();
+}
+
+async function saveReservation() {
+    const storeLogin = localStorage.getItem('storeLogin');
+    if (!storeLogin) {
+        alert('ログイン情報がありません');
+        return;
+    }
+    const { storeId } = JSON.parse(storeLogin);
+    
+    const reservationId = document.getElementById('reservationId').value;
+    const customerName = document.getElementById('customerName').value.trim();
+    const reservationDate = document.getElementById('reservationDate').value;
+    const reservationTime = document.getElementById('reservationTime').value;
+    
+    if (!customerName || !reservationDate || !reservationTime) {
+        alert('必須項目を入力してください');
+        return;
+    }
+    
+    const data = {
+        storeId,
+        customerName,
+        customerEmail: document.getElementById('customerEmail').value.trim(),
+        customerPhone: document.getElementById('customerPhone').value.trim(),
+        reservationDate,
+        reservationTime,
+        numberOfGuests: parseInt(document.getElementById('numberOfGuests').value) || 1,
+        notes: document.getElementById('reservationNotes').value.trim()
+    };
+    
+    try {
+        let url = '/api/reservations';
+        let method = 'POST';
+        
+        if (reservationId) {
+            url = `/api/reservations/${reservationId}`;
+            method = 'PUT';
+        }
+        
+        const response = await fetch(url, {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            if (reservationModal) {
+                reservationModal.hide();
+            }
+            await loadReservations(storeId);
+            alert(reservationId ? '予約を更新しました' : '予約を追加しました');
+        } else {
+            alert(result.message || '保存に失敗しました');
+        }
+    } catch (error) {
+        console.error('Save reservation error:', error);
+        alert('予約の保存に失敗しました');
+    }
+}
+
+async function updateReservationStatus(id, status) {
+    try {
+        const response = await fetch(`/api/reservations/${id}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            const storeLogin = localStorage.getItem('storeLogin');
+            if (storeLogin) {
+                const { storeId } = JSON.parse(storeLogin);
+                await loadReservations(storeId);
+            }
+        } else {
+            alert(result.message || 'ステータスの更新に失敗しました');
+        }
+    } catch (error) {
+        console.error('Update status error:', error);
+        alert('ステータスの更新に失敗しました');
+    }
+}
+
+async function deleteReservation(id) {
+    try {
+        const response = await fetch(`/api/reservations/${id}`, {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            const storeLogin = localStorage.getItem('storeLogin');
+            if (storeLogin) {
+                const { storeId } = JSON.parse(storeLogin);
+                await loadReservations(storeId);
+            }
+        } else {
+            alert(result.message || '予約の削除に失敗しました');
+        }
+    } catch (error) {
+        console.error('Delete reservation error:', error);
+        alert('予約の削除に失敗しました');
+    }
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // Export for global access
 window.addGalleryImageSlot = addGalleryImageSlot;
 window.removeGalleryImage = removeGalleryImage;
 window.previewMainImage = previewMainImage;
 window.initializeGalleryImages = initializeGalleryImages;
 window.getGalleryImages = function() { return galleryImages; };
+window.initReservationSystem = initReservationSystem;

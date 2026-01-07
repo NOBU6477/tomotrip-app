@@ -361,12 +361,48 @@
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h5>予約一覧</h5>
                         <div>
-                            <a href="guide-registration.html" class="btn btn-outline-success me-2">
-                                <i class="bi bi-person-plus me-1"></i>ガイド募集
-                            </a>
-                            <button class="btn btn-store" onclick="addReservation()">
-                                <i class="bi bi-plus-circle me-2"></i>手動予約追加
+                            <button class="btn btn-store" id="addReservationBtn">
+                                <i class="bi bi-plus-circle me-2"></i>予約を追加
                             </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 予約統計 -->
+                    <div class="row mb-4" id="reservationStats">
+                        <div class="col-6 col-md-3 mb-2">
+                            <div class="bg-light p-3 rounded text-center">
+                                <small class="text-muted">全予約</small>
+                                <div class="fw-bold text-primary fs-4" id="statTotal">0</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3 mb-2">
+                            <div class="bg-warning bg-opacity-25 p-3 rounded text-center">
+                                <small class="text-muted">保留中</small>
+                                <div class="fw-bold text-warning fs-4" id="statPending">0</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3 mb-2">
+                            <div class="bg-success bg-opacity-25 p-3 rounded text-center">
+                                <small class="text-muted">確定</small>
+                                <div class="fw-bold text-success fs-4" id="statConfirmed">0</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3 mb-2">
+                            <div class="bg-info bg-opacity-25 p-3 rounded text-center">
+                                <small class="text-muted">完了</small>
+                                <div class="fw-bold text-info fs-4" id="statCompleted">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- ステータスフィルター -->
+                    <div class="mb-3">
+                        <div class="btn-group" role="group" id="statusFilterGroup">
+                            <button type="button" class="btn btn-outline-secondary active" data-status="">すべて</button>
+                            <button type="button" class="btn btn-outline-warning" data-status="pending">保留中</button>
+                            <button type="button" class="btn btn-outline-success" data-status="confirmed">確定</button>
+                            <button type="button" class="btn btn-outline-info" data-status="completed">完了</button>
+                            <button type="button" class="btn btn-outline-danger" data-status="cancelled">キャンセル</button>
                         </div>
                     </div>
                     
@@ -382,39 +418,68 @@
                                     <th>アクション</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="reservationsTableBody">
                                 <tr>
-                                    <td>2024-08-30 14:00</td>
-                                    <td>田中太郎</td>
-                                    <td>4名</td>
-                                    <td>tanaka@example.com</td>
-                                    <td><span class="badge bg-success">確定</span></td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary me-1">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-secondary">
-                                            <i class="bi bi-chat"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>2024-08-31 10:00</td>
-                                    <td>佐藤花子</td>
-                                    <td>2名</td>
-                                    <td>sato@example.com</td>
-                                    <td><span class="badge bg-warning">保留中</span></td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary me-1">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-secondary">
-                                            <i class="bi bi-chat"></i>
-                                        </button>
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        <i class="bi bi-calendar-x fs-1 d-block mb-2"></i>
+                                        予約データを読み込み中...
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 予約追加/編集モーダル -->
+            <div class="modal fade" id="reservationModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="reservationModalTitle">予約を追加</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="reservationForm">
+                                <input type="hidden" id="reservationId">
+                                <div class="mb-3">
+                                    <label for="customerName" class="form-label">お客様名 <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="customerName" required>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="customerEmail" class="form-label">メールアドレス</label>
+                                        <input type="email" class="form-control" id="customerEmail">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="customerPhone" class="form-label">電話番号</label>
+                                        <input type="tel" class="form-control" id="customerPhone">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="reservationDate" class="form-label">予約日 <span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" id="reservationDate" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="reservationTime" class="form-label">予約時間 <span class="text-danger">*</span></label>
+                                        <input type="time" class="form-control" id="reservationTime" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="numberOfGuests" class="form-label">人数</label>
+                                    <input type="number" class="form-control" id="numberOfGuests" min="1" value="1">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="reservationNotes" class="form-label">備考</label>
+                                    <textarea class="form-control" id="reservationNotes" rows="3"></textarea>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                            <button type="button" class="btn btn-store" id="saveReservationBtn">保存</button>
+                        </div>
                     </div>
                 </div>
             </div>
