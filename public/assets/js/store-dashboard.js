@@ -386,6 +386,30 @@ function setupEventListeners() {
         });
     }
     
+    // Main image change button - CSP compliant event listener
+    const mainImageChangeBtn = document.getElementById('mainImageChangeBtn');
+    const mainImageInput = document.getElementById('mainImageInput');
+    if (mainImageChangeBtn && mainImageInput) {
+        mainImageChangeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            mainImageInput.click();
+        });
+        mainImageInput.addEventListener('change', function() {
+            previewMainImage(this);
+        });
+        console.log('✅ Main image button handler attached');
+    }
+    
+    // Gallery add image button - CSP compliant event listener
+    const addGalleryBtn = document.getElementById('addGalleryImageBtn');
+    if (addGalleryBtn) {
+        addGalleryBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            addGalleryImageSlot();
+        });
+        console.log('✅ Gallery add button handler attached');
+    }
+    
     // タブ切り替え時のログ
     const tabLinks = document.querySelectorAll('[data-bs-toggle="pill"]');
     tabLinks.forEach(function(tab) {
@@ -629,12 +653,21 @@ function renderGalleryImages() {
         <div class="col-4">
             <div class="position-relative" style="border: 2px dashed #dee2e6; border-radius: 10px; padding: 0.5rem;">
                 <img src="${img}" alt="ギャラリー画像 ${index + 1}" style="width: 100%; height: 60px; object-fit: cover; border-radius: 6px;">
-                <button type="button" class="btn btn-danger btn-sm position-absolute" style="top: 2px; right: 2px; padding: 0 4px; font-size: 10px;" onclick="removeGalleryImage(${index})">
+                <button type="button" class="btn btn-danger btn-sm position-absolute gallery-remove-btn" data-gallery-index="${index}" style="top: 2px; right: 2px; padding: 0 4px; font-size: 10px;">
                     <i class="bi bi-x"></i>
                 </button>
             </div>
         </div>
     `).join('');
+    
+    // Add event listeners to remove buttons (CSP compliant)
+    container.querySelectorAll('.gallery-remove-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const index = parseInt(this.getAttribute('data-gallery-index'), 10);
+            removeGalleryImage(index);
+        });
+    });
     
     // Hide add button if max images reached
     const addBtn = document.getElementById('addGalleryImageBtn');
