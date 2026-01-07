@@ -570,6 +570,57 @@
                         </div>
                     </div>
                     
+                    <!-- Reservation Form Card -->
+                    <div class="info-card" id="reservationCard">
+                        <h2><i class="bi bi-calendar-check"></i>予約リクエスト</h2>
+                        <p class="text-muted small mb-3">この店舗への予約リクエストを送信できます</p>
+                        
+                        <div id="reservationAlert" class="alert d-none mb-3" role="alert"></div>
+                        
+                        <form id="reservationForm">
+                            <div class="mb-3">
+                                <label for="customerName" class="form-label">お名前 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="customerName" placeholder="山田 太郎" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="customerEmail" class="form-label">メールアドレス</label>
+                                <input type="email" class="form-control" id="customerEmail" placeholder="example@email.com">
+                            </div>
+                            <div class="mb-3">
+                                <label for="customerPhone" class="form-label">電話番号</label>
+                                <input type="tel" class="form-control" id="customerPhone" placeholder="090-1234-5678">
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label for="reservationDate" class="form-label">日付 <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="reservationDate" required>
+                                </div>
+                                <div class="col-6">
+                                    <label for="reservationTime" class="form-label">時間 <span class="text-danger">*</span></label>
+                                    <input type="time" class="form-control" id="reservationTime" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="numberOfGuests" class="form-label">人数</label>
+                                <select class="form-select" id="numberOfGuests">
+                                    <option value="1">1名</option>
+                                    <option value="2" selected>2名</option>
+                                    <option value="3">3名</option>
+                                    <option value="4">4名</option>
+                                    <option value="5">5名</option>
+                                    <option value="6">6名以上</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="reservationNotes" class="form-label">備考・ご要望</label>
+                                <textarea class="form-control" id="reservationNotes" rows="2" placeholder="アレルギーや特別なご要望があればご記入ください"></textarea>
+                            </div>
+                            <button type="submit" class="btn cta-primary w-100" id="submitReservationBtn">
+                                <i class="bi bi-send me-2"></i>予約リクエストを送信
+                            </button>
+                        </form>
+                    </div>
+                    
                     <!-- Related Stores -->
                     <div class="info-card">
                         <h2><i class="bi bi-shop-window"></i>関連する協賛店</h2>
@@ -652,6 +703,7 @@
             }
             loadStoreDetails();
             trackCtaClicks();
+            initReservationForm();
         });
         
         async function loadStoreDetails() {
@@ -999,6 +1051,113 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+        
+        // Reservation Form Functions
+        let reservationFormInitialized = false;
+        
+        function initReservationForm() {
+            const form = document.getElementById('reservationForm');
+            if (!form) return;
+            
+            setReservationDefaults();
+            
+            // Only attach event listener once
+            if (!reservationFormInitialized) {
+                form.addEventListener('submit', handleReservationSubmit);
+                reservationFormInitialized = true;
+            }
+        }
+        
+        function setReservationDefaults() {
+            // Set default date to tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('reservationDate').value = tomorrow.toISOString().split('T')[0];
+            document.getElementById('reservationDate').min = tomorrow.toISOString().split('T')[0];
+            
+            // Set default time
+            document.getElementById('reservationTime').value = '12:00';
+        }
+        
+        async function handleReservationSubmit(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitReservationBtn');
+            const alert = document.getElementById('reservationAlert');
+            
+            // Validate
+            const customerName = document.getElementById('customerName').value.trim();
+            const reservationDate = document.getElementById('reservationDate').value;
+            const reservationTime = document.getElementById('reservationTime').value;
+            
+            if (!customerName || !reservationDate || !reservationTime) {
+                showReservationAlert('error', 'お名前、日付、時間は必須です');
+                return;
+            }
+            
+            // Validate date is in the future
+            const selectedDateTime = new Date(`${reservationDate}T${reservationTime}`);
+            if (selectedDateTime <= new Date()) {
+                showReservationAlert('error', '未来の日時を選択してください');
+                return;
+            }
+            
+            // Disable button
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>送信中...';
+            
+            const data = {
+                storeId: storeId,
+                customerName: customerName,
+                customerEmail: document.getElementById('customerEmail').value.trim(),
+                customerPhone: document.getElementById('customerPhone').value.trim(),
+                reservationDate: reservationDate,
+                reservationTime: reservationTime,
+                numberOfGuests: parseInt(document.getElementById('numberOfGuests').value) || 2,
+                notes: document.getElementById('reservationNotes').value.trim()
+            };
+            
+            try {
+                const response = await fetch('/api/reservations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showReservationAlert('success', '予約リクエストを送信しました！店舗からの連絡をお待ちください。');
+                    document.getElementById('reservationForm').reset();
+                    setReservationDefaults(); // Reset defaults only, don't re-bind listener
+                } else {
+                    showReservationAlert('error', result.message || '予約の送信に失敗しました');
+                }
+            } catch (error) {
+                console.error('Reservation error:', error);
+                showReservationAlert('error', '予約の送信に失敗しました。後でもう一度お試しください。');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-send me-2"></i>予約リクエストを送信';
+            }
+        }
+        
+        function showReservationAlert(type, message) {
+            const alert = document.getElementById('reservationAlert');
+            alert.className = `alert alert-${type === 'success' ? 'success' : 'danger'} mb-3`;
+            alert.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>${message}`;
+            alert.classList.remove('d-none');
+            
+            // Scroll to alert
+            alert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Auto hide after 5 seconds for success
+            if (type === 'success') {
+                setTimeout(() => {
+                    alert.classList.add('d-none');
+                }, 5000);
+            }
         }
     </script>
 </body>
