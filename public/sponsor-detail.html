@@ -287,11 +287,113 @@
             color: white;
         }
         
-        /* Image Gallery */
+        /* Image Gallery - 7 Image Grid */
         .gallery-container {
             margin-top: 1.5rem;
         }
         
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, 140px);
+            gap: 0.75rem;
+        }
+        
+        .gallery-item {
+            border-radius: 12px;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(0,119,182,0.1), rgba(0,180,216,0.1));
+            border: 2px dashed rgba(0,119,182,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .gallery-item:first-child {
+            grid-column: span 2;
+            grid-row: span 2;
+        }
+        
+        .gallery-item:hover {
+            transform: scale(1.02);
+            border-color: var(--ocean-primary);
+            box-shadow: 0 5px 20px rgba(0,119,182,0.2);
+        }
+        
+        .gallery-item.has-image {
+            border: none;
+            background: #f8f9fa;
+        }
+        
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .gallery-placeholder-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: rgba(0,119,182,0.4);
+        }
+        
+        .gallery-placeholder-icon i {
+            font-size: 2rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .gallery-item:first-child .gallery-placeholder-icon i {
+            font-size: 3rem;
+        }
+        
+        .gallery-placeholder-icon span {
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .gallery-item:first-child .gallery-placeholder-icon span {
+            font-size: 0.875rem;
+        }
+        
+        .gallery-image-number {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(0,119,182,0.8);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .gallery-grid {
+                grid-template-columns: repeat(3, 1fr);
+                grid-template-rows: auto;
+                gap: 0.5rem;
+            }
+            
+            .gallery-item {
+                height: 100px;
+            }
+            
+            .gallery-item:first-child {
+                grid-column: span 3;
+                height: 180px;
+            }
+        }
+        
+        /* Legacy gallery styles for compatibility */
         .gallery-main {
             width: 100%;
             height: 300px;
@@ -434,16 +536,54 @@
             <div class="row">
                 <!-- Main Content -->
                 <div class="col-lg-8">
-                    <!-- Image Gallery -->
-                    <section class="info-card" id="gallerySection" style="display: none;">
-                        <h2><i class="bi bi-images"></i>店舗ギャラリー</h2>
+                    <!-- Image Gallery - 7 Image Grid -->
+                    <section class="info-card" id="gallerySection">
+                        <h2><i class="bi bi-images me-2"></i>店舗ギャラリー</h2>
                         <div class="gallery-container">
-                            <div class="gallery-main" id="galleryMain">
-                                <div class="gallery-placeholder">
-                                    <i class="bi bi-image"></i>
+                            <div class="gallery-grid" id="galleryGrid">
+                                <div class="gallery-item" data-index="0">
+                                    <div class="gallery-placeholder-icon">
+                                        <i class="bi bi-camera"></i>
+                                        <span>メイン画像</span>
+                                    </div>
+                                </div>
+                                <div class="gallery-item" data-index="1">
+                                    <div class="gallery-placeholder-icon">
+                                        <i class="bi bi-image"></i>
+                                        <span>画像 2</span>
+                                    </div>
+                                </div>
+                                <div class="gallery-item" data-index="2">
+                                    <div class="gallery-placeholder-icon">
+                                        <i class="bi bi-image"></i>
+                                        <span>画像 3</span>
+                                    </div>
+                                </div>
+                                <div class="gallery-item" data-index="3">
+                                    <div class="gallery-placeholder-icon">
+                                        <i class="bi bi-image"></i>
+                                        <span>画像 4</span>
+                                    </div>
+                                </div>
+                                <div class="gallery-item" data-index="4">
+                                    <div class="gallery-placeholder-icon">
+                                        <i class="bi bi-image"></i>
+                                        <span>画像 5</span>
+                                    </div>
+                                </div>
+                                <div class="gallery-item" data-index="5">
+                                    <div class="gallery-placeholder-icon">
+                                        <i class="bi bi-image"></i>
+                                        <span>画像 6</span>
+                                    </div>
+                                </div>
+                                <div class="gallery-item" data-index="6">
+                                    <div class="gallery-placeholder-icon">
+                                        <i class="bi bi-image"></i>
+                                        <span>画像 7</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="gallery-thumbs" id="galleryThumbs"></div>
                         </div>
                     </section>
                     
@@ -807,26 +947,26 @@
                 });
             }
             
-            if (images.length === 0) {
-                // No images - hide gallery section
-                document.getElementById('gallerySection').style.display = 'none';
-                return;
-            }
+            // Update the 7-image grid
+            const galleryItems = document.querySelectorAll('.gallery-item');
             
-            // Show gallery section
-            document.getElementById('gallerySection').style.display = 'block';
-            
-            // Set main image
-            const mainContainer = document.getElementById('galleryMain');
-            mainContainer.innerHTML = `<img src="${images[0]}" alt="${escapeHtml(store.storeName)}" id="galleryMainImg" onclick="openLightbox(0)">`;
-            
-            // Create thumbnails
-            const thumbsContainer = document.getElementById('galleryThumbs');
-            thumbsContainer.innerHTML = images.map((img, index) => `
-                <div class="gallery-thumb ${index === 0 ? 'active' : ''}" onclick="selectGalleryImage(${index})">
-                    <img src="${img}" alt="画像 ${index + 1}">
-                </div>
-            `).join('');
+            galleryItems.forEach((item, index) => {
+                if (images[index]) {
+                    // Has image - show it
+                    item.classList.add('has-image');
+                    item.innerHTML = `<img src="${images[index]}" alt="${escapeHtml(store.storeName)} - 画像${index + 1}" onclick="openLightbox(${index})">`;
+                } else {
+                    // Placeholder - keep default
+                    item.classList.remove('has-image');
+                    const isMain = index === 0;
+                    item.innerHTML = `
+                        <div class="gallery-placeholder-icon">
+                            <i class="bi bi-${isMain ? 'camera' : 'image'}"></i>
+                            <span>${isMain ? 'メイン画像' : '画像 ' + (index + 1)}</span>
+                        </div>
+                    `;
+                }
+            });
             
             // Store images for lightbox
             window.galleryImages = images;
