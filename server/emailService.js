@@ -1,5 +1,6 @@
 // Email Service for TomoTrip - 予約自動メール配信
 // Supports: SendGrid, Resend, or Simulation Mode
+const fetch = require('node-fetch');
 
 class EmailService {
   constructor() {

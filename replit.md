@@ -18,6 +18,13 @@ Local Guide is a multilingual platform connecting tourists with local guides for
   - Loading spinner during submission, success/error alerts
   - Form resets after successful submission
   - Duplicate listener prevention with initialization flag
+- **Reservation Email Notifications**: Automated email sending when reservations are created
+  - Email service (server/emailService.js) with SendGrid/Resend support + simulation mode
+  - Customer receives: Reservation confirmation with store info and booking details
+  - Store receives: New reservation notification with customer info and action items
+  - HTML and plain text email templates with professional formatting
+  - Simulation mode for development (logs to console), real emails with API keys
+  - To enable: Set SENDGRID_API_KEY or RESEND_API_KEY environment variable
 - **Sponsor List Pagination Fix**: Changed default sort from "newest" to "oldest"
   - New stores now appear on later pages instead of displacing existing stores
   - Reset filters function also uses "oldest" as default
