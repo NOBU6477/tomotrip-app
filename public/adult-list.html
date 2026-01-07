@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    
+    <title id="pageTitle">沖縄のナイトライフ・大人の遊び場ガイド</title>
+    <meta name="description" id="metaDescription" content="沖縄のナイトスポット・大人向けエンターテイメント情報。デリヘル、風俗店など18歳以上向けの情報をお届けします。">
+    <meta name="keywords" content="沖縄,ナイトライフ,風俗,デリヘル,大人向け,18禁">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="canonical" href="https://nobu6477.github.io/tomotrip-app/adult-list.html">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:title" id="ogTitle" content="沖縄のナイトライフガイド - 18歳以上">
+    <meta property="og:description" id="ogDescription" content="沖縄の大人向けナイトスポット情報。">
+    <meta property="og:url" content="https://nobu6477.github.io/tomotrip-app/adult-list.html">
+    
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" id="twitterTitle" content="沖縄のナイトライフガイド">
+    <meta name="twitter:description" id="twitterDescription" content="沖縄の大人向けナイトスポット情報。">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/icons.css">
+    <link rel="stylesheet" href="adult-style.css">
+    
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "沖縄ナイトライフガイド",
+        "url": "https://nobu6477.github.io/tomotrip-app/adult-list.html"
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "沖縄のナイトライフ・大人向け店舗一覧",
+        "description": "沖縄の大人向けエンターテイメント情報"
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "TomoTrip", "item": "https://nobu6477.github.io/tomotrip-app/"},
+            {"@type": "ListItem", "position": 2, "name": "大人向けガイド", "item": "https://nobu6477.github.io/tomotrip-app/adult-list.html"}
+        ]
+    }
+    </script>
+</head>
+<body>
+    <div id="ageGateModal" class="age-gate-overlay">
+        <div class="age-gate-modal">
+            <div class="age-gate-icon">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <h2>年齢確認</h2>
+            <p class="age-gate-warning">このページには18歳以上向けのコンテンツが含まれています。</p>
+            <p>あなたは18歳以上ですか？</p>
+            <div class="age-gate-buttons">
+                <button id="ageConfirmYes" class="btn-age-yes">はい、18歳以上です</button>
+                <button id="ageConfirmNo" class="btn-age-no">いいえ、18歳未満です</button>
+            </div>
+            <p class="age-gate-notice">18歳未満の方はご利用いただけません。</p>
+        </div>
+    </div>
+
+    <div id="mainContent" style="display: none;">
+        <nav class="navbar navbar-dark adult-navbar">
+            <div class="container">
+                <a class="navbar-brand" href="index.html">
+                    <i class="bi bi-arrow-left me-2"></i>TomoTripへ戻る
+                </a>
+                <span class="badge bg-danger">18+</span>
+            </div>
+        </nav>
+
+        <header class="adult-header">
+            <div class="container">
+                <nav aria-label="パンくずリスト" class="mb-3">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="index.html">ホーム</a></li>
+                        <li class="breadcrumb-item active">大人向けガイド</li>
+                    </ol>
+                </nav>
+                <h1><i class="bi bi-moon-stars me-2"></i>沖縄ナイトライフガイド</h1>
+                <p class="lead">沖縄の大人向けエンターテイメント情報</p>
+                <div class="alert alert-warning">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>ご注意:</strong> 本サイトは情報提供のみを目的としており、店舗の紹介・仲介・手配は一切行っておりません。
+                </div>
+            </div>
+        </header>
+
+        <main class="container py-4">
+            <section class="mb-4">
+                <h2 class="h5 mb-3"><i class="bi bi-funnel me-2"></i>カテゴリで探す</h2>
+                <div class="filter-tabs" id="categoryTabs">
+                    <button class="filter-tab active" data-category="">すべて</button>
+                    <button class="filter-tab" data-category="デリヘル">デリヘル</button>
+                    <button class="filter-tab" data-category="店舗型">店舗型</button>
+                </div>
+            </section>
+
+            <section class="mb-4">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <select id="areaFilter" class="form-select">
+                            <option value="">全エリア</option>
+                            <option value="naha">那覇</option>
+                            <option value="chatan">北谷</option>
+                            <option value="nago">名護</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="text" id="searchInput" class="form-control" placeholder="店舗名で検索...">
+                    </div>
+                    <input type="hidden" id="categoryFilter" value="">
+                </div>
+            </section>
+
+            <section id="shopList" class="row g-4">
+            </section>
+
+            <div id="loading" class="text-center py-5">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">読み込み中...</span>
+                </div>
+            </div>
+
+            <div id="emptyState" class="text-center py-5" style="display: none;">
+                <i class="bi bi-shop" style="font-size: 4rem; opacity: 0.3;"></i>
+                <h3 class="mt-3">店舗が見つかりません</h3>
+                <p class="text-muted">条件を変えて検索してください。</p>
+            </div>
+
+            <section class="cta-section mt-5">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="cta-card">
+                            <h3><i class="bi bi-person-walking me-2"></i>ガイドを探す</h3>
+                            <p>沖縄の地元ガイドと一緒に観光を楽しみませんか？</p>
+                            <a href="index.html" class="btn btn-primary">TomoTripでガイドを探す</a>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="cta-card">
+                            <h3><i class="bi bi-shop me-2"></i>協賛店を探す</h3>
+                            <p>TomoTrip認定の信頼できる店舗を探す</p>
+                            <a href="sponsor-list.html" class="btn btn-outline-primary">協賛店一覧を見る</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="adult-footer">
+            <div class="container">
+                <p class="mb-2">本サイトは情報提供のみを目的としています。</p>
+                <p class="mb-0"><a href="index.html">TomoTrip</a> | <a href="sponsor-list.html">協賛店一覧</a></p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="adult.js"></script>
+</body>
+</html>

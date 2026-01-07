@@ -94,6 +94,7 @@ function showSuccessModal(storeData) {
         title: isEnglish ? 'Registration Complete!' : '登録完了！',
         storeIdLabel: isEnglish ? 'Store ID:' : '店舗ID:',
         dashboardBtn: isEnglish ? 'Go to Dashboard' : '店舗管理画面へ',
+        myStoreBtn: isEnglish ? 'View My Store Page' : '自分の店舗ページを見る',
         listBtn: isEnglish ? 'View Sponsor List' : '協賛店一覧を見る',
         homeBtn: isEnglish ? 'Go to Home' : 'ホームへ戻る'
     };
@@ -118,7 +119,10 @@ function showSuccessModal(storeData) {
                                     <button class="btn btn-light btn-lg" id="goToDashboardBtn" style="border-radius: 15px; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.2); cursor: pointer;">
                                         <i class="bi bi-speedometer2 me-2"></i><span id="dashboardBtnText">${translations.dashboardBtn}</span>
                                     </button>
-                                    <button class="btn btn-outline-light btn-lg" id="goToSponsorListBtn" style="border-radius: 15px; font-weight: 600; border: 2px solid white; cursor: pointer;">
+                                    <button class="btn btn-outline-light btn-lg" id="goToMyStoreBtn" style="border-radius: 15px; font-weight: 600; border: 2px solid white; cursor: pointer;">
+                                        <i class="bi bi-eye me-2"></i><span id="myStoreBtnText">${translations.myStoreBtn}</span>
+                                    </button>
+                                    <button class="btn btn-outline-light" id="goToSponsorListBtn" style="border-radius: 15px; font-weight: 600; border: 2px solid white; cursor: pointer;">
                                         <i class="bi bi-shop me-2"></i><span id="listBtnText">${translations.listBtn}</span>
                                     </button>
                                     <button class="btn btn-outline-light" id="goToHomeBtn" style="border-radius: 15px; border: 2px solid white; cursor: pointer;">
@@ -160,6 +164,20 @@ function showSuccessModal(storeData) {
         newDashboardBtn.addEventListener('click', function() {
             const langParam = isEnglish ? '&lang=en' : '';
             window.location.href = `store-dashboard.html?id=${storeData.id}${langParam}`;
+        });
+    }
+    
+    const myStoreBtn = document.getElementById('goToMyStoreBtn');
+    if (myStoreBtn) {
+        const newMyStoreBtn = myStoreBtn.cloneNode(true);
+        myStoreBtn.parentNode.replaceChild(newMyStoreBtn, myStoreBtn);
+        
+        newMyStoreBtn.addEventListener('click', function() {
+            // Respect language context - currently only Japanese sponsor-detail exists
+            // When sponsor-detail-en.html is created, add: isEnglish ? 'sponsor-detail-en.html' : 'sponsor-detail.html'
+            const detailPage = 'sponsor-detail.html';
+            const langParam = isEnglish ? '&lang=en' : '';
+            window.location.href = `${detailPage}?id=${storeData.id}${langParam}`;
         });
     }
     
