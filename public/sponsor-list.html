@@ -3,28 +3,270 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>協賛店一覧 - TomoTrip</title>
+    
+    <!-- SEO Meta Tags -->
+    <title id="pageTitle">沖縄の協賛店・観光スポット一覧｜TomoTrip - 地元ガイドおすすめの店舗を探す</title>
+    <meta name="description" id="metaDescription" content="TomoTrip協賛店一覧。沖縄の飲食店、観光案内、文化体験、アクティビティなど地元ガイドがおすすめする店舗を検索・予約。観光客と地域をつなぐプラットフォーム。">
+    <meta name="keywords" content="沖縄,協賛店,観光,ガイド,TomoTrip,飲食店,アクティビティ,文化体験,那覇,観光案内">
+    <meta name="author" content="TomoTrip">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" id="canonicalUrl" href="https://tomotrip.jp/sponsor-list.html">
+    
+    <!-- OGP (Open Graph Protocol) -->
+    <meta property="og:title" id="ogTitle" content="沖縄の協賛店・観光スポット一覧｜TomoTrip">
+    <meta property="og:description" id="ogDescription" content="地元ガイドがおすすめする沖縄の飲食店、観光案内、文化体験スポットを検索。観光客と地域をつなぐTomoTrip協賛店ネットワーク。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" id="ogUrl" content="https://tomotrip.jp/sponsor-list.html">
+    <meta property="og:image" content="https://tomotrip.jp/assets/images/sponsor-list-ogp.jpg">
+    <meta property="og:site_name" content="TomoTrip">
+    <meta property="og:locale" content="ja_JP">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" id="twitterTitle" content="沖縄の協賛店・観光スポット一覧｜TomoTrip">
+    <meta name="twitter:description" id="twitterDescription" content="地元ガイドがおすすめする沖縄の飲食店、観光案内、文化体験スポットを検索。">
+    <meta name="twitter:image" content="https://tomotrip.jp/assets/images/sponsor-list-ogp.jpg">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    
+    <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="assets/css/ocean_background.css" rel="stylesheet">
+    
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json" id="schemaWebsite">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "TomoTrip",
+        "url": "https://tomotrip.jp/",
+        "description": "沖縄の地元ガイドと観光客をつなぐプラットフォーム",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://tomotrip.jp/sponsor-list.html?search={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    }
+    </script>
+    
+    <script type="application/ld+json" id="schemaCollectionPage">
+    {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "TomoTrip協賛店一覧",
+        "description": "沖縄の飲食店、観光案内、文化体験、アクティビティなど地元ガイドがおすすめする店舗一覧",
+        "url": "https://tomotrip.jp/sponsor-list.html",
+        "isPartOf": {
+            "@type": "WebSite",
+            "name": "TomoTrip",
+            "url": "https://tomotrip.jp/"
+        },
+        "mainEntity": {
+            "@type": "ItemList",
+            "itemListElement": []
+        }
+    }
+    </script>
+    
+    <script type="application/ld+json" id="schemaBreadcrumb">
+    {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "ホーム",
+                "item": "https://tomotrip.jp/"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "協賛店一覧",
+                "item": "https://tomotrip.jp/sponsor-list.html"
+            }
+        ]
+    }
+    </script>
+    
     <style>
+        :root {
+            --ocean-primary: #0077b6;
+            --ocean-secondary: #00b4d8;
+            --ocean-light: #90e0ef;
+            --ocean-dark: #03045e;
+            --sand-light: #f8f9fa;
+            --coral: #ff6b6b;
+            --sunset-orange: #ff8c42;
+        }
+        
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--ocean-primary) 0%, var(--ocean-secondary) 50%, var(--ocean-light) 100%);
             min-height: 100vh;
+            font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
         }
         
-        .sponsor-header {
-            background: linear-gradient(135deg, rgba(40, 167, 69, 0.9), rgba(32, 201, 151, 0.9));
+        /* Hero Header */
+        .sponsor-hero {
+            background: linear-gradient(135deg, rgba(0, 119, 182, 0.95), rgba(0, 180, 216, 0.9));
             color: white;
-            padding: 2rem 0;
+            padding: 3rem 0 2rem;
             margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
         }
         
+        .sponsor-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('assets/images/beach-yacht-tourists.jpg') center/cover;
+            opacity: 0.15;
+            z-index: 0;
+        }
+        
+        .sponsor-hero .container {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .sponsor-hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .sponsor-hero h1 {
+                font-size: 1.75rem;
+            }
+            .sponsor-hero {
+                padding: 2rem 0 1.5rem;
+            }
+        }
+        
+        /* Breadcrumb */
+        .breadcrumb-nav {
+            background: rgba(255,255,255,0.1);
+            padding: 0.75rem 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .breadcrumb-nav a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+        }
+        
+        .breadcrumb-nav a:hover {
+            color: white;
+        }
+        
+        .breadcrumb-nav .separator {
+            color: rgba(255,255,255,0.5);
+            margin: 0 0.5rem;
+        }
+        
+        .breadcrumb-nav .current {
+            color: white;
+            font-weight: 600;
+        }
+        
+        /* CTA Buttons */
+        .cta-primary {
+            background: linear-gradient(135deg, var(--coral), var(--sunset-orange));
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+        
+        .cta-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.5);
+            color: white;
+        }
+        
+        .cta-secondary {
+            background: white;
+            color: var(--ocean-primary);
+            border: 2px solid white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .cta-secondary:hover {
+            background: rgba(255,255,255,0.9);
+            transform: translateY(-2px);
+        }
+        
+        /* Top CTA Bar */
+        .top-cta-bar {
+            background: linear-gradient(135deg, var(--coral), var(--sunset-orange));
+            padding: 1rem 0;
+            text-align: center;
+        }
+        
+        .top-cta-bar p {
+            color: white;
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        /* KPI Cards */
+        .kpi-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: none;
+            text-align: center;
+            height: 100%;
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .kpi-card .kpi-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .kpi-card .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--ocean-dark);
+        }
+        
+        .kpi-card .kpi-label {
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+        
+        /* Store Card */
         .store-card {
             background: white;
-            border-radius: 15px;
+            border-radius: 20px;
             padding: 1.5rem;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
             border: none;
             margin-bottom: 1.5rem;
@@ -33,15 +275,15 @@
         
         .store-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
         }
         
         .store-logo {
             width: 80px;
             height: 80px;
-            border-radius: 10px;
+            border-radius: 15px;
             object-fit: cover;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--ocean-primary), var(--ocean-secondary));
             display: flex;
             align-items: center;
             justify-content: center;
@@ -67,56 +309,82 @@
         }
         
         .btn-view-store {
-            background: linear-gradient(135deg, #007bff, #6610f2);
+            background: linear-gradient(135deg, var(--ocean-primary), var(--ocean-dark));
             border: none;
             color: white;
             padding: 0.5rem 1rem;
-            border-radius: 8px;
+            border-radius: 12px;
             transition: all 0.3s ease;
+            font-weight: 600;
         }
         
         .btn-view-store:hover {
-            background: linear-gradient(135deg, #0056b3, #520dc2);
+            background: linear-gradient(135deg, var(--ocean-dark), #010326);
             color: white;
-            transform: translateY(-1px);
+            transform: translateY(-2px);
         }
         
+        /* Search & Filter Section */
         .search-filter-section {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
             padding: 1.5rem;
             margin-bottom: 2rem;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
         }
         
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        
+        .filter-tab {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            border: 2px solid var(--ocean-primary);
+            background: white;
+            color: var(--ocean-primary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-tab:hover, .filter-tab.active {
+            background: var(--ocean-primary);
+            color: white;
+        }
+        
+        /* Pagination */
         .pagination-container {
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
+            border-radius: 20px;
             padding: 1.5rem;
             margin-top: 2rem;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
         }
         
         .page-button {
             background: white;
-            border: 2px solid #667eea;
-            color: #667eea;
+            border: 2px solid var(--ocean-primary);
+            color: var(--ocean-primary);
             padding: 0.5rem 1rem;
             margin: 0 0.25rem;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 600;
         }
         
         .page-button:hover:not(:disabled) {
-            background: #667eea;
+            background: var(--ocean-primary);
             color: white;
             transform: translateY(-2px);
         }
         
         .page-button.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, var(--ocean-primary), var(--ocean-dark));
             color: white;
             border-color: transparent;
         }
@@ -126,8 +394,95 @@
             cursor: not-allowed;
         }
         
+        /* About Section */
+        .about-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+        
+        .about-section h2 {
+            color: var(--ocean-dark);
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .about-section p {
+            color: #555;
+            line-height: 1.8;
+        }
+        
+        /* Benefit Cards */
+        .benefit-card {
+            background: linear-gradient(135deg, rgba(0,119,182,0.05), rgba(0,180,216,0.05));
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            height: 100%;
+            border: 1px solid rgba(0,119,182,0.1);
+        }
+        
+        .benefit-card i {
+            font-size: 2.5rem;
+            color: var(--ocean-primary);
+            margin-bottom: 1rem;
+        }
+        
+        .benefit-card h4 {
+            color: var(--ocean-dark);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Bottom CTA Section */
+        .bottom-cta-section {
+            background: linear-gradient(135deg, var(--ocean-dark), var(--ocean-primary));
+            border-radius: 25px;
+            padding: 3rem 2rem;
+            margin: 3rem 0;
+            text-align: center;
+            color: white;
+            box-shadow: 0 15px 50px rgba(3,4,94,0.3);
+        }
+        
+        .bottom-cta-section h2 {
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        /* FAQ Section */
+        .faq-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .faq-item {
+            border-bottom: 1px solid #eee;
+            padding: 1.5rem 0;
+        }
+        
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+        
+        .faq-question {
+            font-weight: 600;
+            color: var(--ocean-dark);
+            margin-bottom: 0.5rem;
+        }
+        
+        .faq-answer {
+            color: #666;
+            line-height: 1.7;
+        }
+        
+        /* Filter Badges */
         .filter-badge {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, var(--ocean-primary), var(--ocean-dark));
             color: white;
             padding: 0.5rem 1rem;
             border-radius: 20px;
@@ -148,105 +503,225 @@
         }
         
         .sort-dropdown {
-            border: 2px solid #667eea;
-            border-radius: 8px;
+            border: 2px solid var(--ocean-primary);
+            border-radius: 10px;
             padding: 0.5rem 1rem;
             background: white;
             cursor: pointer;
         }
+        
+        /* Footer */
+        .sponsor-footer {
+            background: var(--ocean-dark);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 3rem;
+        }
+        
+        .sponsor-footer a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+        }
+        
+        .sponsor-footer a:hover {
+            color: white;
+        }
     </style>
 </head>
 <body>
-    <!-- ヘッダー -->
-    <div class="sponsor-header">
+    <!-- Top CTA Bar -->
+    <div class="top-cta-bar">
         <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h1 class="h2 mb-1">TomoTrip 協賛店一覧</h1>
-                    <p class="mb-0 opacity-75">登録済みの協賛店・観光ガイドサービス</p>
-                </div>
-                <div class="col-md-4 text-md-end">
-                    <a href="index.html" class="btn btn-light me-2">
-                        <i class="bi bi-house me-1"></i>ホーム
-                    </a>
-                    <a href="sponsor-registration.html" class="btn btn-outline-light">
-                        <i class="bi bi-plus-circle me-1"></i>新規登録
-                    </a>
-                </div>
-            </div>
+            <p>
+                <i class="bi bi-megaphone me-2"></i>
+                あなたのお店もTomoTripに掲載しませんか？
+                <a href="sponsor-registration.html" class="btn btn-light btn-sm ms-3" data-cta="top_bar_register">
+                    今すぐ無料で掲載相談
+                </a>
+            </p>
         </div>
     </div>
-
-    <!-- メインコンテンツ -->
-    <div class="container">
-        <!-- 統計情報 -->
-        <div class="row mb-4">
-            <div class="col-md-3 col-6 mb-3">
-                <div class="store-card text-center">
-                    <i class="bi bi-shop text-primary" style="font-size: 2rem;"></i>
-                    <h4 class="mt-2 mb-0" id="totalStores">0</h4>
-                    <small class="text-muted">登録店舗数</small>
+    
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb-nav" aria-label="パンくずリスト">
+        <div class="container">
+            <a href="index.html"><i class="bi bi-house-door me-1"></i>ホーム</a>
+            <span class="separator">/</span>
+            <span class="current">協賛店一覧</span>
+        </div>
+    </nav>
+    
+    <!-- Hero Header -->
+    <header class="sponsor-hero">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-7 mb-4 mb-lg-0">
+                    <h1>
+                        <i class="bi bi-shop-window me-2"></i>
+                        TomoTrip 協賛店一覧
+                    </h1>
+                    <p class="lead mb-3 opacity-90">
+                        沖縄の地元ガイドがおすすめする飲食店・観光スポット・アクティビティを検索
+                    </p>
+                    <p class="mb-4 opacity-75">
+                        TomoTripの協賛店ネットワークは、地元ガイドと連携した信頼できる店舗のみを掲載。<br>
+                        観光客の皆様に本当におすすめできるお店だけをご紹介しています。
+                    </p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="index.html" class="btn cta-secondary" data-cta="hero_find_guide">
+                            <i class="bi bi-person-badge me-1"></i>ガイドを探す
+                        </a>
+                        <a href="tourist-registration-simple.html" class="btn cta-secondary" data-cta="hero_tourist_register">
+                            <i class="bi bi-person-plus me-1"></i>観光客登録
+                        </a>
+                        <a href="sponsor-registration.html" class="btn cta-primary" data-cta="hero_sponsor_register">
+                            <i class="bi bi-plus-circle me-1"></i>協賛店登録
+                        </a>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-3 col-6 mb-3">
-                <div class="store-card text-center">
-                    <i class="bi bi-eye text-success" style="font-size: 2rem;"></i>
-                    <h4 class="mt-2 mb-0" id="displayedStores">0</h4>
-                    <small class="text-muted">表示中</small>
-                </div>
-            </div>
-            <div class="col-md-3 col-6 mb-3">
-                <div class="store-card text-center">
-                    <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
-                    <h4 class="mt-2 mb-0" id="activeStores">0</h4>
-                    <small class="text-muted">アクティブ</small>
-                </div>
-            </div>
-            <div class="col-md-3 col-6 mb-3">
-                <div class="store-card text-center">
-                    <i class="bi bi-star-fill text-warning" style="font-size: 2rem;"></i>
-                    <h4 class="mt-2 mb-0">4.8</h4>
-                    <small class="text-muted">平均評価</small>
+                <div class="col-lg-5 text-center">
+                    <div class="d-none d-lg-block">
+                        <img src="assets/images/tomotrip-logo.png" alt="TomoTrip" style="max-width: 200px; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));">
+                    </div>
                 </div>
             </div>
         </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="container">
+        <!-- KPI統計情報 -->
+        <section class="row mb-4" aria-label="統計情報">
+            <div class="col-md-3 col-6 mb-3">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                        <i class="bi bi-shop text-white"></i>
+                    </div>
+                    <div class="kpi-value" id="totalStores">0</div>
+                    <div class="kpi-label">登録店舗数</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: linear-gradient(135deg, #28a745, #20c997);">
+                        <i class="bi bi-eye text-white"></i>
+                    </div>
+                    <div class="kpi-value" id="displayedStores">0</div>
+                    <div class="kpi-label">表示中</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: linear-gradient(135deg, #17a2b8, #0dcaf0);">
+                        <i class="bi bi-check-circle text-white"></i>
+                    </div>
+                    <div class="kpi-value" id="activeStores">0</div>
+                    <div class="kpi-label">アクティブ</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="background: linear-gradient(135deg, #ffc107, #ff8c42);">
+                        <i class="bi bi-star-fill text-white"></i>
+                    </div>
+                    <div class="kpi-value">4.8</div>
+                    <div class="kpi-label">平均評価</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TomoTrip協賛店とは（SEO用本文） -->
+        <section class="about-section">
+            <h2><i class="bi bi-info-circle me-2"></i>TomoTrip協賛店とは</h2>
+            <p>
+                TomoTrip協賛店は、沖縄の地元ガイドネットワークと連携した信頼できる店舗・サービスです。
+                飲食店、観光案内所、文化体験施設、アクティビティ提供者など、多様な業種の事業者様が参加しています。
+                協賛店に登録すると、TomoTripのガイドからお客様を紹介してもらえるほか、プラットフォーム上での露出が増え、集客効果が期待できます。
+            </p>
+            
+            <h3 class="h5 mt-4 mb-3">掲載メリット</h3>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="benefit-card">
+                        <i class="bi bi-people-fill"></i>
+                        <h4>ガイド紹介で集客</h4>
+                        <p class="text-muted small mb-0">地元ガイドからの直接紹介で新規顧客を獲得</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="benefit-card">
+                        <i class="bi bi-graph-up-arrow"></i>
+                        <h4>露出アップ</h4>
+                        <p class="text-muted small mb-0">TomoTripプラットフォームでの検索上位表示</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="benefit-card">
+                        <i class="bi bi-shield-check"></i>
+                        <h4>信頼性向上</h4>
+                        <p class="text-muted small mb-0">TomoTrip認定マークで観光客からの信頼獲得</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- カテゴリ別ナビゲーション -->
+        <section class="mb-4" aria-label="カテゴリで探す">
+            <h2 class="text-white h4 mb-3"><i class="bi bi-grid me-2"></i>カテゴリから探す</h2>
+            <div class="filter-tabs" id="categoryTabs">
+                <button class="filter-tab active" data-category="" data-cta="filter_all">すべて</button>
+                <button class="filter-tab" data-category="観光案内" data-cta="filter_tourism">観光案内</button>
+                <button class="filter-tab" data-category="文化体験" data-cta="filter_culture">文化体験</button>
+                <button class="filter-tab" data-category="アクティビティ" data-cta="filter_activity">アクティビティ</button>
+                <button class="filter-tab" data-category="飲食" data-cta="filter_food">飲食</button>
+                <button class="filter-tab" data-category="宿泊" data-cta="filter_stay">宿泊</button>
+                <button class="filter-tab" data-category="交通" data-cta="filter_transport">交通</button>
+            </div>
+        </section>
 
         <!-- 検索・フィルター・ソート -->
-        <div class="search-filter-section">
+        <section class="search-filter-section" aria-label="検索・フィルター">
             <div class="row g-3">
                 <!-- 検索バー -->
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <div class="input-group">
-                        <span class="input-group-text">
+                        <span class="input-group-text" style="border-radius: 10px 0 0 10px;">
                             <i class="bi bi-search"></i>
                         </span>
-                        <input type="text" id="searchInput" class="form-control" placeholder="店舗名で検索...">
+                        <input type="text" id="searchInput" class="form-control" placeholder="店舗名・住所で検索..." style="border-radius: 0 10px 10px 0;">
                     </div>
                 </div>
                 
-                <!-- ソート -->
+                <!-- エリアフィルター -->
                 <div class="col-md-3">
-                    <select id="sortSelect" class="form-select sort-dropdown">
-                        <option value="newest">登録日（新しい順）</option>
-                        <option value="oldest">登録日（古い順）</option>
-                        <option value="name">店舗名（五十音順）</option>
-                        <option value="views">閲覧数（多い順）</option>
-                        <option value="bookings">予約数（多い順）</option>
+                    <select id="areaFilter" class="form-select sort-dropdown">
+                        <option value="">全エリア</option>
+                        <option value="naha">那覇</option>
+                        <option value="chatan">北谷</option>
+                        <option value="nago">名護</option>
+                        <option value="ishigaki">石垣</option>
+                        <option value="miyako">宮古</option>
                     </select>
                 </div>
                 
-                <!-- カテゴリーフィルター -->
-                <div class="col-md-3">
-                    <select id="categoryFilter" class="form-select sort-dropdown">
-                        <option value="">全カテゴリー</option>
-                        <option value="観光案内">観光案内</option>
-                        <option value="文化体験">文化体験</option>
-                        <option value="アクティビティ">アクティビティ</option>
-                        <option value="飲食">飲食</option>
-                        <option value="宿泊">宿泊</option>
-                        <option value="交通">交通</option>
-                        <option value="その他">その他</option>
+                <!-- ソート -->
+                <div class="col-md-2">
+                    <select id="sortSelect" class="form-select sort-dropdown">
+                        <option value="newest">新着順</option>
+                        <option value="oldest">登録順</option>
+                        <option value="name">名前順</option>
+                        <option value="views">人気順</option>
                     </select>
+                </div>
+                
+                <!-- カテゴリーフィルター（隠し、タブと連動） -->
+                <input type="hidden" id="categoryFilter" value="">
+                
+                <!-- リセットボタン -->
+                <div class="col-md-2">
+                    <button class="btn btn-outline-secondary w-100" onclick="resetFilters()" style="border-radius: 10px;">
+                        <i class="bi bi-arrow-clockwise me-1"></i>リセット
+                    </button>
                 </div>
             </div>
             
@@ -255,15 +730,15 @@
                 <small class="text-muted me-2">アクティブなフィルター:</small>
                 <div id="filterBadges" class="d-inline"></div>
             </div>
-        </div>
+        </section>
 
         <!-- 協賛店リスト -->
-        <div id="storeList" class="row">
+        <section id="storeList" class="row" aria-label="協賛店一覧">
             <!-- 店舗カードがここに動的に挿入されます -->
-        </div>
+        </section>
         
         <!-- ページネーション -->
-        <div id="paginationContainer" class="pagination-container text-center" style="display: none;">
+        <nav id="paginationContainer" class="pagination-container text-center" style="display: none;" aria-label="ページナビゲーション">
             <div class="d-flex justify-content-between align-items-center flex-wrap">
                 <div class="mb-2">
                     <span class="text-muted">
@@ -281,10 +756,10 @@
                     </span>
                 </div>
             </div>
-        </div>
+        </nav>
         
         <!-- ローディング -->
-        <div id="loading" class="text-center py-5">
+        <div id="loading" class="text-center py-5" aria-live="polite">
             <div class="spinner-border text-light" role="status">
                 <span class="visually-hidden">読み込み中...</span>
             </div>
@@ -299,11 +774,93 @@
             <button class="btn btn-light me-2" onclick="resetFilters()">
                 <i class="bi bi-arrow-clockwise me-1"></i>フィルターをリセット
             </button>
-            <a href="sponsor-registration.html" class="btn btn-success">
+            <a href="sponsor-registration.html" class="btn btn-success" data-cta="empty_register">
                 <i class="bi bi-plus-circle me-1"></i>協賛店を登録
             </a>
         </div>
-    </div>
+
+        <!-- Bottom CTA Section -->
+        <section class="bottom-cta-section">
+            <h2><i class="bi bi-rocket-takeoff me-2"></i>あなたのお店も掲載しませんか？</h2>
+            <p class="lead mb-4">TomoTripの協賛店ネットワークに参加して、沖縄を訪れる観光客にアピールしましょう</p>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <a href="sponsor-registration.html" class="btn btn-lg cta-primary" data-cta="bottom_register">
+                    <i class="bi bi-plus-circle me-2"></i>今すぐ無料で掲載相談
+                </a>
+                <a href="index.html" class="btn btn-lg btn-outline-light" data-cta="bottom_home">
+                    <i class="bi bi-house me-2"></i>TomoTripトップへ
+                </a>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="faq-section" aria-label="よくある質問">
+            <h2 class="mb-4"><i class="bi bi-question-circle me-2"></i>よくある質問</h2>
+            
+            <div class="faq-item">
+                <div class="faq-question">Q. 協賛店への登録は無料ですか？</div>
+                <div class="faq-answer">A. 基本的な掲載は無料です。プレミアム掲載などのオプションサービスは別途料金がかかります。まずはお気軽にご相談ください。</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">Q. どのような業種が登録できますか？</div>
+                <div class="faq-answer">A. 飲食店、観光案内所、文化体験施設、アクティビティ提供者、宿泊施設、交通サービスなど、観光に関連する幅広い業種が登録可能です。</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">Q. ガイドからの紹介はどのように行われますか？</div>
+                <div class="faq-answer">A. TomoTripに登録している地元ガイドが、ツアー中やお客様への案内時に協賛店を紹介します。紹介実績に応じたコミッション制度もあります。</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">Q. 掲載後の運用サポートはありますか？</div>
+                <div class="faq-answer">A. はい、専任のサポートチームが掲載内容の最適化や集客のアドバイスを行います。</div>
+            </div>
+        </section>
+
+        <!-- お問い合わせ導線 -->
+        <section class="about-section text-center">
+            <h2 class="mb-3"><i class="bi bi-envelope me-2"></i>お問い合わせ</h2>
+            <p class="mb-4">協賛店登録やサービスについてのご質問はお気軽にどうぞ</p>
+            <div class="d-flex flex-wrap justify-content-center gap-3">
+                <a href="mailto:info@tomotrip.jp" class="btn btn-outline-primary" data-cta="contact_email">
+                    <i class="bi bi-envelope me-2"></i>メールでお問い合わせ
+                </a>
+                <a href="sponsor-registration.html" class="btn cta-primary" data-cta="contact_register">
+                    <i class="bi bi-plus-circle me-2"></i>掲載を申し込む
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="sponsor-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <h5>TomoTrip</h5>
+                    <p class="small opacity-75">沖縄の地元ガイドと観光客をつなぐプラットフォーム</p>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h6>リンク</h6>
+                    <ul class="list-unstyled small">
+                        <li><a href="index.html">ホーム</a></li>
+                        <li><a href="sponsor-list.html">協賛店一覧</a></li>
+                        <li><a href="sponsor-registration.html">協賛店登録</a></li>
+                        <li><a href="tourist-registration-simple.html">観光客登録</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h6>お問い合わせ</h6>
+                    <p class="small opacity-75">
+                        <i class="bi bi-envelope me-1"></i> info@tomotrip.jp
+                    </p>
+                </div>
+            </div>
+            <hr class="opacity-25">
+            <p class="text-center small opacity-50 mb-0">&copy; 2025 TomoTrip. All rights reserved.</p>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -313,22 +870,153 @@
         let currentPage = 1;
         const itemsPerPage = 12;
         
+        // SEO: URLパラメータから初期フィルターを取得
+        const urlParams = new URLSearchParams(window.location.search);
+        const initialCategory = urlParams.get('category') || '';
+        const initialArea = urlParams.get('area') || '';
+        const initialSearch = urlParams.get('search') || '';
+        
         // 初期化
         document.addEventListener('DOMContentLoaded', function() {
+            // URLパラメータからフィルターを適用
+            applyUrlParams();
+            
+            // SEO: 動的にtitle/descriptionを更新
+            updateSeoMeta();
+            
             loadSponsorStores();
             setupEventListeners();
+            setupCategoryTabs();
+            trackCtaClicks();
         });
+        
+        // URLパラメータの適用
+        function applyUrlParams() {
+            if (initialCategory) {
+                document.getElementById('categoryFilter').value = initialCategory;
+                // タブも更新
+                document.querySelectorAll('.filter-tab').forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.category === initialCategory);
+                });
+            }
+            if (initialArea) {
+                document.getElementById('areaFilter').value = initialArea;
+            }
+            if (initialSearch) {
+                document.getElementById('searchInput').value = initialSearch;
+            }
+        }
+        
+        // SEO: 動的メタ更新
+        function updateSeoMeta() {
+            const categoryNames = {
+                '観光案内': '観光案内',
+                '文化体験': '文化体験',
+                'アクティビティ': 'アクティビティ',
+                '飲食': '飲食店・グルメ',
+                '宿泊': '宿泊施設',
+                '交通': '交通サービス'
+            };
+            
+            const areaNames = {
+                'naha': '那覇',
+                'chatan': '北谷',
+                'nago': '名護',
+                'ishigaki': '石垣島',
+                'miyako': '宮古島'
+            };
+            
+            let title = '沖縄の協賛店・観光スポット一覧｜TomoTrip';
+            let description = 'TomoTrip協賛店一覧。沖縄の飲食店、観光案内、文化体験、アクティビティなど地元ガイドがおすすめする店舗を検索・予約。';
+            
+            if (initialCategory && categoryNames[initialCategory]) {
+                title = `沖縄の${categoryNames[initialCategory]}一覧｜TomoTrip協賛店`;
+                description = `沖縄の${categoryNames[initialCategory]}をお探しなら、TomoTrip協賛店で。地元ガイドがおすすめする信頼できる店舗をご紹介。`;
+            }
+            
+            if (initialArea && areaNames[initialArea]) {
+                title = `${areaNames[initialArea]}の協賛店一覧｜TomoTrip`;
+                description = `${areaNames[initialArea]}エリアのTomoTrip協賛店。地元ガイドおすすめの飲食店、観光スポット、アクティビティを検索。`;
+            }
+            
+            if (initialCategory && initialArea) {
+                title = `${areaNames[initialArea]}の${categoryNames[initialCategory]}一覧｜TomoTrip`;
+                description = `${areaNames[initialArea]}エリアの${categoryNames[initialCategory]}をお探しなら、TomoTrip協賛店で。`;
+            }
+            
+            // Update meta tags
+            document.getElementById('pageTitle').textContent = title;
+            document.querySelector('meta[name="description"]').content = description;
+            document.getElementById('ogTitle').content = title;
+            document.getElementById('ogDescription').content = description;
+            document.getElementById('twitterTitle').content = title;
+            document.getElementById('twitterDescription').content = description;
+        }
+        
+        // カテゴリタブのセットアップ
+        function setupCategoryTabs() {
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // タブのアクティブ状態を更新
+                    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // フィルターを更新
+                    document.getElementById('categoryFilter').value = this.dataset.category;
+                    applyFiltersAndSort();
+                    
+                    // URLを更新（履歴に追加しない）
+                    updateUrl();
+                });
+            });
+        }
+        
+        // URL更新
+        function updateUrl() {
+            const params = new URLSearchParams();
+            const category = document.getElementById('categoryFilter').value;
+            const area = document.getElementById('areaFilter').value;
+            const search = document.getElementById('searchInput').value;
+            
+            if (category) params.set('category', category);
+            if (area) params.set('area', area);
+            if (search) params.set('search', search);
+            
+            const newUrl = params.toString() 
+                ? `${window.location.pathname}?${params.toString()}`
+                : window.location.pathname;
+            
+            window.history.replaceState({}, '', newUrl);
+        }
+        
+        // CTAクリックトラッキング
+        function trackCtaClicks() {
+            document.querySelectorAll('[data-cta]').forEach(el => {
+                el.addEventListener('click', function() {
+                    const ctaName = this.dataset.cta;
+                    console.log('CTA clicked:', ctaName);
+                    // Analytics tracking can be added here
+                    // gtag('event', 'cta_click', { cta_name: ctaName });
+                });
+            });
+        }
 
         // イベントリスナーの設定
         function setupEventListeners() {
             // 検索
-            document.getElementById('searchInput').addEventListener('input', debounce(applyFiltersAndSort, 300));
+            document.getElementById('searchInput').addEventListener('input', debounce(function() {
+                applyFiltersAndSort();
+                updateUrl();
+            }, 300));
             
             // ソート
             document.getElementById('sortSelect').addEventListener('change', applyFiltersAndSort);
             
-            // カテゴリーフィルター
-            document.getElementById('categoryFilter').addEventListener('change', applyFiltersAndSort);
+            // エリアフィルター
+            document.getElementById('areaFilter').addEventListener('change', function() {
+                applyFiltersAndSort();
+                updateUrl();
+            });
         }
 
         // デバウンス関数
@@ -367,6 +1055,7 @@
                     document.getElementById('emptyState').style.display = 'block';
                 } else {
                     applyFiltersAndSort();
+                    updateStructuredData();
                 }
                 
             } catch (error) {
@@ -375,12 +1064,45 @@
                 document.getElementById('emptyState').style.display = 'block';
             }
         }
+        
+        // 構造化データの更新
+        function updateStructuredData() {
+            const itemList = filteredStores.slice(0, 20).map((store, index) => ({
+                "@type": "ListItem",
+                "position": index + 1,
+                "item": {
+                    "@type": "LocalBusiness",
+                    "name": store.storeName,
+                    "description": store.description || `${store.category}の協賛店`,
+                    "address": store.address || "沖縄県",
+                    "telephone": store.phone || "",
+                    "url": `${window.location.origin}/sponsor-detail.html?id=${store.id}`
+                }
+            }));
+            
+            const schemaCollectionPage = document.getElementById('schemaCollectionPage');
+            if (schemaCollectionPage) {
+                const schema = JSON.parse(schemaCollectionPage.textContent);
+                schema.mainEntity.itemListElement = itemList;
+                schemaCollectionPage.textContent = JSON.stringify(schema);
+            }
+        }
 
         // フィルターとソートの適用
         function applyFiltersAndSort() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const category = document.getElementById('categoryFilter').value;
+            const area = document.getElementById('areaFilter').value;
             const sortBy = document.getElementById('sortSelect').value;
+            
+            // エリア名のマッピング
+            const areaKeywords = {
+                'naha': ['那覇', 'ナハ', 'naha'],
+                'chatan': ['北谷', 'チャタン', 'chatan'],
+                'nago': ['名護', 'ナゴ', 'nago'],
+                'ishigaki': ['石垣', 'イシガキ', 'ishigaki'],
+                'miyako': ['宮古', 'ミヤコ', 'miyako']
+            };
             
             // フィルタリング
             filteredStores = allStores.filter(store => {
@@ -390,7 +1112,15 @@
                 
                 const matchesCategory = !category || store.category === category;
                 
-                return matchesSearch && matchesCategory;
+                // エリアフィルター
+                let matchesArea = true;
+                if (area && areaKeywords[area]) {
+                    matchesArea = areaKeywords[area].some(keyword => 
+                        (store.address && store.address.includes(keyword))
+                    );
+                }
+                
+                return matchesSearch && matchesCategory && matchesArea;
             });
             
             // ソート
@@ -416,15 +1146,24 @@
             
             // 表示を更新
             updateDisplay();
-            updateActiveFilters(searchTerm, category);
+            updateActiveFilters(searchTerm, category, area);
+            updateStructuredData();
         }
 
         // アクティブなフィルターの表示更新
-        function updateActiveFilters(searchTerm, category) {
+        function updateActiveFilters(searchTerm, category, area) {
             const activeFiltersDiv = document.getElementById('activeFilters');
             const filterBadgesDiv = document.getElementById('filterBadges');
             
-            const hasFilters = searchTerm || category;
+            const areaNames = {
+                'naha': '那覇',
+                'chatan': '北谷',
+                'nago': '名護',
+                'ishigaki': '石垣',
+                'miyako': '宮古'
+            };
+            
+            const hasFilters = searchTerm || category || area;
             
             if (hasFilters) {
                 activeFiltersDiv.style.display = 'block';
@@ -434,7 +1173,7 @@
                     filterBadgesDiv.innerHTML += `
                         <span class="filter-badge">
                             検索: "${searchTerm}"
-                            <i class="bi bi-x-circle remove-filter" onclick="document.getElementById('searchInput').value = ''; applyFiltersAndSort();"></i>
+                            <i class="bi bi-x-circle remove-filter" onclick="document.getElementById('searchInput').value = ''; applyFiltersAndSort(); updateUrl();"></i>
                         </span>
                     `;
                 }
@@ -443,7 +1182,16 @@
                     filterBadgesDiv.innerHTML += `
                         <span class="filter-badge">
                             カテゴリー: ${category}
-                            <i class="bi bi-x-circle remove-filter" onclick="document.getElementById('categoryFilter').value = ''; applyFiltersAndSort();"></i>
+                            <i class="bi bi-x-circle remove-filter" onclick="document.getElementById('categoryFilter').value = ''; document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active')); document.querySelector('.filter-tab[data-category=\\'\\']').classList.add('active'); applyFiltersAndSort(); updateUrl();"></i>
+                        </span>
+                    `;
+                }
+                
+                if (area) {
+                    filterBadgesDiv.innerHTML += `
+                        <span class="filter-badge">
+                            エリア: ${areaNames[area]}
+                            <i class="bi bi-x-circle remove-filter" onclick="document.getElementById('areaFilter').value = ''; applyFiltersAndSort(); updateUrl();"></i>
                         </span>
                     `;
                 }
@@ -497,11 +1245,11 @@
                     : `<div class="store-logo me-3"><i class="bi bi-shop"></i></div>`;
                 
                 storeCard.innerHTML = `
-                    <div class="store-card">
+                    <article class="store-card" itemscope itemtype="https://schema.org/LocalBusiness">
                         <div class="d-flex align-items-start mb-3">
                             ${logoHtml}
                             <div class="flex-grow-1">
-                                <h5 class="mb-1">${escapeHtml(store.storeName)}</h5>
+                                <h3 class="h5 mb-1" itemprop="name">${escapeHtml(store.storeName)}</h3>
                                 <p class="text-muted small mb-1">${escapeHtml(store.category)}</p>
                                 <span class="status-badge ${statusClass}">
                                     <i class="bi bi-${store.status === 'active' ? 'check-circle' : 'clock'} me-1"></i>
@@ -511,13 +1259,13 @@
                         </div>
                         
                         <div class="mb-3">
-                            <p class="text-muted small mb-2">
+                            <p class="text-muted small mb-2" itemprop="address">
                                 <i class="bi bi-geo-alt me-1"></i>
-                                ${escapeHtml(store.address) || '住所未設定'}
+                                ${escapeHtml(store.address) || '沖縄県'}
                             </p>
                             <p class="text-muted small mb-2">
                                 <i class="bi bi-telephone me-1"></i>
-                                ${escapeHtml(store.phone) || '電話番号未設定'}
+                                <span itemprop="telephone">${escapeHtml(store.phone) || '電話番号未設定'}</span>
                             </p>
                             <p class="text-muted small mb-2">
                                 <i class="bi bi-calendar3 me-1"></i>
@@ -540,10 +1288,11 @@
                             </div>
                         </div>
                         
-                        <button class="btn btn-view-store w-100" onclick="viewStoreDetails('${store.id}')">
+                        <a href="sponsor-detail.html?id=${store.id}" class="btn btn-view-store w-100" data-cta="view_store_${store.id.substring(0,8)}">
                             <i class="bi bi-eye me-1"></i>店舗詳細を見る
-                        </button>
-                    </div>
+                        </a>
+                        <meta itemprop="url" content="${window.location.origin}/sponsor-detail.html?id=${store.id}">
+                    </article>
                 `;
                 
                 storeList.appendChild(storeCard);
@@ -664,8 +1413,15 @@
         function resetFilters() {
             document.getElementById('searchInput').value = '';
             document.getElementById('categoryFilter').value = '';
+            document.getElementById('areaFilter').value = '';
             document.getElementById('sortSelect').value = 'newest';
+            
+            // タブをリセット
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector('.filter-tab[data-category=""]').classList.add('active');
+            
             applyFiltersAndSort();
+            updateUrl();
         }
 
         // 観光客登録チェック
@@ -675,35 +1431,10 @@
             return touristLogin !== null;
         }
 
-        // 店舗詳細の表示
+        // 店舗詳細の表示（sponsor-detail.htmlへリダイレクト）
         function viewStoreDetails(storeId) {
-            console.log('Attempting to view store details for:', storeId);
-            
-            // Check if user is registered as tourist
-            if (!checkTouristRegistration()) {
-                // Show registration prompt modal
-                showTouristRegistrationPrompt(storeId);
-                return;
-            }
-            
-            // User is registered - proceed to store details page
-            // TODO: Create store-details.html page
-            alert(`店舗詳細ページは開発中です。観光客登録済みのため、将来的にアクセス可能になります。\n店舗ID: ${storeId.substring(0,8)}...`);
-            console.log('Tourist registered - showing store details for:', storeId);
-        }
-
-        // 観光客登録促進モーダルの表示
-        function showTouristRegistrationPrompt(storeId) {
-            const confirmed = confirm(
-                '協賛店の詳細情報を閲覧するには観光客登録が必要です。\n\n登録ページへ移動しますか？'
-            );
-            
-            if (confirmed) {
-                // Save the store ID to localStorage so we can redirect back after registration
-                localStorage.setItem('pendingStoreView', storeId);
-                // Redirect to tourist registration page
-                window.location.href = 'tourist-registration-simple.html';
-            }
+            console.log('Navigating to store details for:', storeId);
+            window.location.href = `sponsor-detail.html?id=${storeId}`;
         }
 
         // HTMLエスケープ

@@ -2,6 +2,33 @@
 
 Local Guide is a multilingual platform connecting tourists with local guides for discovery, registration, and booking. The project aims to be a scalable, production-ready solution for a growing marketplace, prioritizing operational speed, stability, and real-world deployment.
 
+## Recent Changes (2026-01-07)
+- **Sponsor List SEO Optimization**: Complete SEO overhaul of sponsor-list.html for organic search traffic
+  - SEO meta tags: title, description, keywords, canonical URL, robots
+  - OGP (Open Graph Protocol) for Facebook/social sharing
+  - Twitter Card meta tags for Twitter sharing
+  - JSON-LD structured data: WebSite, CollectionPage, BreadcrumbList, LocalBusiness per store
+  - Dynamic title/description based on URL parameters (?category=xxx, ?area=xxx)
+  - Breadcrumb navigation (ホーム > 協賛店一覧)
+  - SEO content sections: "TomoTrip協賛店とは", "掲載メリット", FAQ
+  - Category tabs for quick filtering (観光案内, 文化体験, アクティビティ, 飲食, 宿泊, 交通)
+  - Area filter (那覇, 北谷, 名護, 石垣, 宮古)
+  - Modern ocean-themed UI with gradient backgrounds, KPI cards, rounded corners
+  - Multiple CTA placements with data-cta attributes for tracking
+  - Mobile-responsive design
+- **Sponsor Detail Page**: New sponsor-detail.html for individual store SEO
+  - Dynamic page content loaded from API based on ?id= parameter
+  - SEO meta tags dynamically updated per store
+  - JSON-LD LocalBusiness structured data per store
+  - Breadcrumb navigation (ホーム > 協賛店一覧 > 店舗名)
+  - Store hero section with image, status, category, address
+  - Statistics display (views, bookings, rating, days registered)
+  - Contact information section
+  - Related stores sidebar
+  - CTA buttons with tracking attributes
+  - Share functionality (Web Share API with clipboard fallback)
+  - Not found state for invalid store IDs
+
 ## Recent Changes (2025-11-12)
 - **Guide Rank & Payout Dashboard System**: Complete implementation of guide ranking, commission tracking, and store contribution analytics
   - Created `ranks` table schema with Bronze/Silver/Gold/Platinum tiers (minScore: 0/60/120/200, bonusRate: 0%/5%/10%/15%)
