@@ -3,6 +3,18 @@
 Local Guide is a multilingual platform connecting tourists with local guides for discovery, registration, and booking. The project aims to be a scalable, production-ready solution for a growing marketplace, prioritizing operational speed, stability, and real-world deployment.
 
 ## Recent Changes (2026-01-07)
+- **Store Reservation Management System**: Complete reservation/booking management for sponsor stores
+  - New API service (server/reservationAPI.js) with full CRUD operations
+  - File-based storage (data/reservations.json) for persistence
+  - Store dashboard integration with reservation tab, statistics, and filtering
+  - Status workflow: pending → confirmed → completed / cancelled
+  - Modal-based add/edit functionality with form validation
+  - Stats always computed from full reservation set (not filtered subset)
+  - Client-side filtering with persisted filter state across CRUD operations
+  - CSP-compliant event handlers throughout (no inline onclick)
+- **Sponsor List Pagination Fix**: Changed default sort from "newest" to "oldest"
+  - New stores now appear on later pages instead of displacing existing stores
+  - Reset filters function also uses "oldest" as default
 - **Sponsor List SEO Optimization**: Complete SEO overhaul of sponsor-list.html for organic search traffic
   - SEO meta tags: title, description, keywords, canonical URL, robots
   - OGP (Open Graph Protocol) for Facebook/social sharing
