@@ -2,11 +2,24 @@
 const fs = require('fs');
 const path = require('path');
 const { randomUUID } = require('crypto');
+const { emailService } = require('./emailService');
 
 class ReservationAPIService {
   constructor() {
     this.reservationsFilePath = path.join(__dirname, '../data/reservations.json');
+    this.storesFilePath = path.join(__dirname, '../data/sponsor-stores.json');
     this.ensureReservationsFile();
+  }
+
+  getStoreById(storeId) {
+    try {
+      const data = fs.readFileSync(this.storesFilePath, 'utf8');
+      const stores = JSON.parse(data);
+      return stores.find(store => store.id === storeId);
+    } catch (error) {
+      console.error('Error loading store:', error);
+      return null;
+    }
   }
 
   ensureReservationsFile() {
@@ -86,6 +99,9 @@ class ReservationAPIService {
       reservations.push(reservation);
       this.saveReservations(reservations);
 
+      // Send email notifications (async, don't block response)
+      this.sendReservationEmails(reservation, storeId);
+
       return res.status(201).json({
         success: true,
         message: '予約が作成されました',
@@ -98,6 +114,26 @@ class ReservationAPIService {
         error: 'SERVER_ERROR',
         message: '予約の作成に失敗しました'
       });
+    }
+  }
+
+  async sendReservationEmails(reservation, storeId) {
+    try {
+      const store = this.getStoreById(storeId);
+      if (!store) {
+        console.error('Store not found for email notification:', storeId);
+        return;
+      }
+
+      // Send email to customer
+      const customerResult = await emailService.sendReservationConfirmationToCustomer(reservation, store);
+      console.log('Customer email result:', customerResult);
+
+      // Send email to store
+      const storeResult = await emailService.sendReservationNotificationToStore(reservation, store);
+      console.log('Store email result:', storeResult);
+    } catch (error) {
+      console.error('Error sending reservation emails:', error);
     }
   }
 
