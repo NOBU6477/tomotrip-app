@@ -287,6 +287,74 @@
             color: white;
         }
         
+        /* Image Gallery */
+        .gallery-container {
+            margin-top: 1.5rem;
+        }
+        
+        .gallery-main {
+            width: 100%;
+            height: 300px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--ocean-light), var(--ocean-secondary));
+        }
+        
+        .gallery-main img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .gallery-main img:hover {
+            transform: scale(1.02);
+        }
+        
+        .gallery-thumbs {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+        
+        .gallery-thumb {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 3px solid transparent;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .gallery-thumb.active {
+            border-color: var(--ocean-primary);
+        }
+        
+        .gallery-thumb:hover {
+            border-color: var(--ocean-secondary);
+        }
+        
+        .gallery-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .gallery-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 4rem;
+        }
+        
         /* Loading */
         .loading-container {
             text-align: center;
@@ -366,6 +434,19 @@
             <div class="row">
                 <!-- Main Content -->
                 <div class="col-lg-8">
+                    <!-- Image Gallery -->
+                    <section class="info-card" id="gallerySection" style="display: none;">
+                        <h2><i class="bi bi-images"></i>店舗ギャラリー</h2>
+                        <div class="gallery-container">
+                            <div class="gallery-main" id="galleryMain">
+                                <div class="gallery-placeholder">
+                                    <i class="bi bi-image"></i>
+                                </div>
+                            </div>
+                            <div class="gallery-thumbs" id="galleryThumbs"></div>
+                        </div>
+                    </section>
+                    
                     <!-- Store Hero -->
                     <article class="store-hero" itemscope itemtype="https://schema.org/LocalBusiness">
                         <div class="d-flex flex-wrap align-items-start gap-4">
@@ -652,6 +733,118 @@
             document.querySelector('#contactAddress .fw-bold').textContent = store.address || '住所未設定';
             document.querySelector('#contactRegistered .fw-bold').textContent = 
                 registeredDate.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+            
+            // Load image gallery
+            loadImageGallery(store);
+        }
+        
+        function loadImageGallery(store) {
+            // Collect all images (main image + gallery images)
+            const images = [];
+            
+            if (store.imageUrl) {
+                images.push(store.imageUrl);
+            }
+            
+            // Add gallery images if available (up to 7 total)
+            if (store.galleryImages && Array.isArray(store.galleryImages)) {
+                store.galleryImages.forEach(img => {
+                    if (img && images.length < 7) {
+                        images.push(img);
+                    }
+                });
+            }
+            
+            if (images.length === 0) {
+                // No images - hide gallery section
+                document.getElementById('gallerySection').style.display = 'none';
+                return;
+            }
+            
+            // Show gallery section
+            document.getElementById('gallerySection').style.display = 'block';
+            
+            // Set main image
+            const mainContainer = document.getElementById('galleryMain');
+            mainContainer.innerHTML = `<img src="${images[0]}" alt="${escapeHtml(store.storeName)}" id="galleryMainImg" onclick="openLightbox(0)">`;
+            
+            // Create thumbnails
+            const thumbsContainer = document.getElementById('galleryThumbs');
+            thumbsContainer.innerHTML = images.map((img, index) => `
+                <div class="gallery-thumb ${index === 0 ? 'active' : ''}" onclick="selectGalleryImage(${index})">
+                    <img src="${img}" alt="画像 ${index + 1}">
+                </div>
+            `).join('');
+            
+            // Store images for lightbox
+            window.galleryImages = images;
+        }
+        
+        function selectGalleryImage(index) {
+            const images = window.galleryImages || [];
+            if (!images[index]) return;
+            
+            // Update main image
+            document.getElementById('galleryMainImg').src = images[index];
+            
+            // Update active thumbnail
+            document.querySelectorAll('.gallery-thumb').forEach((thumb, i) => {
+                thumb.classList.toggle('active', i === index);
+            });
+        }
+        
+        function openLightbox(index) {
+            const images = window.galleryImages || [];
+            if (!images[index]) return;
+            
+            // Create lightbox modal
+            const lightboxHtml = `
+                <div class="modal fade" id="lightboxModal" tabindex="-1">
+                    <div class="modal-dialog modal-xl modal-dialog-centered">
+                        <div class="modal-content bg-dark">
+                            <div class="modal-header border-0">
+                                <span class="text-white" id="lightboxCounter">${index + 1} / ${images.length}</span>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body text-center p-0">
+                                <img src="${images[index]}" alt="画像" style="max-width: 100%; max-height: 80vh;" id="lightboxImg">
+                            </div>
+                            <div class="modal-footer border-0 justify-content-center">
+                                <button class="btn btn-outline-light" onclick="lightboxPrev()"><i class="bi bi-chevron-left"></i></button>
+                                <button class="btn btn-outline-light" onclick="lightboxNext()"><i class="bi bi-chevron-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Remove existing lightbox
+            const existing = document.getElementById('lightboxModal');
+            if (existing) existing.remove();
+            
+            document.body.insertAdjacentHTML('beforeend', lightboxHtml);
+            window.lightboxIndex = index;
+            
+            const modal = new bootstrap.Modal(document.getElementById('lightboxModal'));
+            modal.show();
+        }
+        
+        function lightboxPrev() {
+            const images = window.galleryImages || [];
+            window.lightboxIndex = (window.lightboxIndex - 1 + images.length) % images.length;
+            updateLightbox();
+        }
+        
+        function lightboxNext() {
+            const images = window.galleryImages || [];
+            window.lightboxIndex = (window.lightboxIndex + 1) % images.length;
+            updateLightbox();
+        }
+        
+        function updateLightbox() {
+            const images = window.galleryImages || [];
+            document.getElementById('lightboxImg').src = images[window.lightboxIndex];
+            document.getElementById('lightboxCounter').textContent = `${window.lightboxIndex + 1} / ${images.length}`;
         }
         
         function loadRelatedStores() {

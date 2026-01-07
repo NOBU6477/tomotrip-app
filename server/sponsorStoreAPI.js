@@ -66,6 +66,7 @@ class SponsorStoreAPIService {
       description: storeData.description || '',
       category: storeData.category || 'other',
       imageUrl: storeData.imageUrl || '',
+      galleryImages: storeData.galleryImages || [],
       isActive: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()

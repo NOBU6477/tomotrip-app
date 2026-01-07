@@ -517,6 +517,12 @@ async function loadStoreData(storeId) {
             console.log('✅ Store image updated:', storeData.imageUrl);
         }
         
+        // Initialize gallery images
+        if (typeof initializeGalleryImages === 'function') {
+            initializeGalleryImages(storeData);
+            console.log('✅ Gallery images initialized');
+        }
+        
         console.log('✅ Store dashboard updated with:', storeData.storeName);
         
     } catch (error) {
@@ -535,6 +541,7 @@ async function saveStoreProfile() {
     const { storeId } = JSON.parse(storeLogin);
     
     // Use correct edit* field IDs
+    const mainImagePreview = document.getElementById('mainImagePreview');
     const formData = {
         storeName: document.getElementById('editStoreName').value,
         category: document.getElementById('editStoreCategory').value,
@@ -543,7 +550,9 @@ async function saveStoreProfile() {
         phone: document.getElementById('editStorePhone').value,
         email: document.getElementById('editStoreEmail').value,
         website: document.getElementById('editStoreWebsite').value || '',
-        openingHours: document.getElementById('editStoreHours').value || ''
+        openingHours: document.getElementById('editStoreHours').value || '',
+        imageUrl: mainImagePreview && mainImagePreview.src && !mainImagePreview.src.includes('default-1.svg') ? mainImagePreview.src : undefined,
+        galleryImages: window.getGalleryImages ? window.getGalleryImages() : []
     };
     
     console.log('💾 Saving store profile:', formData);
@@ -592,3 +601,92 @@ function logout() {
         window.location.href = '/sponsor-login.html';
     }
 }
+
+// Gallery Image Management (up to 7 images: 1 main + 6 gallery)
+let galleryImages = [];
+
+function initializeGalleryImages(store) {
+    galleryImages = [];
+    
+    // Set main image
+    if (store.imageUrl) {
+        document.getElementById('mainImagePreview').src = store.imageUrl;
+    }
+    
+    // Load existing gallery images
+    if (store.galleryImages && Array.isArray(store.galleryImages)) {
+        galleryImages = [...store.galleryImages];
+    }
+    
+    renderGalleryImages();
+}
+
+function renderGalleryImages() {
+    const container = document.getElementById('galleryImagesContainer');
+    if (!container) return;
+    
+    container.innerHTML = galleryImages.map((img, index) => `
+        <div class="col-4">
+            <div class="position-relative" style="border: 2px dashed #dee2e6; border-radius: 10px; padding: 0.5rem;">
+                <img src="${img}" alt="ギャラリー画像 ${index + 1}" style="width: 100%; height: 60px; object-fit: cover; border-radius: 6px;">
+                <button type="button" class="btn btn-danger btn-sm position-absolute" style="top: 2px; right: 2px; padding: 0 4px; font-size: 10px;" onclick="removeGalleryImage(${index})">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+    
+    // Hide add button if max images reached
+    const addBtn = document.getElementById('addGalleryImageBtn');
+    if (addBtn) {
+        addBtn.style.display = galleryImages.length >= 6 ? 'none' : 'block';
+    }
+}
+
+function addGalleryImageSlot() {
+    if (galleryImages.length >= 6) {
+        alert('ギャラリー画像は最大6枚までです');
+        return;
+    }
+    
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // Convert to base64 for preview and storage
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                galleryImages.push(event.target.result);
+                renderGalleryImages();
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    input.click();
+}
+
+function removeGalleryImage(index) {
+    if (index >= 0 && index < galleryImages.length) {
+        galleryImages.splice(index, 1);
+        renderGalleryImages();
+    }
+}
+
+function previewMainImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('mainImagePreview').src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Export for global access
+window.addGalleryImageSlot = addGalleryImageSlot;
+window.removeGalleryImage = removeGalleryImage;
+window.previewMainImage = previewMainImage;
+window.initializeGalleryImages = initializeGalleryImages;
+window.getGalleryImages = function() { return galleryImages; };

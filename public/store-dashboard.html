@@ -288,12 +288,26 @@
                         </div>
                         
                         <div class="col-md-4">
-                            <h5 class="mb-4">店舗画像</h5>
-                            <div class="text-center mb-3">
-                                <img src="assets/img/guides/default-1.svg" alt="店舗画像" class="store-logo mb-3" style="width: 150px; height: 150px;">
-                                <br>
-                                <button class="btn btn-outline-secondary btn-sm">
-                                    <i class="bi bi-camera me-1"></i>画像を変更
+                            <h5 class="mb-4">店舗画像（最大7枚）</h5>
+                            <div class="mb-3">
+                                <label class="form-label">メイン画像</label>
+                                <div class="text-center mb-2" style="border: 2px dashed #dee2e6; border-radius: 15px; padding: 1rem;">
+                                    <img src="assets/img/guides/default-1.svg" alt="メイン画像" id="mainImagePreview" style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px;">
+                                    <br>
+                                    <input type="file" id="mainImageInput" accept="image/*" class="d-none" onchange="previewMainImage(this)">
+                                    <button class="btn btn-outline-primary btn-sm mt-2" onclick="document.getElementById('mainImageInput').click()">
+                                        <i class="bi bi-camera me-1"></i>変更
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">ギャラリー画像（最大6枚）</label>
+                                <div id="galleryImagesContainer" class="row g-2">
+                                    <!-- Gallery images will be rendered here -->
+                                </div>
+                                <button class="btn btn-outline-success btn-sm mt-2 w-100" id="addGalleryImageBtn" onclick="addGalleryImageSlot()">
+                                    <i class="bi bi-plus-circle me-1"></i>画像を追加
                                 </button>
                             </div>
                             
