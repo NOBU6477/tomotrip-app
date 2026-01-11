@@ -62,21 +62,32 @@ const app = express();
 // CORS setup - Allow tomotrip.com in production, all origins in development
 const allowedOrigins = [
   'https://tomotrip.com',
-  'https://www.tomotrip.com',
+  'https://www.tomotrip.com'
+];
+
+const devOrigins = [
   'http://localhost:3000',
   'http://localhost:5000',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:5000'
 ];
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 app.use(
   cors({
     origin: function(origin, callback) {
       if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+      
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else if (!isProduction && devOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else if (!isProduction && origin.includes('replit')) {
         callback(null, true);
       } else {
-        callback(null, true);
+        console.log(`❌ CORS rejected origin: ${origin}`);
+        callback(new Error('CORS not allowed'), false);
       }
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],

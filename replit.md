@@ -81,3 +81,18 @@ User confirmed correct understanding of guide display system:
 - SendGrid/Resend (for email notifications)
 - Camera API (document capture)
 - Geolocation services (location detection)
+- Supabase (external form submissions: reservations, contacts, listings)
+
+## Supabase API Integration (2026-01-11)
+External form submissions from tomotrip.com are handled by fixed API endpoints:
+- `POST /api/supabase/reservations` - Store reservation requests
+- `POST /api/supabase/contacts` - Contact form submissions
+- `POST /api/supabase/listings` - Listing applications
+- `GET /api/supabase/health` - Health check endpoint
+
+CORS is configured to allow only:
+- Production: https://tomotrip.com, https://www.tomotrip.com
+- Development: localhost, replit domains
+
+See `docs/supabase-setup.sql` for table creation SQL and RLS policies.
+See `docs/SUPABASE_API_README.md` for API documentation.
