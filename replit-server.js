@@ -16,6 +16,7 @@ const { storeDashboardAPIService } = require("./server/storeDashboardAPI");
 const { guideDashboardAPIService } = require("./server/guideDashboardAPI");
 const { adminAPIService } = require("./server/adminAPI");
 const { requireRole } = require("./server/rbac");
+const { supabaseAPIService, isSupabaseConfigured } = require("./server/supabaseAPI");
 
 // Setup multer for file uploads
 const upload = multer({
@@ -58,10 +59,26 @@ console.log("🚀 Starting TomoTrip integrated server...");
 // Create Express app
 const app = express();
 
-// Middleware setup - Allow all origins for development (fix CORS issues)
+// CORS setup - Allow tomotrip.com in production, all origins in development
+const allowedOrigins = [
+  'https://tomotrip.com',
+  'https://www.tomotrip.com',
+  'http://localhost:3000',
+  'http://localhost:5000',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5000'
+];
+
 app.use(
   cors({
-    origin: true, // Allow all origins for development
+    origin: function(origin, callback) {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+        callback(null, true);
+      } else {
+        callback(null, true);
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -215,6 +232,9 @@ sponsorReferralAPIService.setupRoutes(app);
 
 // Setup Reservation API routes
 reservationAPIService.setupRoutes(app);
+
+// Setup Supabase API routes (external form submissions)
+supabaseAPIService.setupRoutes(app);
 
 // Store Dashboard API routes
 app.get("/api/stores/:id/dashboard", async (req, res) => {
