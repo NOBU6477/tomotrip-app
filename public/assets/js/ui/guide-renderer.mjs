@@ -48,36 +48,43 @@ export async function renderGuideCards(guidesToRender = null, usePagination = tr
 
 // ペジネーションシステムの初期化
 async function initializePaginationSystem(guides, resetPagination = true) {
+    // ✅ FIX: ページネーション有効フラグを即座に設定（async importの前）
+    window.paginationEnabled = true;
+    
+    // ✅ FIX: 全体リストをAppStateに保存（ページ移動時に上書きされないように）
+    if (window.AppState) {
+        window.AppState.fullGuideList = [...guides];
+        console.log(`📊 [PAGINATION] fullGuideList stored: ${guides.length} guides, paginationEnabled=true`);
+    }
+    
     if (!paginationSystem || resetPagination) {
-        // 動的にペジネーションモジュールを読み込み
         const { ScalablePagination } = await import('./scalable-pagination.mjs');
         
         paginationSystem = new ScalablePagination({
-            itemsPerPage: 12,  // ✅ FIXED: Unified to 12 for both PC and mobile (responsive grid handles layout)
+            itemsPerPage: 12,
             maxVisiblePages: 5,
             container: '#paginationContainer',
             onPageLoad: (pageItems, currentPage, totalPages) => {
-                renderAllGuideCards(pageItems);
+                // ✅ FIX: fullGuideListから全体数を取得（pageItemsの長さではない）
+                const fullList = window.AppState?.fullGuideList || [];
+                const total = fullList.length;
+                const pageSize = 12;
+                const startIndex = (currentPage - 1) * pageSize;
+                const endIndex = Math.min(startIndex + pageSize, total);
                 
-                // ✅ FIXED: totalCount must ALWAYS use AppState.originalGuides (the true total)
-                // displayedCount = current page items, totalCount = original guide count
-                const totalGuides = window.AppState?.originalGuides?.length ?? guides.length;
-                const displayedCount = pageItems.length; // このページのアイテム数
-                updateGuideCounters(displayedCount, totalGuides);
-                
-                console.log(`[DEBUG COUNTERS] Page ${currentPage}/${totalPages}:`, {
-                    totalGuides,
-                    displayedOnPage: displayedCount,
-                    itemsPerPage: 12,
-                    guidesArrayLength: guides.length
+                console.log(`📊 [PAGINATION] Page ${currentPage}/${totalPages}:`, {
+                    total,
+                    startIndex: startIndex + 1,
+                    endIndex,
+                    pageItemsCount: pageItems.length
                 });
+                
+                // ページのカードを描画（skipSlice=trueでスライス済みを示す）
+                renderPageCards(pageItems, startIndex + 1, endIndex, total);
             }
         });
         
-        // グローバルアクセス用に保存
         window.setPaginationSystem(paginationSystem);
-        
-        // ペジネーション用のコンテナを追加
         ensurePaginationContainers();
     }
     
@@ -87,9 +94,50 @@ async function initializePaginationSystem(guides, resetPagination = true) {
     
     // 最初のページを表示
     const firstPageItems = paginationSystem.getCurrentPageItems();
-    renderAllGuideCards(firstPageItems);
+    const total = guides.length;
+    const endIndex = Math.min(12, total);
+    renderPageCards(firstPageItems, 1, endIndex, total);
     
     console.log(`✅ Pagination system initialized: ${guides.length} guides, ${paginationSystem.getState().totalPages} pages`);
+}
+
+// ✅ NEW: ページカードを描画する専用関数（スライス済みアイテム用）
+function renderPageCards(pageItems, startNum, endNum, total) {
+    let container = document.getElementById('guidesContainer') || 
+                    document.getElementById('guide-list') || 
+                    document.getElementById('guideCardsContainer') ||
+                    document.querySelector('.guide-cards-container .row');
+    
+    if (!container) {
+        const searchResultsRow = document.querySelector('section#search-results .row');
+        if (searchResultsRow) {
+            container = searchResultsRow;
+            container.id = 'guidesContainer';
+        }
+    }
+    
+    if (!container) {
+        console.error('❌ Unable to find guidesContainer');
+        return;
+    }
+    
+    if (!Array.isArray(pageItems) || pageItems.length === 0) {
+        container.innerHTML = '<div class="text-center p-4"><p class="text-muted">ガイドが見つかりません</p></div>';
+        updateGuideCounters(0, total);
+        return;
+    }
+    
+    console.log(`🎨 [RENDER PAGE] Rendering ${pageItems.length} cards (${startNum}-${endNum} of ${total})`);
+    
+    const cardsHTML = pageItems.map(guide => createGuideCardHTML(guide)).join('');
+    container.innerHTML = cardsHTML;
+    
+    // ✅ FIX: 件数表示は startNum-endNum / total で計算
+    updateGuideCountersWithRange(startNum, endNum, total);
+    
+    setupViewDetailsEventListeners();
+    
+    console.log(`✅ Rendered ${pageItems.length} cards: ${startNum}-${endNum}件表示中 (${total}件中)`);
 }
 
 // ペジネーション用コンテナを確保
@@ -218,7 +266,11 @@ function renderAllGuideCards(guides) {
         guidesForPage.splice(0, 0, ...guides.slice(newStartIndex, newEndIndex));
     }
     
-    console.log(`📄 Pagination: page ${currentPage}/${totalPages}, showing ${guidesForPage.length} of ${guides.length} guides (${startIndex + 1}-${Math.min(endIndex, guides.length)})`);
+    // ✅ FIX: 全体数は guides.length（渡された全リスト）を使う
+    const total = guides.length;
+    const actualEndIndex = Math.min(endIndex, total);
+    
+    console.log(`📄 Pagination: page ${currentPage}/${totalPages}, showing ${guidesForPage.length} of ${total} guides (${startIndex + 1}-${actualEndIndex})`);
     
     // Performance optimization for large guide lists
     if (guidesForPage.length > 30) {
@@ -230,9 +282,13 @@ function renderAllGuideCards(guides) {
         container.innerHTML = cardsHTML;
     }
     
-    // ✅ FIXED: Always use totalCount (全ガイド総数) regardless of page
-    // Do NOT use actualRenderedCount for totalCount, only displayCount
-    updateGuideCounters(guidesForPage.length, guides.length);
+    // ✅ FIX: 範囲付きカウンター更新（startIndex+1 〜 actualEndIndex / total）
+    // ⚠️ ペジネーション有効時はこの関数でのカウンター更新をスキップ（renderPageCardsが正確に更新する）
+    if (!window.paginationEnabled) {
+        updateGuideCountersWithRange(startIndex + 1, actualEndIndex, total);
+    } else {
+        console.log('⏭️ renderAllGuideCards counter update skipped - paginationEnabled=true');
+    }
     
     // Setup view details event listeners
     setupViewDetailsEventListeners();
@@ -316,50 +372,48 @@ function renderGuideCardsOptimized(guides, container) {
     renderChunk();
 }
 
-// Update guide counters for display - 🔧 完全修正版
-export function updateGuideCounters(displayedCount, totalCount) {
-    // Update main counter displays
+// ✅ NEW: 範囲指定でカウンターを更新（ページネーション用）
+export function updateGuideCountersWithRange(startNum, endNum, total) {
     const guideCounterElement = document.getElementById('guideCounter');
     const totalGuideCounterElement = document.getElementById('totalGuideCounter');
     
-    // ✅ FIXED: totalCount must be AppState.originalGuides.length (the true total)
-    // Never use displayedCount as a fallback for total
-    const safeDisplayed = displayedCount || 0;
-    const totalGuides = window.AppState?.originalGuides?.length ?? 0;
-    const safeTotal = totalCount ?? totalGuides;
-    
-    console.log('[DEBUG COUNTERS] updateGuideCounters called with:', { 
-        displayedCount, 
-        totalCount,
-        appStateOriginalGuidesLength: totalGuides,
-        safeTotal,
-        guideCounterElement: !!guideCounterElement, 
-        totalGuideCounterElement: !!totalGuideCounterElement 
-    });
+    console.log(`[DEBUG COUNTERS] updateGuideCountersWithRange: ${startNum}-${endNum} of ${total}`);
     
     if (guideCounterElement && totalGuideCounterElement) {
-        // Language detection for proper counter display
         const isEnglish = window.location.pathname.includes('index-en.html');
         
         if (isEnglish) {
-            guideCounterElement.textContent = `1-${safeDisplayed} shown (${safeTotal} total)`;
-            totalGuideCounterElement.textContent = `Total: ${safeTotal} guides registered`;
+            guideCounterElement.textContent = `${startNum}-${endNum} shown (${total} total)`;
+            totalGuideCounterElement.textContent = `Total: ${total} guides registered`;
         } else {
-            if (safeTotal === 0) {
+            if (total === 0) {
                 guideCounterElement.textContent = `0件表示中`;
             } else {
-                guideCounterElement.textContent = `1-${safeDisplayed}件表示中 (${safeTotal}件中)`;
+                guideCounterElement.textContent = `${startNum}-${endNum}件表示中 (${total}件中)`;
             }
-            totalGuideCounterElement.textContent = `全体: ${safeTotal}名のガイドが登録済み`;
+            totalGuideCounterElement.textContent = `全体: ${total}名のガイドが登録済み`;
         }
         
-        console.log(`✅ Counters updated: 1-${safeDisplayed} shown (${safeTotal} total)`);
-    } else {
-        console.warn('⚠️ Counter elements not found:', {
-            guideCounter: !!guideCounterElement,
-            totalGuideCounter: !!totalGuideCounterElement
-        });
+        console.log(`✅ Counters updated: ${startNum}-${endNum} shown (${total} total)`);
     }
+}
+
+// Update guide counters for display - 🔧 完全修正版
+export function updateGuideCounters(displayedCount, totalCount) {
+    // ✅ FIX: ペジネーション有効時はこの関数をスキップ（onPageLoadで正確に更新済み）
+    if (window.paginationEnabled) {
+        console.log('⏭️ updateGuideCounters skipped - paginationEnabled=true');
+        return;
+    }
+    
+    // ✅ FIX: fullGuideListを優先的に使用
+    const fullListTotal = window.AppState?.fullGuideList?.length ?? 
+                          window.AppState?.originalGuides?.length ?? 0;
+    const safeTotal = totalCount ?? fullListTotal;
+    const safeDisplayed = displayedCount || 0;
+    
+    // 範囲表示に委譲（1-displayedCount / total）
+    updateGuideCountersWithRange(1, safeDisplayed, safeTotal);
 }
 
 // Setup event listeners for view details, bookmark, and compare buttons

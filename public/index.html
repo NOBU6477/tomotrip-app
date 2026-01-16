@@ -53,8 +53,6 @@
     <!-- Main application initialization - NEW FILE NAME TO BYPASS CACHE -->
     <script type="module" src="assets/js/app-init.mjs?cachebust=20251119-entry-v3" defer></script>
     
-    
-    
     <!-- CSS Load Order: Bootstrap CSS → Local Icons → Custom CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/icons.css">
@@ -2135,10 +2133,17 @@
         
         // 検索数表示カウンターシステム
         function updateSearchCounters() {
-            // 🔧 FIX: カウンター更新は統一されたupdateGuideCounters関数を使用
-            // （guide-renderer.mjsのupdateGuideCounters関数に委託して重複を避ける）
+            // ✅ FIX: ペジネーションがアクティブな場合はスキップ（onPageLoadで更新済み）
+            const paginationActive = window.paginationSystem && (currentGuides?.length || 0) > 12;
+            if (paginationActive) {
+                console.log('⏭️ Skipping updateSearchCounters - pagination active');
+                return;
+            }
+            // カウンター更新は統一されたupdateGuideCounters関数を使用
             if (typeof window.updateGuideCounters === 'function') {
-                window.updateGuideCounters(currentGuides?.length || 0, currentGuides?.length || 0);
+                const total = currentGuides?.length || 0;
+                const displayed = Math.min(12, total);
+                window.updateGuideCounters(displayed, total);
             }
         }
 

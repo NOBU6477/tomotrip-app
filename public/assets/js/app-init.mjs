@@ -383,23 +383,13 @@ async function refreshGuideData(maxRetries = 3) {
                     console.log('🔧 Re-applying filters after data refresh to maintain filter state');
                     window.filterGuides(); // 同期的にフィルターを再適用
                 } else {
-                    renderGuideCards(AppState.guides, false, false);
+                    // ✅ FIX: usePagination=trueでページネーションを維持, resetPagination=falseで現在ページを保持
+                    renderGuideCards(AppState.guides, true, false);
                 }
             }
 
-            // Update display
-            if (typeof displayGuides === 'function') {
-                displayGuides(AppState.currentPage, AppState);
-            }
-
-            // Update counters
-            if (typeof updateGuideCounters === 'function') {
-                const total = finalGuides.length;
-                const start = total > 0 ? 1 : 0;
-                const end = total;
-                updateGuideCounters(start, end, total);
-
-            }
+            // ✅ displayGuidesは使用されていないため削除済み
+            // ✅ カウンター更新はrenderGuideCards/initializePaginationSystemで処理される
 
             console.log(`✅ Guide data refreshed successfully: ${finalGuides.length} total guides (API-only)`);
             return true; // Success
