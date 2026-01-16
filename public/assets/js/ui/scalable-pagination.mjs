@@ -221,39 +221,8 @@ export class ScalablePagination {
         };
     }
     
-    // ページ情報更新関数（guide-renderer.mjsとの整合性のため）
-    updatePageInfo() {
-        const pageInfo = document.getElementById('pageInfo');
-        if (pageInfo) {
-            const startItem = (this.currentPage - 1) * this.itemsPerPage + 1;
-            const endItem = Math.min(this.currentPage * this.itemsPerPage, this.totalItems);
-            
-            pageInfo.innerHTML = `
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="text-muted">
-                        ${startItem}-${endItem}件目 (全${this.totalItems}件中)
-                    </span>
-                    <div class="d-flex align-items-center gap-2">
-                        <label for="itemsPerPageSelect" class="text-muted small">表示件数:</label>
-                        <select id="itemsPerPageSelect" class="form-select form-select-sm" style="width: auto;">
-                            <option value="6" ${this.itemsPerPage === 6 ? 'selected' : ''}>6件</option>
-                            <option value="12" ${this.itemsPerPage === 12 ? 'selected' : ''}>12件</option>
-                            <option value="24" ${this.itemsPerPage === 24 ? 'selected' : ''}>24件</option>
-                            <option value="48" ${this.itemsPerPage === 48 ? 'selected' : ''}>48件</option>
-                        </select>
-                    </div>
-                </div>
-            `;
-            
-            // 表示件数変更のイベントリスナー
-            const itemsPerPageSelect = document.getElementById('itemsPerPageSelect');
-            if (itemsPerPageSelect) {
-                itemsPerPageSelect.addEventListener('change', (e) => {
-                    this.changeItemsPerPage(parseInt(e.target.value));
-                });
-            }
-        }
-    }
+    // ✅ REMOVED: 重複していた updatePageInfo メソッドを削除
+    // 上の updatePageInfo (line 192-207) を使用
 }
 
 // ペジネーション用のスタイルを追加
