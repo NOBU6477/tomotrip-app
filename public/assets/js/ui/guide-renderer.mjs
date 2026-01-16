@@ -4,6 +4,9 @@
 // Import language utilities for proper localization
 import { localizeLanguageArray, localizeSpecialtyArray, isEnglishPage, getText } from '../utils/language-utils.mjs';
 
+// ✅ NEW: 都道府県正規化をインポート
+import { normalizePrefecture } from '../utils/location-utils.mjs';
+
 // スケーラブルペジネーションのインポートと初期化
 let paginationSystem = null;
 
@@ -550,13 +553,17 @@ export function createGuideCardHTML(guide) {
     : (guide.name || guide.guideName || defaultNameJa);
 
   // 画像（profileImageUrl優先、フォールバックとしてprofilePhoto、最後にデフォルト）
+  // ✅ FIX: デフォルト画像をガイドIDに基づいてバリエーションを持たせる
+  const defaultImageIndex = ((guide.id?.charCodeAt(0) || 1) % 5) + 1; // 1-5のバリエーション
+  const defaultImage = `/assets/img/guides/default-${defaultImageIndex}.svg`;
+  
   const photoSrc = guide.profileImageUrl
     ? guide.profileImageUrl
     : (guide.profilePhoto?.profileImageUrl
       ? guide.profilePhoto.profileImageUrl
       : (guide.profilePhoto
         ? (String(guide.profilePhoto).startsWith('http') ? guide.profilePhoto : `/uploads/${guide.profilePhoto}`)
-        : `/assets/img/guides/default-1.svg`)); // パスを修正（/を追加）
+        : defaultImage));
 
   // 価格表記
   const priceNum = Number(guide.sessionRate || guide.guideSessionRate || guide.price || 0);
@@ -564,9 +571,11 @@ export function createGuideCardHTML(guide) {
     ? `¥${priceNum.toLocaleString('ja-JP')}`
     : '¥0';
 
-  // 地域名
+  // 地域名（✅ 英語コード→日本語正規化を適用）
   const locationNames = window.locationNames || {};
-  const locationText = locationNames[guide.location] || guide.location || '';
+  let rawLocation = locationNames[guide.location] || guide.location || '';
+  // 日本語ページの場合は都道府県を正規化
+  const locationText = !isEn ? normalizePrefecture(rawLocation) : rawLocation;
 
   // 言語・専門分野（配列でない可能性にも対応）
   let langs = Array.isArray(guide.languages)

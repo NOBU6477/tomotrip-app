@@ -3458,24 +3458,22 @@
             // Setup dropdown listeners
             setupCustomDropdownListeners();
             
+            // ✅ FIX: ペジネーションボタンはScalablePaginationシステムを使用
             document.getElementById('prevPageBtn').addEventListener('click', () => {
-                if (window.AppState && window.AppState.currentPage > 1) {
-                    window.AppState.currentPage -= 1;
-                    if (window.renderGuideCards) {
-                        window.renderGuideCards(window.AppState.guides);
-                    }
+                if (window.paginationSystem) {
+                    console.log('⬅️ Previous page button clicked');
+                    window.paginationSystem.prevPage();
+                } else {
+                    console.warn('⚠️ Pagination system not initialized');
                 }
             });
             
             document.getElementById('nextPageBtn').addEventListener('click', () => {
-                if (window.AppState && window.AppState.guides) {
-                    const totalPages = Math.ceil(window.AppState.guides.length / 12);
-                    if (window.AppState.currentPage < totalPages) {
-                        window.AppState.currentPage += 1;
-                        if (window.renderGuideCards) {
-                            window.renderGuideCards(window.AppState.guides);
-                        }
-                    }
+                if (window.paginationSystem) {
+                    console.log('➡️ Next page button clicked');
+                    window.paginationSystem.nextPage();
+                } else {
+                    console.warn('⚠️ Pagination system not initialized');
                 }
             });
 
