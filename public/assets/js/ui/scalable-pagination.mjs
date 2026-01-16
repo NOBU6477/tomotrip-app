@@ -66,6 +66,7 @@ export class ScalablePagination {
         if (page < 1 || page > this.totalPages) return;
         
         this.currentPage = page;
+        console.log(`📄 Page navigation: ${page}/${this.totalPages}`);
         
         if (this.loadingCallback) {
             this.loadingCallback(this.getCurrentPageItems(), page, this.totalPages);
