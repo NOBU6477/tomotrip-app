@@ -197,14 +197,9 @@ async function loadGuidesFromAPI() {
         } else {
             console.error('❌ Error loading guides from API:', error);
         }
-        console.log('📋 API error - using filtered default guides as fallback');
-        // Fallback to filtered default guides on error (using currentLang declared at function start)
-        const filteredDefaults = defaultGuideData.filter(guide => {
-            const guideRegLang = guide.registrationLanguage || 'ja';
-            return guideRegLang === currentLang;
-        });
-        console.log(`🔄 Error fallback: Using ${filteredDefaults.length} default guides for language: ${currentLang}`);
-        return filteredDefaults;
+        // ✅ FIX: エラー時はnullを返し、呼び出し元で現在のデータを保持
+        console.log('📋 API error - returning null to preserve current data');
+        return null;
     }
 }
 
@@ -365,16 +360,23 @@ async function refreshGuideData(maxRetries = 3) {
             // Reload API guides
             const apiGuides = await loadGuidesFromAPI();
 
-            // Use API guides exclusively when available (no fallback to defaults)
-            const finalGuides = apiGuides && apiGuides.length > 0
-                ? apiGuides
-                : [];
+            // ✅ FIX: APIエラー時（null）は現在のデータを保持
+            if (apiGuides === null) {
+                console.log('⚠️ API returned null - preserving current guide data');
+                return false;
+            }
+
+            // ✅ FIX: 空配列の場合も現在のデータを保持（APIが一時的に空を返す場合）
+            if (!apiGuides || apiGuides.length === 0) {
+                console.log('⚠️ API returned empty list - preserving current guide data');
+                return false;
+            }
 
             const currentCount = AppState.guides.length;
-            const newCount = finalGuides.length;
+            const newCount = apiGuides.length;
 
-            // Always update guides data
-            AppState.guides = finalGuides;
+            // ✅ FIX: Only update if we have valid new data
+            AppState.guides = apiGuides;
 
             // 🔧 FIX: フィルター状態を保持してレンダリング
             if (typeof renderGuideCards === 'function') {
@@ -391,7 +393,7 @@ async function refreshGuideData(maxRetries = 3) {
             // ✅ displayGuidesは使用されていないため削除済み
             // ✅ カウンター更新はrenderGuideCards/initializePaginationSystemで処理される
 
-            console.log(`✅ Guide data refreshed successfully: ${finalGuides.length} total guides (API-only)`);
+            console.log(`✅ Guide data refreshed successfully: ${apiGuides.length} total guides (API-only)`);
             return true; // Success
 
         } catch (error) {
