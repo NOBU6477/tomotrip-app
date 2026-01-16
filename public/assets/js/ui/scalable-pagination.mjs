@@ -196,13 +196,29 @@ export class ScalablePagination {
             const endItem = Math.min(this.currentPage * this.itemsPerPage, this.totalItems);
             
             // ✅ FIXED: itemsPerPage は常に 12 件に固定、変更不可
+            // ✅ 2ページ目以降では「1-12件表示中」リンクを追加
+            const firstPageLink = this.currentPage > 1 
+                ? `<a href="#" class="return-to-first-page text-primary" style="cursor: pointer; text-decoration: underline;">(1-${this.itemsPerPage} 件表示中)</a>`
+                : '';
+            
             pageInfo.innerHTML = `
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex flex-column align-items-center mb-3">
                     <span class="text-muted">
                         ${startItem}-${endItem}件目 (全${this.totalItems}件中)
                     </span>
+                    ${firstPageLink}
                 </div>
             `;
+            
+            // ✅ 「1-12件表示中」リンクにクリックイベントを追加
+            const returnLink = pageInfo.querySelector('.return-to-first-page');
+            if (returnLink) {
+                returnLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('🔙 Return to first page clicked');
+                    this.goToPage(1);
+                });
+            }
         }
     }
     
