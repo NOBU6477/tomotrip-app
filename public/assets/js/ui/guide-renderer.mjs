@@ -572,8 +572,10 @@ export function createGuideCardHTML(guide) {
     : '¥0';
 
   // 地域名（✅ 英語コード→日本語正規化を適用）
+  // FIX: 大文字小文字を無視してマッピングを検索
   const locationNames = window.locationNames || {};
-  let rawLocation = locationNames[guide.location] || guide.location || '';
+  const locationKey = guide.location ? String(guide.location).toLowerCase() : '';
+  let rawLocation = locationNames[locationKey] || guide.location || '';
   // 日本語ページの場合は都道府県を正規化
   const locationText = !isEn ? normalizePrefecture(rawLocation) : rawLocation;
 
