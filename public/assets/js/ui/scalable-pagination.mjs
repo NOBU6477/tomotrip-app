@@ -12,19 +12,38 @@ export class ScalablePagination {
         this.loadingCallback = options.onPageLoad || null;
         this.data = [];
         this.filteredData = [];
+        this._eventsAttached = false; // ✅ 重複イベント防止フラグ
         
         // ✅ FIXED: Unified itemsPerPage to 12 for both PC and mobile
         // CSS responsive grid (guide-cards.css) handles layout adjustment based on viewport
         // No need to change itemsPerPage - the layout is handled by CSS media queries
     }
     
-    // データを設定
+    // データを設定（ページを1にリセット）
     setData(data) {
         this.data = data;
         this.filteredData = [...data];
         this.totalItems = data.length;
         this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
         this.currentPage = 1;
+    }
+    
+    // ✅ NEW: データを更新（現在のページを保持）
+    updateData(data) {
+        const previousPage = this.currentPage;
+        this.data = data;
+        this.filteredData = [...data];
+        this.totalItems = data.length;
+        this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
+        
+        // 現在のページが新しい総ページ数を超えていたら最終ページに調整
+        if (previousPage > this.totalPages) {
+            this.currentPage = Math.max(1, this.totalPages);
+        } else {
+            this.currentPage = previousPage;
+        }
+        
+        console.log(`📄 Pagination data updated: page ${this.currentPage}/${this.totalPages} preserved`);
     }
     
     // フィルタリングされたデータを設定
@@ -166,11 +185,17 @@ export class ScalablePagination {
     
     // ペジネーションイベントを設定
     attachPaginationEvents() {
+        // ✅ 重複イベントリスナー防止
+        if (this._eventsAttached) {
+            console.log('⏭️ Pagination events already attached, skipping');
+            return;
+        }
+        
         const container = document.querySelector(this.container);
         if (!container) return;
         
-        // 委任イベントハンドラ
-        container.addEventListener('click', (event) => {
+        // 委任イベントハンドラ（タッチとクリック両対応）
+        const handlePaginationClick = (event) => {
             event.preventDefault();
             const button = event.target.closest('button');
             if (!button) return;
@@ -185,7 +210,12 @@ export class ScalablePagination {
             } else if (page) {
                 this.goToPage(parseInt(page));
             }
-        });
+        };
+        
+        container.addEventListener('click', handlePaginationClick);
+        
+        this._eventsAttached = true;
+        console.log('✅ Pagination events attached (one-time)');
     }
     
     // ページ情報を更新

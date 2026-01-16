@@ -60,7 +60,10 @@ async function initializePaginationSystem(guides, resetPagination = true) {
         console.log(`📊 [PAGINATION] fullGuideList stored: ${guides.length} guides, paginationEnabled=true`);
     }
     
-    if (!paginationSystem || resetPagination) {
+    // ✅ 新しいペジネーションシステムが必要な場合のみ作成
+    const needsNewSystem = !paginationSystem;
+    
+    if (needsNewSystem) {
         const { ScalablePagination } = await import('./scalable-pagination.mjs');
         
         paginationSystem = new ScalablePagination({
@@ -91,15 +94,25 @@ async function initializePaginationSystem(guides, resetPagination = true) {
         ensurePaginationContainers();
     }
     
-    paginationSystem.setData(guides);
+    // ✅ FIX: resetPagination=falseの場合は現在のページを保持
+    if (resetPagination || needsNewSystem) {
+        paginationSystem.setData(guides);
+    } else {
+        // データを更新しつつ現在のページを維持
+        paginationSystem.updateData(guides);
+    }
+    
     paginationSystem.renderPagination();
     paginationSystem.updatePageInfo();
     
-    // 最初のページを表示
-    const firstPageItems = paginationSystem.getCurrentPageItems();
+    // ✅ FIX: 現在のページを表示（リセット時のみページ1）
+    const currentPage = paginationSystem.currentPage;
+    const pageItems = paginationSystem.getCurrentPageItems();
     const total = guides.length;
-    const endIndex = Math.min(12, total);
-    renderPageCards(firstPageItems, 1, endIndex, total);
+    const pageSize = 12;
+    const startIndex = (currentPage - 1) * pageSize + 1;
+    const endIndex = Math.min(currentPage * pageSize, total);
+    renderPageCards(pageItems, startIndex, endIndex, total);
     
     console.log(`✅ Pagination system initialized: ${guides.length} guides, ${paginationSystem.getState().totalPages} pages`);
 }

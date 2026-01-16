@@ -3459,23 +3459,27 @@
             setupCustomDropdownListeners();
             
             // ✅ FIX: ペジネーションボタンはScalablePaginationシステムを使用
-            document.getElementById('prevPageBtn').addEventListener('click', () => {
+            // モバイル対応: システム初期化待ちとリトライ機能
+            const handlePaginationButton = (action) => {
                 if (window.paginationSystem) {
-                    console.log('⬅️ Previous page button clicked');
-                    window.paginationSystem.prevPage();
+                    console.log(`${action === 'prev' ? '⬅️' : '➡️'} ${action} page button clicked`);
+                    window.paginationSystem[action === 'prev' ? 'prevPage' : 'nextPage']();
                 } else {
-                    console.warn('⚠️ Pagination system not initialized');
+                    console.log('⏳ Waiting for pagination system...');
+                    // リトライ: 300ms後に再試行
+                    setTimeout(() => {
+                        if (window.paginationSystem) {
+                            console.log(`🔄 Retry: ${action} page button`);
+                            window.paginationSystem[action === 'prev' ? 'prevPage' : 'nextPage']();
+                        } else {
+                            console.warn('⚠️ Pagination system not initialized after retry');
+                        }
+                    }, 300);
                 }
-            });
+            };
             
-            document.getElementById('nextPageBtn').addEventListener('click', () => {
-                if (window.paginationSystem) {
-                    console.log('➡️ Next page button clicked');
-                    window.paginationSystem.nextPage();
-                } else {
-                    console.warn('⚠️ Pagination system not initialized');
-                }
-            });
+            document.getElementById('prevPageBtn').addEventListener('click', () => handlePaginationButton('prev'));
+            document.getElementById('nextPageBtn').addEventListener('click', () => handlePaginationButton('next'));
 
             console.log('✅ TomoTrip English Version Loaded Successfully - All Features Active');
         }); // ✅ DOMContentLoadedイベントリスナー終了
