@@ -105,8 +105,13 @@ async function initializePaginationSystem(guides, resetPagination = true) {
         ensurePaginationContainers();
     }
     
-    // ✅ FIX: resetPagination=falseの場合は現在のページを保持
-    if (resetPagination || needsNewSystem) {
+    // ✅ CRITICAL FIX: フィルタ状態に応じて適切なメソッドを使用
+    if (isFiltered) {
+        // フィルタ中はsetFilteredDataを使用（page 1にリセット）
+        paginationSystem.setFilteredData(guides);
+        console.log(`📊 [PAGINATION] setFilteredData called with ${guides.length} filtered guides`);
+    } else if (resetPagination || needsNewSystem) {
+        // 全データをセット（page 1にリセット）
         paginationSystem.setData(guides);
     } else {
         // データを更新しつつ現在のページを維持
@@ -116,16 +121,21 @@ async function initializePaginationSystem(guides, resetPagination = true) {
     paginationSystem.renderPagination();
     paginationSystem.updatePageInfo();
     
-    // ✅ FIX: 現在のページを表示（リセット時のみページ1）
+    // ✅ CRITICAL FIX: 現在のページを表示、totalはフィルタ状態に応じて計算
     const currentPage = paginationSystem.currentPage;
     const pageItems = paginationSystem.getCurrentPageItems();
-    const total = guides.length;
+    
+    // フィルタ中はフィルタ後の件数、そうでなければfullGuideListの件数
+    const filteredTotal = window.AppState?.filteredGuides?.length || 0;
+    const fullTotal = window.AppState?.fullGuideList?.length || guides.length;
+    const total = isFiltered ? filteredTotal : fullTotal;
+    
     const pageSize = 12;
     const startIndex = (currentPage - 1) * pageSize + 1;
     const endIndex = Math.min(currentPage * pageSize, total);
     renderPageCards(pageItems, startIndex, endIndex, total);
     
-    console.log(`✅ Pagination system initialized: ${guides.length} guides, ${paginationSystem.getState().totalPages} pages`);
+    console.log(`✅ Pagination system initialized: ${guides.length} guides, ${paginationSystem.getState().totalPages} pages, isFiltered: ${isFiltered}`);
 }
 
 // ✅ NEW: ページカードを描画する専用関数（スライス済みアイテム用）
