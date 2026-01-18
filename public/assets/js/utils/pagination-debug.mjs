@@ -30,10 +30,12 @@ export function logPaginationState(context, options = {}) {
     const paginationSystem = window.paginationSystem;
     
     const isFiltered = state.isFiltered || false;
-    const sourceList = isFiltered ? (state.filteredGuides || []) : (state.fullGuideList || []);
+    // ✅ FIX: Use paginationSourceList for accurate source tracking
+    const sourceList = state.paginationSourceList || (isFiltered ? (state.filteredGuides || []) : (state.fullGuideList || []));
     const total = sourceList.length;
     const currentPage = paginationSystem?.currentPage || state.currentPage || 1;
-    const perPage = paginationSystem?.guidesPerPage || 12;
+    // ✅ FIX: Use itemsPerPage (correct property name)
+    const perPage = paginationSystem?.itemsPerPage || 12;
     const totalPages = Math.ceil(total / perPage);
     const sliceStart = (currentPage - 1) * perPage;
     const sliceEnd = Math.min(sliceStart + perPage, total);
@@ -55,7 +57,8 @@ ${DEBUG_PREFIX} context=${context}
         const locationFilter = document.getElementById('locationFilter')?.value || '';
         const languageFilter = document.getElementById('languageFilter')?.value || '';
         const priceFilter = document.getElementById('priceFilter')?.value || '';
-        const keyword = document.getElementById('searchKeyword')?.value || '';
+        // ✅ FIX: Correct element ID is keywordInput
+        const keyword = document.getElementById('keywordInput')?.value || '';
         
         console.log(`${DEBUG_PREFIX} Active Filters:
   location=${locationFilter || '(none)'}
@@ -182,7 +185,28 @@ export function validateSourceList(usedList, context = 'source') {
 }
 
 /**
+ * 言語正規化マッピング（applyAdvancedFiltersと同じロジック）
+ */
+const LANGUAGE_NORMALIZE_MAP = {
+    '英語': 'english', 'english': 'english', 'en': 'english',
+    '日本語': 'japanese', 'japanese': 'japanese', 'ja': 'japanese',
+    '中国語': 'chinese', 'chinese': 'chinese', 'zh': 'chinese',
+    '韓国語': 'korean', 'korean': 'korean', 'ko': 'korean',
+    'スペイン語': 'spanish', 'spanish': 'spanish', 'es': 'spanish',
+    'フランス語': 'french', 'french': 'french', 'fr': 'french'
+};
+
+/**
+ * 言語を正規化
+ */
+function normalizeLanguage(lang) {
+    const key = String(lang).trim().toLowerCase();
+    return LANGUAGE_NORMALIZE_MAP[key] || key;
+}
+
+/**
  * フィルタ結果に不正なガイドが含まれていないかチェック
+ * ✅ FIX: applyAdvancedFiltersと同じ正規化ロジックを使用
  * @param {Array} guides - フィルタ後のガイド配列
  * @param {Object} filters - 適用されたフィルタ条件
  * @param {string} context - 呼び出し元コンテキスト
@@ -195,21 +219,17 @@ export function validateFilterResults(guides, filters, context = 'filter') {
     const violations = [];
     
     guides.forEach((guide, index) => {
-        if (filters.language) {
-            const guideLanguages = (guide.languages || []).map(l => 
-                typeof l === 'string' ? l.toLowerCase() : ''
-            ).join(',');
+        if (filters.language && filters.language !== '') {
+            const filterLangNorm = normalizeLanguage(filters.language);
             
-            const filterLang = filters.language.toLowerCase();
-            const hasLanguage = guideLanguages.includes(filterLang) ||
-                guideLanguages.includes('英語') && (filterLang === 'english' || filterLang === '英語') ||
-                guideLanguages.includes('english') && (filterLang === 'english' || filterLang === '英語');
+            const guideLanguages = (guide.languages || []).map(l => normalizeLanguage(l));
+            const hasLanguage = guideLanguages.some(lang => lang === filterLangNorm);
             
-            if (!hasLanguage && filters.language !== '') {
+            if (!hasLanguage) {
                 violations.push({
                     index,
                     guide: guide.name,
-                    reason: `Language mismatch: expected "${filters.language}", has "${guideLanguages}"`
+                    reason: `Language mismatch: expected "${filterLangNorm}", has [${guideLanguages.join(', ')}]`
                 });
             }
         }
