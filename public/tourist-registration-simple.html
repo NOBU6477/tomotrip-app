@@ -879,10 +879,23 @@
                     throw new Error(result.message || '登録に失敗しました');
                 }
 
-                // Set tourist authentication status FIRST
+                // Set tourist authentication status - BOTH localStorage (persistent) AND sessionStorage (legacy)
+                const authTimestamp = Date.now().toString();
+                
+                // PRIMARY: localStorage for persistence across browser sessions (mobile fix)
+                localStorage.setItem('touristAuth', 'true');
+                localStorage.setItem('touristAuthTimestamp', authTimestamp);
+                
+                // LEGACY: sessionStorage for backward compatibility
                 sessionStorage.setItem('touristAuth', 'true');
-                sessionStorage.setItem('touristAuthTimestamp', Date.now().toString());
-                console.log('✅ Tourist authentication set in sessionStorage');
+                sessionStorage.setItem('touristAuthTimestamp', authTimestamp);
+                
+                console.log('📱 [AUTH DEBUG] Tourist auth saved to BOTH localStorage and sessionStorage');
+                console.log('📱 [AUTH DEBUG] Keys saved:', {
+                    localStorage_touristAuth: localStorage.getItem('touristAuth'),
+                    localStorage_touristAuthTimestamp: localStorage.getItem('touristAuthTimestamp'),
+                    sessionStorage_touristAuth: sessionStorage.getItem('touristAuth')
+                });
 
                 // Save registration data locally as well for compatibility
                 const localData = {
@@ -896,14 +909,20 @@
                 // Save touristLogin data for access control (required by sponsor-list.html)
                 const touristLoginData = {
                     touristId: result.touristId,
-                    name: touristData.name,
+                    name: touristData.firstName + ' ' + touristData.lastName,
                     email: touristData.email,
-                    phone: touristData.phone,
+                    phone: document.getElementById('phone').value,
                     userType: 'tourist',
                     registeredAt: new Date().toISOString()
                 };
                 localStorage.setItem('touristLogin', JSON.stringify(touristLoginData));
-                console.log('✅ Tourist login data saved for access control:', touristLoginData);
+                
+                console.log('📱 [AUTH DEBUG] All auth data saved:', {
+                    touristAuth: true,
+                    isRegisteredTourist: true,
+                    touristLogin: touristLoginData,
+                    touristRegistration: localData
+                });
 
                 console.log('Tourist registration completed:', result);
 

@@ -148,5 +148,20 @@
     "status": "active",
     "registeredAt": "2025-10-31T04:03:52.539Z",
     "updatedAt": "2025-10-31T04:03:52.539Z"
+  },
+  {
+    "id": "d7fa35a6-d0b0-4bb6-b78a-35cbad454f32",
+    "firstName": "勝彦",
+    "lastName": "テスト",
+    "email": "katuhiko@gmail.com",
+    "nationality": "japan",
+    "documentType": "passport",
+    "phoneVerified": true,
+    "documentUploaded": true,
+    "registrationDate": "2026-01-18T16:42:45.060Z",
+    "phoneNumber": "+817012345678",
+    "status": "active",
+    "registeredAt": "2026-01-18T16:42:45.155Z",
+    "updatedAt": "2026-01-18T16:42:45.155Z"
   }
 ]

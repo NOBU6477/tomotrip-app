@@ -1421,10 +1421,20 @@ async function handleTouristLogin(event) {
         const result = await response.json();
         
         if (result.success) {
-            // Save tourist data to session storage
+            // Save tourist data to BOTH localStorage (persistent) and sessionStorage (legacy)
+            const authTimestamp = Date.now().toString();
+            
+            // PRIMARY: localStorage for mobile persistence
+            localStorage.setItem('touristAuth', 'true');
+            localStorage.setItem('touristAuthTimestamp', authTimestamp);
+            localStorage.setItem('isRegisteredTourist', 'true');
+            localStorage.setItem('touristLogin', JSON.stringify(result.tourist));
+            
+            // LEGACY: sessionStorage for backward compatibility
             sessionStorage.setItem('touristAuth', 'true');
             sessionStorage.setItem('touristData', JSON.stringify(result.tourist));
             
+            console.log('📱 [AUTH DEBUG] Tourist login - saved to BOTH localStorage and sessionStorage');
             console.log('✅ Tourist login successful:', result.tourist);
             showToast('ログインに成功しました', 'success');
             

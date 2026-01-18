@@ -428,21 +428,39 @@
             }
 
             // Check authentication - allow both tourist and guide login
-            const touristAuth = sessionStorage.getItem('touristAuth');
-            const touristData = sessionStorage.getItem('touristData') || localStorage.getItem('touristRegistrationData');
+            // PRIORITY: localStorage first (persistent), then sessionStorage (legacy fallback)
+            const touristAuth = localStorage.getItem('touristAuth') || sessionStorage.getItem('touristAuth');
+            const touristData = localStorage.getItem('touristRegistration') || localStorage.getItem('touristRegistrationData') || sessionStorage.getItem('touristData');
+            const isRegisteredTourist = localStorage.getItem('isRegisteredTourist');
+            const touristLogin = localStorage.getItem('touristLogin');
             const guideAuth = sessionStorage.getItem('guideAuth');
             const guideAuthData = sessionStorage.getItem('guideData');
             
+            // Mobile debug logging
+            console.log('📱 [AUTH CHECK] guide-detail-en.html:', {
+                touristAuth,
+                touristData: !!touristData,
+                isRegisteredTourist,
+                touristLogin: !!touristLogin,
+                guideAuth: !!guideAuth,
+                localStorage_keys: Object.keys(localStorage).filter(k => k.includes('tourist') || k.includes('Auth')),
+                sessionStorage_keys: Object.keys(sessionStorage).filter(k => k.includes('tourist') || k.includes('Auth'))
+            });
+            
             // Allow access if user is logged in as either tourist or guide
-            if (!touristAuth && !touristData && !guideAuth && !guideAuthData) {
+            const hasTouristAuth = touristAuth || touristData || isRegisteredTourist || touristLogin;
+            const hasGuideAuth = guideAuth || guideAuthData;
+            
+            if (!hasTouristAuth && !hasGuideAuth) {
+                console.log('❌ [AUTH CHECK] No valid authentication found');
                 alert('Please log in as a tourist or guide to access this feature.');
                 window.location.href = '/index-en.html';
                 return;
             }
             
-            if (touristAuth || touristData) {
-                console.log('✅ Tourist authentication verified');
-            } else if (guideAuth || guideAuthData) {
+            if (hasTouristAuth) {
+                console.log('✅ Tourist authentication verified (localStorage priority)');
+            } else if (hasGuideAuth) {
                 console.log('✅ Guide authentication verified');
             }
 

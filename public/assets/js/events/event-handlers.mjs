@@ -47,12 +47,32 @@ function showTouristRegistrationPrompt(guideId) {
 
 // Global guide detail function
 export async function showGuideDetailModalById(guideId) {
-    const touristAuth = sessionStorage.getItem('touristAuth');
-    const touristAuthTimestamp = sessionStorage.getItem('touristAuthTimestamp');
-    const isAuthValid = touristAuth && touristAuthTimestamp &&
-        (Date.now() - parseInt(touristAuthTimestamp)) < (60 * 60 * 1000);
+    // PRIORITY: localStorage first (persistent on mobile), then sessionStorage (legacy)
+    const touristAuth = localStorage.getItem('touristAuth') || sessionStorage.getItem('touristAuth');
+    const touristAuthTimestamp = localStorage.getItem('touristAuthTimestamp') || sessionStorage.getItem('touristAuthTimestamp');
+    const isRegisteredTourist = localStorage.getItem('isRegisteredTourist');
+    const touristLogin = localStorage.getItem('touristLogin');
+    
+    // Auth is valid if we have any persistent auth data, or recent session auth
+    const hasValidTimestampAuth = touristAuth && touristAuthTimestamp &&
+        (Date.now() - parseInt(touristAuthTimestamp)) < (7 * 24 * 60 * 60 * 1000); // 7 days for localStorage
+    const hasPersistentAuth = isRegisteredTourist === 'true' || touristLogin;
+    const isAuthValid = hasValidTimestampAuth || hasPersistentAuth;
+    
+    // Mobile debug logging
+    console.log('📱 [AUTH CHECK] showGuideDetailModalById:', {
+        guideId,
+        touristAuth,
+        touristAuthTimestamp,
+        isRegisteredTourist,
+        touristLogin: !!touristLogin,
+        hasValidTimestampAuth,
+        hasPersistentAuth,
+        isAuthValid
+    });
 
     if (!isAuthValid) {
+        console.log('📱 [AUTH CHECK] Auth invalid - showing registration prompt');
         showTouristRegistrationPrompt(guideId);
         return;
     }
