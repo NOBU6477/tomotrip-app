@@ -408,12 +408,15 @@
                 <div class="document-upload-area" id="uploadArea">
                     <i class="bi bi-cloud-upload text-primary" style="font-size: 3rem;"></i>
                     <h6 class="mt-3 mb-2">Upload ID Document</h6>
-                    <p class="text-muted mb-3">ファイルをドラッグ&ドロップまたは下のボタンをクリック</p>
-                    <button type="button" class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-                        <i class="bi bi-camera me-2"></i>写真を選択・撮影
-                    </button>
-                    <input type="file" id="fileInput" style="display: none;" accept="image/*,application/pdf" capture="environment">
-                    <div class="form-text mt-2">対応形式: JPG, PNG, PDF (最大5MB)</div>
+                    <p class="text-muted mb-3">Drag & drop file or tap the button below</p>
+                    <!-- Mobile compatible: label-based file selection (input.click() blocked on mobile) -->
+                    <label for="fileInput" class="btn btn-primary" style="cursor: pointer; display: inline-block; min-height: 44px; line-height: 20px;">
+                        <i class="bi bi-camera me-2"></i>Select/Take Photo
+                    </label>
+                    <!-- input: visually hidden but accessible (display:none causes iOS issues) -->
+                    <input type="file" id="fileInput" accept="image/*" 
+                           style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
+                    <div class="form-text mt-2">Supported formats: JPG, PNG (Max 5MB)</div>
                 </div>
                 
                 <div id="uploadPreview" style="display: none;"></div>
@@ -647,13 +650,25 @@
             console.log('Selected document type:', type);
         }
 
-        // File upload handling
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                handleFileUpload(file);
-            }
-        });
+        // File upload handling - Mobile compatibility enhanced
+        const fileInputElement = document.getElementById('fileInput');
+        console.log('📱 [MOBILE DEBUG] fileInput element found:', !!fileInputElement);
+        
+        if (fileInputElement) {
+            fileInputElement.addEventListener('change', function(e) {
+                console.log('📱 [MOBILE DEBUG] change event fired!');
+                console.log('📱 [MOBILE DEBUG] files.length:', e.target.files ? e.target.files.length : 0);
+                
+                const file = e.target.files[0];
+                if (file) {
+                    console.log('📱 [MOBILE DEBUG] File selected:', file.name, 'size:', file.size, 'type:', file.type);
+                    handleFileUpload(file);
+                } else {
+                    console.log('📱 [MOBILE DEBUG] No file selected');
+                }
+            });
+            console.log('📱 [MOBILE DEBUG] change event listener attached successfully');
+        }
 
         async function handleFileUpload(file) {
             const maxSize = 5 * 1024 * 1024; // 5MB
