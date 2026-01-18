@@ -59,7 +59,7 @@ User confirmed correct understanding of guide display system:
 
 ## Key Technical Components
 - **Camera Integration**: Document photo capture, profile photo upload, mobile camera optimization, file fallback.
-- **Search & Filter System**: Multi-criteria, real-time, keyword-based matching, advanced filter combinations (location, language, price).
+- **Search & Filter System**: Multi-criteria, real-time, keyword-based matching, advanced filter combinations (location, language, price). Language normalization supports variants (英語/English/en). Filters apply to fullGuideList (immutable master) to ensure all guides are searched, not just current page. Filter state persists across 30-second data refreshes.
 - **Management Center**: Centralized bookmark and comparison management, bulk data deletion.
 - **Access Control**: Guide detail viewing requires tourist registration, modal-based prompts, header login differentiation.
 - **Booking Flow**: Multilingual system for payment and confirmation, consistent guide rate display, language inheritance.
