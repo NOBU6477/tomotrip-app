@@ -181,12 +181,23 @@ function setupFilterInputListeners() {
     const locationFilter = document.getElementById('locationFilter');
     const languageFilter = document.getElementById('languageFilter');
     const priceFilter = document.getElementById('priceFilter');
+    const keywordInput = document.getElementById('keywordInput');
+    
+    console.log('[FILTER SETUP] Elements found:', {
+        locationFilter: !!locationFilter,
+        languageFilter: !!languageFilter,
+        priceFilter: !!priceFilter,
+        keywordInput: !!keywordInput
+    });
     
     if (locationFilter) {
         locationFilter.addEventListener('change', () => {
             console.log('📍 Location filter changed:', locationFilter.value);
             triggerFilter();
         });
+        console.log('[FILTER SETUP] ✅ locationFilter listener attached');
+    } else {
+        console.error('[FILTER SETUP] ❌ locationFilter NOT FOUND');
     }
     
     if (languageFilter) {
@@ -194,6 +205,9 @@ function setupFilterInputListeners() {
             console.log('🗣️ Language filter changed:', languageFilter.value);
             triggerFilter();
         });
+        console.log('[FILTER SETUP] ✅ languageFilter listener attached');
+    } else {
+        console.error('[FILTER SETUP] ❌ languageFilter NOT FOUND');
     }
     
     if (priceFilter) {
@@ -201,6 +215,19 @@ function setupFilterInputListeners() {
             console.log('💰 Price filter changed:', priceFilter.value);
             triggerFilter();
         });
+        console.log('[FILTER SETUP] ✅ priceFilter listener attached');
+    } else {
+        console.error('[FILTER SETUP] ❌ priceFilter NOT FOUND');
+    }
+    
+    if (keywordInput) {
+        keywordInput.addEventListener('input', () => {
+            console.log('🔍 Keyword input changed:', keywordInput.value);
+            triggerFilter();
+        });
+        console.log('[FILTER SETUP] ✅ keywordInput listener attached');
+    } else {
+        console.error('[FILTER SETUP] ❌ keywordInput NOT FOUND');
     }
     
     console.log('✅ Filter input listeners setup complete');
