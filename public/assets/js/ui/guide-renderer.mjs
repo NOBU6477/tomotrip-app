@@ -855,6 +855,80 @@ window.showTouristLoginModal = function(guideId) {
     }
 };
 
+// ✅ NEW: フィルタ結果専用の描画関数 - 唯一の描画パス
+export async function renderFilteredGuides(filteredGuides) {
+    console.log('[RENDER] ============ renderFilteredGuides() CALLED ============');
+    console.log('[RENDER] rendering guides from filteredGuides:', filteredGuides.length);
+    
+    const container = document.getElementById('guidesContainer') || 
+                      document.getElementById('guide-list') || 
+                      document.getElementById('guideCardsContainer') ||
+                      document.querySelector('.guide-cards-container .row') ||
+                      document.querySelector('section#search-results .row');
+    
+    if (!container) {
+        console.error('[RENDER] ERROR: Container not found');
+        return;
+    }
+    
+    // ✅ フィルタ結果が0件の場合
+    if (!filteredGuides || filteredGuides.length === 0) {
+        const noMatchMsg = isEnglishPage() ? 'No guides match your criteria' : '条件に一致するガイドが見つかりません';
+        container.innerHTML = `<div class="text-center p-4"><p class="text-muted">${noMatchMsg}</p></div>`;
+        updateGuideCountersWithRange(0, 0, 0);
+        
+        // ページネーションを非表示
+        const paginationContainer = document.getElementById('paginationContainer');
+        if (paginationContainer) paginationContainer.innerHTML = '';
+        
+        console.log('[RENDER] No matching guides - displayed empty state');
+        return;
+    }
+    
+    const pageSize = 12;
+    
+    // ✅ AppState更新（ページネーションコールバックとの整合性のため）
+    if (window.AppState) {
+        window.AppState.currentPage = 1;
+        window.AppState.filteredGuides = filteredGuides;
+        window.AppState.guides = filteredGuides; // ✅ CRITICAL: 他のレンダーパスとの整合性
+    }
+    
+    // ✅ ページネーションシステムを使用（12件超の場合）
+    if (filteredGuides.length > pageSize && window.paginationSystem) {
+        console.log('[PAGINATION] using filtered list:', filteredGuides.length, 'guides');
+        
+        // ✅ FIXED: setFilteredData + goToPage(1)を使用してページネーションコールバックを発火
+        window.paginationSystem.setFilteredData(filteredGuides);
+        window.paginationSystem.renderPagination();
+        window.paginationSystem.updatePageInfo();
+        
+        // ✅ goToPage(1)でコールバックを発火させて描画
+        window.paginationSystem.goToPage(1);
+        
+        console.log(`[RENDER] Pagination initialized: ${filteredGuides.length} filtered guides`);
+    } else {
+        // ページネーション不要の場合（12件以下）
+        const pageItems = filteredGuides.slice(0, pageSize);
+        const cardsHTML = pageItems.map(guide => createGuideCardHTML(guide)).join('');
+        container.innerHTML = cardsHTML;
+        
+        // ✅ 件数表示を更新
+        updateGuideCountersWithRange(1, pageItems.length, filteredGuides.length);
+        
+        // イベントリスナー設定
+        setupViewDetailsEventListeners();
+        
+        // ページネーションを非表示
+        const paginationContainer = document.getElementById('paginationContainer');
+        if (paginationContainer) paginationContainer.innerHTML = '';
+        
+        console.log(`[RENDER] Rendered ${pageItems.length} cards (no pagination needed)`);
+    }
+    
+    console.log('[RENDER] ============ renderFilteredGuides() COMPLETE ============');
+}
+
 // Make functions globally available for filter system
 if (typeof window !== 'undefined') {
     window.renderGuideCards = renderGuideCards;
@@ -863,4 +937,5 @@ if (typeof window !== 'undefined') {
     window.createGuideCardHTML = createGuideCardHTML;  // Export for consistency
     window.checkTouristAuthAndRedirect = checkTouristAuthAndRedirect;
     window.redirectToGuideDetail = redirectToGuideDetail;
+    window.renderFilteredGuides = renderFilteredGuides;  // ✅ NEW: フィルタ専用描画
 }

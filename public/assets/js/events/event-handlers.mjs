@@ -179,24 +179,26 @@ export async function filterGuides() {
         );
     }
     
-    console.log(`[FILTER] filtered: ${results.length}`);
+    const hasActiveFilter = !!(locVal || langVal || priceVal || keyword);
     
-    // ✅ AppState を更新
+    console.log(`[FILTER RESULT] filteredGuides length: ${results.length}, hasActiveFilter: ${hasActiveFilter}`);
+    
+    // ✅ AppState を更新（guides も更新して他の読み取り箇所との整合性を保つ）
     state.filteredGuides = results;
-    state.guides = results; // 表示用（ページネーションで使用）
-    state.isFiltered = locVal || langVal || priceVal || keyword ? true : false;
+    state.guides = results; // ✅ CRITICAL: 他のレンダーパスとの整合性のため
+    state.isFiltered = hasActiveFilter;
     state.currentPage = 1; // フィルタ後は必ず1ページ目
     
-    // ✅ ペジネーションにフィルタ結果を設定して再描画
-    if (window.paginationSystem) {
-        window.paginationSystem.setFilteredData(results);
-        window.paginationSystem.renderPagination();
-        window.paginationSystem.updatePageInfo();
-    }
-    
-    // ✅ カードを描画（resetPagination=true でページ1から）
-    if (window.renderGuideCards) {
+    // ✅ 唯一の描画パス: renderFilteredGuides() を呼び出す（フォールバック付き）
+    if (window.renderFilteredGuides) {
+        console.log('[FILTER] Calling renderFilteredGuides() with', results.length, 'guides');
+        await window.renderFilteredGuides(results);
+    } else if (window.renderGuideCards) {
+        // フォールバック：renderFilteredGuidesがまだ利用不可の場合
+        console.log('[FILTER] Fallback: Using renderGuideCards() with', results.length, 'guides');
         await window.renderGuideCards(results, true, true);
+    } else {
+        console.error('[FILTER] ERROR: No render function available');
     }
 }
 
@@ -205,6 +207,8 @@ window.filterGuides = filterGuides;
 
 // ✅ フィルタリセット関数
 window.resetFilters = async function() {
+    console.log('[RESET] ============ resetFilters() CALLED ============');
+    
     // フィルタUI をリセット
     const locEl = document.getElementById('locationFilter');
     const langEl = document.getElementById('languageFilter');
@@ -223,22 +227,17 @@ window.resetFilters = async function() {
     
     console.log(`[RESET] Restoring ${fullList.length} guides from fullGuideList`);
     
-    appState.guides = [...fullList];
     appState.filteredGuides = [...fullList];
     appState.isFiltered = false;
     appState.currentPage = 1;
     appState.activeFilters = { location: '', language: '', price: '', keyword: '' };
     
-    // ✅ ペジネーションをリセット
-    if (window.paginationSystem) {
-        window.paginationSystem.setData(fullList);
-        window.paginationSystem.renderPagination();
-        window.paginationSystem.updatePageInfo();
-    }
-    
+    // ✅ 通常の描画パス（フィルタなし）で描画
     if (window.renderGuideCards) {
         await window.renderGuideCards(fullList, true, true);
     }
+    
+    console.log('[RESET] ============ resetFilters() COMPLETE ============');
 };
 
 export function setupEventListeners(state) {
