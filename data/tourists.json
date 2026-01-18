@@ -163,5 +163,20 @@
     "status": "active",
     "registeredAt": "2026-01-18T16:42:45.155Z",
     "updatedAt": "2026-01-18T16:42:45.155Z"
+  },
+  {
+    "id": "b9444c5f-7474-4bf6-b854-d7d6e131580a",
+    "firstName": "海斗",
+    "lastName": "テスト",
+    "email": "kaito@gmail.com",
+    "nationality": "japan",
+    "documentType": "passport",
+    "phoneVerified": true,
+    "documentUploaded": true,
+    "registrationDate": "2026-01-18T17:06:51.169Z",
+    "phoneNumber": "+818012345678",
+    "status": "active",
+    "registeredAt": "2026-01-18T17:06:51.272Z",
+    "updatedAt": "2026-01-18T17:06:51.272Z"
   }
 ]

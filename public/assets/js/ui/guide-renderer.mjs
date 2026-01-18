@@ -7,6 +7,9 @@ import { localizeLanguageArray, localizeSpecialtyArray, isEnglishPage, getText }
 // ✅ NEW: 都道府県正規化をインポート
 import { normalizePrefecture } from '../utils/location-utils.mjs';
 
+// ✅ NEW: 検索状態管理モジュール
+import { saveStateBeforeDetail } from '../utils/search-state.mjs';
+
 // スケーラブルペジネーションのインポートと初期化
 let paginationSystem = null;
 
@@ -821,6 +824,9 @@ function showTouristRegistrationPrompt(guideId) {
 // Redirect to guide detail page
 function redirectToGuideDetail(guideId) {
     console.log('🔗 Redirecting to guide detail page for guide:', guideId);
+    
+    // ✅ NEW: 遷移前に検索状態を保存（モジュール使用）
+    saveStateBeforeDetail();
     
     // Detect current page language and redirect to appropriate detail page
     const isEnglish = window.location.pathname.includes('-en.html');

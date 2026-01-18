@@ -4,7 +4,7 @@
 // IMMEDIATE TEST: This should appear first in browser console
 console.log('🔥 URGENT TEST: app-init.mjs is executing!');
 
-import { setupEventListeners, wireSponsorButtons, wireLanguageSwitcher } from './events/event-handlers.mjs?v=20251119-entry-fix';
+import { setupEventListeners, wireSponsorButtons, wireLanguageSwitcher } from './events/event-handlers.mjs?v=20260118-3';
 // import './emergency-buttons.mjs'; // COMMENTED OUT - FILE MISSING, CAUSING MODULE LOAD FAILURE
 import { renderGuideCards, updateGuideCounters } from './ui/guide-renderer.mjs';
 // ✅ 修正済み検索機能をインポート
@@ -16,6 +16,8 @@ import { log, isIframe, shouldSuppressLogs } from './utils/logger.mjs';
 import { APP_CONFIG } from '../../env/app-config.mjs';
 import { generatePrefectureOptions } from './ui/prefecture-selector.mjs';
 import './admin/guide-management.mjs';
+// ✅ NEW: 検索状態管理モジュール
+import { initSearchStateOnLoad } from './utils/search-state.mjs';
 
 // Early detection for Replit preview iframe to suppress footer emergency logs
 const isReplitIframe = isIframe && !APP_CONFIG.ALLOW_IFRAME_LOG;
@@ -292,6 +294,19 @@ async function appInit() {
         await renderGuideCards(guides, true, true);
         // displayGuides is now integrated with renderGuideCards - no separate call needed
         // displayGuides(1, state); // DISABLED - causes container conflicts
+        
+        // ✅ NEW: 検索状態復元（詳細ページから戻った時 or URLクエリ）- モジュール使用
+        // 無条件で initSearchStateOnLoad を呼び出す（URLクエリ優先、なければsessionStorage）
+        setTimeout(() => {
+            console.log('🔄 [SEARCH STATE] Checking for URL params or saved state...');
+            const restored = initSearchStateOnLoad(
+                () => window.filterGuides?.(), // filterCallback
+                (page) => window.paginationSystem?.goToPage(page) // goToPageCallback
+            );
+            if (!restored) {
+                console.log('📋 [SEARCH STATE] No state to restore (URL or sessionStorage)');
+            }
+        }, 200);
     }, 500); // Small delay to ensure DOM is fully loaded
 
     // Setup button handlers
@@ -446,6 +461,7 @@ function showNewGuideNotification(count, isRegistrationComplete = false, customM
 window.refreshGuideData = refreshGuideData;
 window.showNewGuideNotification = showNewGuideNotification;
 window.renderGuideCards = renderGuideCards;
+window.initSearchStateOnLoad = initSearchStateOnLoad;
 
 // Export pagination system globally for search integration
 window.getPaginationSystem = function() {

@@ -1,9 +1,11 @@
 // Event handlers - centralized setup with AppState support
-console.log('✅ LOADED: event-handlers.mjs v=20260118-2');
+console.log('✅ LOADED: event-handlers.mjs v=20260118-3');
 import { showSponsorLoginModal, showSponsorRegistrationModal } from '../ui/modal.mjs';
 import { createGuideCardHTML } from '../ui/guide-renderer.mjs';
 import { getText } from '../utils/language-utils.mjs';
 import { normalizeLocationToCode, compareLocations, convertPrefectureNameToCode } from '../utils/location-utils.mjs';
+// ✅ NEW: 検索状態管理モジュール
+import { saveStateBeforeDetail, initSearchStateOnLoad, getCurrentSearchState } from '../utils/search-state.mjs';
 
 // 言語切替機能
 export function wireLanguageSwitcher() {
@@ -32,6 +34,9 @@ export function wireSponsorButtons() {
 
 // Show tourist registration prompt
 function showTouristRegistrationPrompt(guideId) {
+    // ✅ NEW: 登録リダイレクト前に検索状態を保存
+    saveStateBeforeDetail();
+    
     sessionStorage.setItem('returnToGuideId', guideId);
     const msg = getText(
         'ガイド詳細をご覧いただくには観光客登録が必要です。\n\n登録は無料で、安全にガイドとやり取りできます。\n今すぐ登録ページに移動しますか？',
@@ -78,6 +83,9 @@ export async function showGuideDetailModalById(guideId) {
     }
 
     try {
+        // ✅ NEW: 詳細遷移前に検索状態を保存（モジュール使用）
+        saveStateBeforeDetail();
+        
         const isEnglish = window.location.pathname.includes('-en.html');
         const detailPage = isEnglish ? 'guide-detail-en.html' : 'guide-detail.html';
         const detailUrl = `${detailPage}?id=${guideId}`;
@@ -91,11 +99,18 @@ export async function showGuideDetailModalById(guideId) {
 // Make globally available
 window.showGuideDetailModalById = showGuideDetailModalById;
 window.redirectToRegistration = function(guideId) {
+    // ✅ NEW: 登録リダイレクト前に検索状態を保存
+    saveStateBeforeDetail();
+    
     sessionStorage.setItem('returnToGuideId', guideId);
     const isEnglish = window.location.pathname.includes('-en.html');
     const registrationPage = isEnglish ? 'tourist-registration-simple-en.html' : 'tourist-registration-simple.html';
     window.location.href = registrationPage;
 };
+
+// ✅ NEW: 検索状態モジュールをグローバルに公開
+window.initSearchStateOnLoad = initSearchStateOnLoad;
+window.saveSearchState = saveStateBeforeDetail;
 
 // ✅ 言語正規化マッピング（表記ゆれ完全対応 v2026.01.18）
 // 原因分析: ガイドのlanguagesに「英語」「english」「English」「EN」など混在
