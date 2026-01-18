@@ -54,10 +54,16 @@ async function initializePaginationSystem(guides, resetPagination = true) {
     // ✅ FIX: ページネーション有効フラグを即座に設定（async importの前）
     window.paginationEnabled = true;
     
-    // ✅ FIX: 全体リストをAppStateに保存（ページ移動時に上書きされないように）
-    if (window.AppState) {
+    // ✅ CRITICAL FIX: フィルタ中はfullGuideListを上書きしない
+    // fullGuideListは不変のマスターデータ、フィルタ適用後のデータで上書きしてはいけない
+    const isFiltered = window.AppState?.isFiltered || false;
+    
+    if (window.AppState && !isFiltered) {
+        // フィルタ適用中でない場合のみfullGuideListを更新
         window.AppState.fullGuideList = [...guides];
-        console.log(`📊 [PAGINATION] fullGuideList stored: ${guides.length} guides, paginationEnabled=true`);
+        console.log(`📊 [PAGINATION] fullGuideList stored: ${guides.length} guides (not filtered)`);
+    } else {
+        console.log(`📊 [PAGINATION] Using existing fullGuideList (${window.AppState?.fullGuideList?.length || 0}), filtered data: ${guides.length}`);
     }
     
     // ✅ 新しいペジネーションシステムが必要な場合のみ作成
@@ -71,21 +77,26 @@ async function initializePaginationSystem(guides, resetPagination = true) {
             maxVisiblePages: 5,
             container: '#paginationContainer',
             onPageLoad: (pageItems, currentPage, totalPages) => {
-                // ✅ FIX: fullGuideListから全体数を取得（pageItemsの長さではない）
-                const fullList = window.AppState?.fullGuideList || [];
-                const total = fullList.length;
+                // ✅ FIX: フィルタ中はfilteredDataの総数を使用
+                const isFiltered = window.AppState?.isFiltered || false;
+                const filteredGuides = window.AppState?.filteredGuides || [];
+                const fullGuideList = window.AppState?.fullGuideList || [];
+                
+                // フィルタ中はフィルタ後の総数、そうでなければ全体数
+                const total = isFiltered ? filteredGuides.length : fullGuideList.length;
                 const pageSize = 12;
                 const startIndex = (currentPage - 1) * pageSize;
                 const endIndex = Math.min(startIndex + pageSize, total);
                 
                 console.log(`📊 [PAGINATION] Page ${currentPage}/${totalPages}:`, {
+                    isFiltered,
                     total,
                     startIndex: startIndex + 1,
                     endIndex,
                     pageItemsCount: pageItems.length
                 });
                 
-                // ページのカードを描画（skipSlice=trueでスライス済みを示す）
+                // ページのカードを描画
                 renderPageCards(pageItems, startIndex + 1, endIndex, total);
             }
         });

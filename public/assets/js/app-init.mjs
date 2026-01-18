@@ -372,26 +372,26 @@ async function refreshGuideData(maxRetries = 3) {
                 return false;
             }
 
-            const currentCount = AppState.guides.length;
-            const newCount = apiGuides.length;
-
-            // ✅ FIX: Only update if we have valid new data
-            AppState.guides = apiGuides;
+            // ✅ NEW: fullGuideList を更新（不変のマスターデータ）
+            AppState.fullGuideList = [...apiGuides];
+            AppState.originalGuides = [...apiGuides];
+            
+            console.log(`📊 [REFRESH] fullGuideList updated: ${apiGuides.length} guides`);
 
             // 🔧 FIX: フィルター状態を保持してレンダリング
             if (typeof renderGuideCards === 'function') {
-                // フィルターが適用されている場合は、フィルターを再適用
+                // ✅ フィルターが適用されている場合は、新しいfullGuideListに対してフィルターを再適用
                 if (AppState.isFiltered && typeof window.filterGuides === 'function') {
-                    console.log('🔧 Re-applying filters after data refresh to maintain filter state');
-                    window.filterGuides(); // 同期的にフィルターを再適用
+                    console.log('🔧 Re-applying filters to updated fullGuideList');
+                    // ✅ フィルタ条件はactiveFiltersに保存されているので、filterGuidesが再利用する
+                    await window.filterGuides();
                 } else {
-                    // ✅ FIX: usePagination=trueでページネーションを維持, resetPagination=falseで現在ページを保持
-                    renderGuideCards(AppState.guides, true, false);
+                    // フィルタなしの場合は全データを表示
+                    AppState.guides = [...apiGuides];
+                    // ✅ usePagination=trueでページネーションを維持, resetPagination=falseで現在ページを保持
+                    renderGuideCards(apiGuides, true, false);
                 }
             }
-
-            // ✅ displayGuidesは使用されていないため削除済み
-            // ✅ カウンター更新はrenderGuideCards/initializePaginationSystemで処理される
 
             console.log(`✅ Guide data refreshed successfully: ${apiGuides.length} total guides (API-only)`);
             return true; // Success

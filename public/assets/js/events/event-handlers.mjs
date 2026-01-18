@@ -76,36 +76,79 @@ window.redirectToRegistration = function(guideId) {
     window.location.href = registrationPage;
 };
 
-function normalizeLanguage(selectedValue) {
-    const languageMapping = {
-        'japanese': ['japanese', 'ja', '日本語', 'japan'],
-        'english': ['english', 'en', '英語', 'eng'],
-        'chinese': ['chinese', 'zh', '中国語', 'chn'],
-        'korean': ['korean', 'ko', '韓国語', 'kor']
-    };
-    return languageMapping[selectedValue] || [selectedValue];
+// ✅ 言語正規化マッピング（表記ゆれ吸収）
+const LANGUAGE_MAPPING = {
+    'japanese': ['日本語', 'japanese', 'ja', 'japan', 'jpn'],
+    'english': ['英語', 'english', 'en', 'eng'],
+    'chinese': ['中国語', 'chinese', 'zh', 'chn', 'mandarin'],
+    'korean': ['韓国語', 'korean', 'ko', 'kor']
+};
+
+function normalizeLanguageValue(value) {
+    if (!value) return null;
+    const lower = String(value).toLowerCase().trim();
+    for (const [key, variants] of Object.entries(LANGUAGE_MAPPING)) {
+        if (variants.some(v => v.toLowerCase() === lower)) {
+            return key;
+        }
+    }
+    return lower;
 }
 
-// Search and Filter
+function guideMatchesLanguage(guide, selectedLang) {
+    if (!selectedLang) return true;
+    const normalizedFilter = normalizeLanguageValue(selectedLang);
+    if (!normalizedFilter) return true;
+    
+    // guide.languages が配列か文字列かを判定
+    let languages = guide.languages;
+    if (typeof languages === 'string') {
+        languages = languages.split(',').map(s => s.trim());
+    }
+    if (!Array.isArray(languages)) return false;
+    
+    // 各言語を正規化して比較
+    return languages.some(lang => {
+        const normalizedLang = normalizeLanguageValue(lang);
+        return normalizedLang === normalizedFilter;
+    });
+}
+
+// ✅ 統合フィルタ関数 - fullGuideListに対してフィルタを適用
 export async function filterGuides() {
     const state = window.AppState;
-    if (!state || !state.guides) return;
-
-    state.currentPage = 1;
+    if (!state) return;
+    
+    // ✅ フィルタ元は必ず fullGuideList（不変のマスターデータ）
+    const fullList = state.fullGuideList || state.originalGuides || state.guides || [];
+    
     const locVal = document.getElementById('locationFilter')?.value || '';
     const langVal = document.getElementById('languageFilter')?.value || '';
     const priceVal = document.getElementById('priceFilter')?.value || '';
     const keyword = document.getElementById('keywordInput')?.value?.trim().toLowerCase() || '';
-
-    let results = [...state.guides];
-
+    
+    // ✅ フィルタ条件をAppStateに保存（30秒リフレッシュ時の再適用用）
+    state.activeFilters = { location: locVal, language: langVal, price: priceVal, keyword: keyword };
+    
+    console.log(`[FILTER] full: ${fullList.length}, lang: ${langVal}, loc: ${locVal}, price: ${priceVal}`);
+    
+    let results = [...fullList];
+    
+    // 地域フィルタ
     if (locVal) {
-        results = results.filter(g => g.location === locVal || convertPrefectureNameToCode(locVal) === g.location || compareLocations(g.location, locVal));
+        results = results.filter(g => 
+            g.location === locVal || 
+            convertPrefectureNameToCode(locVal) === g.location || 
+            compareLocations(g.location, locVal)
+        );
     }
+    
+    // ✅ 言語フィルタ（正規化マッピング使用）
     if (langVal) {
-        const norms = normalizeLanguage(langVal);
-        results = results.filter(g => Array.isArray(g.languages) && g.languages.some(l => norms.some(n => l.toLowerCase().includes(n.toLowerCase()))));
+        results = results.filter(g => guideMatchesLanguage(g, langVal));
     }
+    
+    // 価格フィルタ
     if (priceVal) {
         results = results.filter(g => {
             const p = parseInt(g.sessionRate || g.price || '0', 10);
@@ -115,32 +158,74 @@ export async function filterGuides() {
             return true;
         });
     }
+    
+    // キーワードフィルタ
     if (keyword) {
-        results = results.filter(g => `${g.name} ${g.guideName} ${g.introduction}`.toLowerCase().includes(keyword));
+        results = results.filter(g => 
+            `${g.name || ''} ${g.guideName || ''} ${g.introduction || ''}`.toLowerCase().includes(keyword)
+        );
     }
-
+    
+    console.log(`[FILTER] filtered: ${results.length}`);
+    
+    // ✅ AppState を更新
     state.filteredGuides = results;
-    state.isFiltered = true;
-
-    if (window.renderGuideCards) window.renderGuideCards(results, true, true);
+    state.guides = results; // 表示用（ページネーションで使用）
+    state.isFiltered = locVal || langVal || priceVal || keyword ? true : false;
+    state.currentPage = 1; // フィルタ後は必ず1ページ目
+    
+    // ✅ ペジネーションにフィルタ結果を設定して再描画
+    if (window.paginationSystem) {
+        window.paginationSystem.setFilteredData(results);
+        window.paginationSystem.renderPagination();
+        window.paginationSystem.updatePageInfo();
+    }
+    
+    // ✅ カードを描画（resetPagination=true でページ1から）
+    if (window.renderGuideCards) {
+        await window.renderGuideCards(results, true, true);
+    }
 }
 
-window.resetFilters = function() {
-    const state = document.getElementById('locationFilter');
-    const lang = document.getElementById('languageFilter');
-    const price = document.getElementById('priceFilter');
-    const key = document.getElementById('keywordInput');
-    if (state) state.value = '';
-    if (lang) lang.value = '';
-    if (price) price.value = '';
-    if (key) key.value = '';
+// ✅ 外部から呼び出せるようにグローバル化
+window.filterGuides = filterGuides;
+
+// ✅ フィルタリセット関数
+window.resetFilters = async function() {
+    // フィルタUI をリセット
+    const locEl = document.getElementById('locationFilter');
+    const langEl = document.getElementById('languageFilter');
+    const priceEl = document.getElementById('priceFilter');
+    const keyEl = document.getElementById('keywordInput');
+    if (locEl) locEl.value = '';
+    if (langEl) langEl.value = '';
+    if (priceEl) priceEl.value = '';
+    if (keyEl) keyEl.value = '';
     
     const appState = window.AppState;
-    if (!appState || !appState.originalGuides) return;
-    appState.guides = [...appState.originalGuides];
+    if (!appState) return;
+    
+    // ✅ fullGuideList から復元（不変のマスターデータ）
+    const fullList = appState.fullGuideList || appState.originalGuides || [];
+    
+    console.log(`[RESET] Restoring ${fullList.length} guides from fullGuideList`);
+    
+    appState.guides = [...fullList];
+    appState.filteredGuides = [...fullList];
     appState.isFiltered = false;
     appState.currentPage = 1;
-    if (window.renderGuideCards) window.renderGuideCards(appState.guides, true, true);
+    appState.activeFilters = { location: '', language: '', price: '', keyword: '' };
+    
+    // ✅ ペジネーションをリセット
+    if (window.paginationSystem) {
+        window.paginationSystem.setData(fullList);
+        window.paginationSystem.renderPagination();
+        window.paginationSystem.updatePageInfo();
+    }
+    
+    if (window.renderGuideCards) {
+        await window.renderGuideCards(fullList, true, true);
+    }
 };
 
 export function setupEventListeners(state) {
