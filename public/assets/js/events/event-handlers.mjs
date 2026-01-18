@@ -100,24 +100,36 @@ function guideMatchesLanguage(guide, selectedLang) {
     const normalizedFilter = normalizeLanguageValue(selectedLang);
     if (!normalizedFilter) return true;
     
-    // guide.languages が配列か文字列かを判定
-    let languages = guide.languages;
+    // ✅ guide.languages または guide.guideLanguages を取得
+    let languages = guide.languages || guide.guideLanguages || [];
     if (typeof languages === 'string') {
         languages = languages.split(',').map(s => s.trim());
     }
-    if (!Array.isArray(languages)) return false;
+    if (!Array.isArray(languages)) {
+        console.log(`[LANG] Guide ${guide.name || guide.guideName} has no languages array`);
+        return false;
+    }
     
     // 各言語を正規化して比較
-    return languages.some(lang => {
+    const result = languages.some(lang => {
         const normalizedLang = normalizeLanguageValue(lang);
         return normalizedLang === normalizedFilter;
     });
+    
+    console.log(`[LANG] Guide: ${guide.name || guide.guideName}, langs: [${languages.join(',')}], filter: ${selectedLang} → ${normalizedFilter}, match: ${result}`);
+    
+    return result;
 }
 
 // ✅ 統合フィルタ関数 - fullGuideListに対してフィルタを適用
 export async function filterGuides() {
+    console.log('[FILTER] ============ filterGuides() CALLED ============');
+    
     const state = window.AppState;
-    if (!state) return;
+    if (!state) {
+        console.error('[FILTER] ERROR: window.AppState is null/undefined');
+        return;
+    }
     
     // ✅ フィルタ元は必ず fullGuideList（不変のマスターデータ）
     const fullList = state.fullGuideList || state.originalGuides || state.guides || [];
@@ -130,7 +142,7 @@ export async function filterGuides() {
     // ✅ フィルタ条件をAppStateに保存（30秒リフレッシュ時の再適用用）
     state.activeFilters = { location: locVal, language: langVal, price: priceVal, keyword: keyword };
     
-    console.log(`[FILTER] full: ${fullList.length}, lang: ${langVal}, loc: ${locVal}, price: ${priceVal}`);
+    console.log(`[FILTER] START fullGuideList: ${fullList.length}, lang: "${langVal}", loc: "${locVal}", price: "${priceVal}"`);
     
     let results = [...fullList];
     

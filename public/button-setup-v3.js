@@ -138,13 +138,19 @@ function setupFilterInputListeners() {
     
     // Helper function to call filter
     const triggerFilter = async () => {
+        console.log('[FILTER EVT] triggerFilter() called');
+        console.log('[FILTER EVT] window.filterGuides:', typeof window.filterGuides);
+        console.log('[FILTER EVT] window.executeSearch:', typeof window.executeSearch);
         try {
             if (window.filterGuides && typeof window.filterGuides === 'function') {
+                console.log('[FILTER EVT] Calling window.filterGuides()...');
                 await window.filterGuides();
+                console.log('[FILTER EVT] window.filterGuides() completed');
             } else if (window.executeSearch && typeof window.executeSearch === 'function') {
+                console.log('[FILTER EVT] Calling window.executeSearch()...');
                 await window.executeSearch();
             } else {
-                console.warn('⚠️ No filter function available');
+                console.warn('⚠️ No filter function available - filterGuides:', window.filterGuides, 'executeSearch:', window.executeSearch);
             }
         } catch (error) {
             console.error('❌ Filter error:', error);
