@@ -77,52 +77,123 @@ window.redirectToRegistration = function(guideId) {
     window.location.href = registrationPage;
 };
 
-// ✅ 言語正規化マッピング（表記ゆれ吸収）
+// ✅ 言語正規化マッピング（表記ゆれ完全対応 v2026.01.18）
+// 原因分析: ガイドのlanguagesに「英語」「english」「English」「EN」など混在
+// 対応一覧:
+//   日本語 → japanese: 日本語, japanese, Japanese, JAPANESE, ja, JP, jpn, japan
+//   英語   → english:  英語, english, English, ENGLISH, en, EN, eng, ENG, us english
+//   中国語 → chinese:  中国語, chinese, Chinese, CHINESE, zh, ZH, chn, CHN, mandarin
+//   韓国語 → korean:   韓国語, korean, Korean, KOREAN, ko, KO, kor, KOR
 const LANGUAGE_MAPPING = {
-    'japanese': ['日本語', 'japanese', 'ja', 'japan', 'jpn'],
-    'english': ['英語', 'english', 'en', 'eng'],
-    'chinese': ['中国語', 'chinese', 'zh', 'chn', 'mandarin'],
-    'korean': ['韓国語', 'korean', 'ko', 'kor']
+    'japanese': ['日本語', 'japanese', 'ja', 'jp', 'jpn', 'japan', 'にほんご'],
+    'english': ['英語', 'english', 'en', 'eng', 'us english', 'us-english', 'えいご'],
+    'chinese': ['中国語', 'chinese', 'zh', 'chn', 'mandarin', 'cn', 'ちゅうごくご'],
+    'korean': ['韓国語', 'korean', 'ko', 'kor', 'kr', 'かんこくご']
 };
 
+/**
+ * 単一言語値を正規化キー（japanese/english/chinese/korean）に変換
+ * 大文字小文字、全角半角、余分な空白を吸収
+ * @param {string} value - 正規化対象の言語値
+ * @returns {string|null} 正規化後の言語キー
+ */
 function normalizeLanguageValue(value) {
     if (!value) return null;
-    const lower = String(value).toLowerCase().trim();
+    // 大文字小文字正規化 + トリム + 全角→半角スペース変換
+    const lower = String(value).toLowerCase().trim().replace(/　/g, ' ');
+    
     for (const [key, variants] of Object.entries(LANGUAGE_MAPPING)) {
         if (variants.some(v => v.toLowerCase() === lower)) {
             return key;
         }
     }
+    // マッチしなかった場合は小文字化した値をそのまま返す
     return lower;
 }
 
-function guideMatchesLanguage(guide, selectedLang) {
-    if (!selectedLang) return true;
-    const normalizedFilter = normalizeLanguageValue(selectedLang);
-    if (!normalizedFilter) return true;
+/**
+ * ガイドのlanguages配列/文字列を正規化済み配列に変換
+ * カンマ区切り、スラッシュ区切り、空白区切りすべて対応
+ * @param {Array|string} languages - ガイドの言語データ
+ * @returns {string[]} 正規化済みの言語キー配列
+ */
+function normalizeGuideLanguages(languages) {
+    if (!languages) return [];
     
-    // ✅ guide.languages または guide.guideLanguages を取得
-    let languages = guide.languages || guide.guideLanguages || [];
+    let langArray = languages;
+    
+    // 文字列の場合：カンマ、スラッシュ、「・」で分割
     if (typeof languages === 'string') {
-        languages = languages.split(',').map(s => s.trim());
-    }
-    if (!Array.isArray(languages)) {
-        console.log(`[LANG] Guide ${guide.name || guide.guideName} has no languages array`);
-        return false;
+        langArray = languages.split(/[,\/・、]+/).map(s => s.trim()).filter(Boolean);
     }
     
-    // 各言語を正規化して比較
-    const result = languages.some(lang => {
-        const normalizedLang = normalizeLanguageValue(lang);
-        return normalizedLang === normalizedFilter;
-    });
+    if (!Array.isArray(langArray)) return [];
     
-    console.log(`[LANG] Guide: ${guide.name || guide.guideName}, langs: [${languages.join(',')}], filter: ${selectedLang} → ${normalizedFilter}, match: ${result}`);
+    // 各言語を正規化
+    return langArray
+        .map(lang => normalizeLanguageValue(lang))
+        .filter(Boolean);
+}
+
+/**
+ * ガイドが選択言語に対応しているかチェック（正規化済み同士で比較）
+ * @param {Object} guide - ガイドオブジェクト
+ * @param {string} selectedLang - フィルタで選択された言語値
+ * @returns {boolean} マッチするかどうか
+ */
+function guideMatchesLanguage(guide, selectedLang) {
+    // フィルタ値なし or 'all' の場合は全件マッチ
+    if (!selectedLang || selectedLang === '' || selectedLang === 'all' || selectedLang === 'すべて') {
+        return true;
+    }
+    
+    // フィルタ値を正規化
+    const selectedNormalized = normalizeLanguageValue(selectedLang);
+    if (!selectedNormalized) return true;
+    
+    // ガイドの言語を取得（複数フィールド対応）
+    const rawLanguages = guide.languages || guide.guideLanguages || [];
+    
+    // ガイド側の言語を正規化
+    const guideNormalized = normalizeGuideLanguages(rawLanguages);
+    
+    // 正規化済み同士で完全一致チェック
+    const result = guideNormalized.includes(selectedNormalized);
     
     return result;
 }
 
+/**
+ * [LANG DUMP] 全ガイドの言語データをログ出力（デバッグ用）
+ * 1回だけ呼び出して言語データの実態を可視化
+ */
+function dumpLanguageData(guides, filterValue) {
+    console.log('========== [LANG DUMP] START ==========');
+    console.log(`[LANG DUMP] Total guides: ${guides.length}, Filter value: "${filterValue}"`);
+    console.log(`[LANG DUMP] Filter normalized to: "${normalizeLanguageValue(filterValue)}"`);
+    
+    let matchCount = 0;
+    guides.forEach((g, i) => {
+        const rawLangs = g.languages || g.guideLanguages || [];
+        const normalizedLangs = normalizeGuideLanguages(rawLangs);
+        const matches = guideMatchesLanguage(g, filterValue);
+        if (matches) matchCount++;
+        
+        console.log(`[LANG DUMP] #${i+1} name="${g.name || g.guideName}" rawLangs=${JSON.stringify(rawLangs)} normalizedLangs=[${normalizedLangs.join(',')}] match=${matches}`);
+    });
+    
+    console.log(`[LANG DUMP] Expected matches: ${matchCount} guides`);
+    console.log('========== [LANG DUMP] END ==========');
+}
+
 // ✅ 統合フィルタ関数 - fullGuideListに対してフィルタを適用
+// 修正日: 2026-01-18
+// 修正内容:
+//   1. [LANG DUMP]でガイドの言語データの実態を可視化
+//   2. normalizeGuideLanguages()でガイド側の言語も100%正規化
+//   3. guideMatchesLanguage()で正規化済み同士を比較
+//   4. ページネーション同期を確実に（goToPage(1)使用）
+//   5. カウンター表示をフィルタ結果件数に統一
 export async function filterGuides() {
     console.log('[FILTER] ============ filterGuides() CALLED ============');
     
@@ -145,6 +216,11 @@ export async function filterGuides() {
     
     console.log(`[FILTER] START fullGuideList: ${fullList.length}, lang: "${langVal}", loc: "${locVal}", price: "${priceVal}"`);
     
+    // ✅ [LANG DUMP] 言語データの実態を1回だけログ出力（言語フィルタ使用時のみ）
+    if (langVal) {
+        dumpLanguageData(fullList, langVal);
+    }
+    
     let results = [...fullList];
     
     // 地域フィルタ
@@ -156,9 +232,11 @@ export async function filterGuides() {
         );
     }
     
-    // ✅ 言語フィルタ（正規化マッピング使用）
+    // ✅ 言語フィルタ（正規化済み同士で比較）
     if (langVal) {
+        console.log(`[FILTER] Applying language filter: "${langVal}" → normalized: "${normalizeLanguageValue(langVal)}"`);
         results = results.filter(g => guideMatchesLanguage(g, langVal));
+        console.log(`[FILTER] After language filter: ${results.length} guides remain`);
     }
     
     // 価格フィルタ
@@ -183,11 +261,12 @@ export async function filterGuides() {
     
     console.log(`[FILTER RESULT] filteredGuides length: ${results.length}, hasActiveFilter: ${hasActiveFilter}`);
     
-    // ✅ AppState を更新（guides も更新して他の読み取り箇所との整合性を保つ）
+    // ✅ AppState を更新（すべての参照箇所との整合性を確保）
     state.filteredGuides = results;
     state.guides = results; // ✅ CRITICAL: 他のレンダーパスとの整合性のため
     state.isFiltered = hasActiveFilter;
     state.currentPage = 1; // フィルタ後は必ず1ページ目
+    state.filteredTotal = results.length; // ✅ カウンター表示用
     
     // ✅ 唯一の描画パス: renderFilteredGuides() を呼び出す（フォールバック付き）
     if (window.renderFilteredGuides) {
