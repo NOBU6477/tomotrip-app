@@ -186,23 +186,34 @@ export class ScalablePagination {
     
     // ペジネーションイベントを設定
     attachPaginationEvents() {
-        // ✅ 重複イベントリスナー防止
-        if (this._eventsAttached) {
-            console.log('⏭️ Pagination events already attached, skipping');
-            return;
-        }
-        
         const container = document.querySelector(this.container);
         if (!container) return;
+        
+        // ✅ FIX: 委任パターンを使用し、containerにイベントを1回だけ設定
+        // innerHTMLで再描画してもイベントは失われない
+        if (this._eventsAttached) {
+            console.log('⏭️ Pagination container events already attached, reusing');
+            return;
+        }
         
         // 委任イベントハンドラ（タッチとクリック両対応）
         const handlePaginationClick = (event) => {
             event.preventDefault();
-            const button = event.target.closest('button');
+            event.stopPropagation();
+            
+            const button = event.target.closest('button.page-link');
             if (!button) return;
+            
+            // ボタンが無効化されている場合は何もしない
+            if (button.disabled || button.closest('.page-item')?.classList.contains('disabled')) {
+                console.log('⏭️ Button is disabled, ignoring click');
+                return;
+            }
             
             const action = button.dataset.action;
             const page = button.dataset.page;
+            
+            console.log(`🔘 Pagination button clicked: action=${action}, page=${page}`);
             
             if (action === 'prev') {
                 this.prevPage();
@@ -216,7 +227,7 @@ export class ScalablePagination {
         container.addEventListener('click', handlePaginationClick);
         
         this._eventsAttached = true;
-        console.log('✅ Pagination events attached (one-time)');
+        console.log('✅ Pagination events attached (one-time delegation)');
     }
     
     // ページ情報を更新

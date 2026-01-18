@@ -91,12 +91,27 @@ function handleResetClick(e) {
 }
 
 /**
- * Setup Filter Input Event Listeners for real-time feedback
+ * Setup Filter Input Event Listeners for real-time filtering
  */
 function setupFilterInputListeners() {
     console.log('🔧 Setting up filter input listeners...');
     
-    // Add change event listeners to filter inputs for instant feedback
+    // Helper function to call filter
+    const triggerFilter = async () => {
+        try {
+            if (window.filterGuides && typeof window.filterGuides === 'function') {
+                await window.filterGuides();
+            } else if (window.executeSearch && typeof window.executeSearch === 'function') {
+                await window.executeSearch();
+            } else {
+                console.warn('⚠️ No filter function available');
+            }
+        } catch (error) {
+            console.error('❌ Filter error:', error);
+        }
+    };
+    
+    // Add change event listeners to filter inputs
     const locationFilter = document.getElementById('locationFilter');
     const languageFilter = document.getElementById('languageFilter');
     const priceFilter = document.getElementById('priceFilter');
@@ -104,18 +119,21 @@ function setupFilterInputListeners() {
     if (locationFilter) {
         locationFilter.addEventListener('change', () => {
             console.log('📍 Location filter changed:', locationFilter.value);
+            triggerFilter();
         });
     }
     
     if (languageFilter) {
         languageFilter.addEventListener('change', () => {
             console.log('🗣️ Language filter changed:', languageFilter.value);
+            triggerFilter();
         });
     }
     
     if (priceFilter) {
         priceFilter.addEventListener('change', () => {
             console.log('💰 Price filter changed:', priceFilter.value);
+            triggerFilter();
         });
     }
     
