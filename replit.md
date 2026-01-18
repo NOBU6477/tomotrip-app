@@ -97,3 +97,77 @@ CORS is configured to allow only:
 
 See `docs/supabase-setup.sql` for table creation SQL and RLS policies.
 See `docs/SUPABASE_API_README.md` for API documentation.
+
+# Pagination & Filter Regression Testing (2026-01-18)
+
+## Debug Mode
+
+デバッグモードを有効にする方法:
+1. ブラウザのコンソールで `window.__TT_DEBUG = true` を入力
+2. ページをリロード
+3. 操作を行い、コンソールログを確認
+
+デバッグモードでは以下が出力される:
+- `[TT-DEBUG] context=...` - ページネーション状態の詳細
+- `✅` - 正常（重複なし、カウンター整合）
+- `❌` - エラー（重複あり、カウンター不整合、フィルタ違反）
+
+通常モードではデバッグログは出力されない（本番影響なし）。
+
+## Regression Test Cases (TC1-TC7)
+
+### TC1: 初期表示 → 2ページ目 → 1ページ目へ戻る
+- 初期: 全件表示
+- 次ページを押下
+- 前ページを押下
+- ✅ カウンターが整合（例: 1-12/14, 13-14/14）
+- ✅ 重複なし
+
+### TC2: フィルタON（英語）→ 次ページ押下
+- 言語=英語を選択
+- 次ページを押す
+- ✅ totalPages <=1 の場合、次ページが押せない/無効
+- ✅ 英語以外が混入しない
+
+### TC3: フィルタON（地域×英語で少数）→ 次ページ押下
+- 地域=東京都 かつ 言語=英語を選択
+- 次ページを押下
+- ✅ 1ページ内なら次ページ無効
+- ✅ 重複なし
+
+### TC4: ページ2へ移動後に条件変更（再検索）
+- 全件で2ページ目へ
+- 言語=英語を選ぶ（再検索）
+- ✅ currentPage が 1 に戻る
+- ✅ カウンターが正しくなる
+- ✅ 表示がフィルタ結果に一致
+- ✅ 重複なし
+
+### TC5: フィルタ中にさらに条件追加（再検索）
+- 言語=英語 → 地域=東京都を追加
+- ✅ currentPage=1 に戻る
+- ✅ total/totalPages が filtered に一致
+- ✅ 表示一致、混入なし
+
+### TC6: リセット後の整合性
+- リセットして全件へ
+- ✅ fullGuideList に戻る
+- ✅ ページネーションが全件用に復元
+- ✅ カウンター正常、重複なし
+
+### TC7: 30秒更新を跨いでも保持される
+- フィルタON（地域×言語）
+- 30秒待つ（refresh）
+- ✅ フィルタ状態・ページ状態が崩れない
+- ✅ 表示件数と内容が維持
+- ✅ 重複なし
+
+## Debug Utilities
+
+デバッグユーティリティは `window.__TT_DEBUG_UTILS` で利用可能:
+- `logPaginationState(context)` - ページネーション状態をログ出力
+- `detectDuplicateIds(guides, context)` - 重複ID検知
+- `validateCounterDisplay(start, end, total, context)` - カウンター整合性チェック
+- `validateSourceList(list, context)` - ソースリスト一本化検証
+- `validateFilterResults(guides, filters, context)` - フィルタ結果検証
+- `printTestSummary()` - テストサマリー出力
