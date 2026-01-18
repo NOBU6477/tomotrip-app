@@ -8,6 +8,7 @@ const AppState = (window.AppState ??= {
   originalGuides: [], // Preserve original guides for filter reset
   fullGuideList: [], // ✅ 不変のマスターデータ（フィルタ/検索時に上書きしない）
   filteredGuides: [], // ✅ フィルタ適用後の結果
+  paginationSourceList: [], // ✅ NEW: ページネーションが参照するリスト（フィルタ中はfilteredGuides、通常はfullGuideList）
   pageSize: 12,
   currentPage: 1,
   filters: {},

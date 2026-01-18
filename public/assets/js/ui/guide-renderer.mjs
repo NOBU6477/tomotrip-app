@@ -61,9 +61,12 @@ async function initializePaginationSystem(guides, resetPagination = true) {
     if (window.AppState && !isFiltered) {
         // フィルタ適用中でない場合のみfullGuideListを更新
         window.AppState.fullGuideList = [...guides];
-        console.log(`📊 [PAGINATION] fullGuideList stored: ${guides.length} guides (not filtered)`);
+        window.AppState.paginationSourceList = [...guides]; // ✅ NEW: ページネーション統一ソース
+        console.log(`📊 [PAGINATION] fullGuideList & paginationSourceList stored: ${guides.length} guides (not filtered)`);
     } else {
-        console.log(`📊 [PAGINATION] Using existing fullGuideList (${window.AppState?.fullGuideList?.length || 0}), filtered data: ${guides.length}`);
+        // フィルタ中はpaginationSourceListをフィルタ結果に設定
+        window.AppState.paginationSourceList = [...guides];
+        console.log(`📊 [PAGINATION] paginationSourceList set to filtered: ${guides.length}, fullGuideList preserved: ${window.AppState?.fullGuideList?.length || 0}`);
     }
     
     // ✅ 新しいペジネーションシステムが必要な場合のみ作成
@@ -77,24 +80,30 @@ async function initializePaginationSystem(guides, resetPagination = true) {
             maxVisiblePages: 5,
             container: '#paginationContainer',
             onPageLoad: (pageItems, currentPage, totalPages) => {
-                // ✅ FIX: フィルタ中はfilteredDataの総数を使用
+                // ✅ FIX: paginationSourceList を唯一の参照元として使用
+                const paginationSourceList = window.AppState?.paginationSourceList || 
+                                              window.AppState?.filteredGuides || 
+                                              window.AppState?.fullGuideList || [];
                 const isFiltered = window.AppState?.isFiltered || false;
-                const filteredGuides = window.AppState?.filteredGuides || [];
-                const fullGuideList = window.AppState?.fullGuideList || [];
                 
-                // フィルタ中はフィルタ後の総数、そうでなければ全体数
-                const total = isFiltered ? filteredGuides.length : fullGuideList.length;
+                // ✅ CRITICAL: paginationSourceList.length を常に使用
+                const total = paginationSourceList.length;
                 const pageSize = 12;
                 const startIndex = (currentPage - 1) * pageSize;
                 const endIndex = Math.min(startIndex + pageSize, total);
                 
                 console.log(`📊 [PAGINATION] Page ${currentPage}/${totalPages}:`, {
                     isFiltered,
-                    total,
+                    sourceListLength: total,
                     startIndex: startIndex + 1,
                     endIndex,
                     pageItemsCount: pageItems.length
                 });
+                
+                // ✅ ガードレール: paginationSystemのfilteredDataとAppStateが同期しているか確認
+                if (window.paginationSystem && window.paginationSystem.filteredData.length !== total) {
+                    console.warn(`⚠️ [PAGINATION SYNC WARNING] paginationSystem.filteredData (${window.paginationSystem.filteredData.length}) !== paginationSourceList (${total})`);
+                }
                 
                 // ページのカードを描画
                 renderPageCards(pageItems, startIndex + 1, endIndex, total);
@@ -121,14 +130,13 @@ async function initializePaginationSystem(guides, resetPagination = true) {
     paginationSystem.renderPagination();
     paginationSystem.updatePageInfo();
     
-    // ✅ CRITICAL FIX: 現在のページを表示、totalはフィルタ状態に応じて計算
+    // ✅ CRITICAL FIX: 現在のページを表示、totalはpaginationSourceListから取得
     const currentPage = paginationSystem.currentPage;
     const pageItems = paginationSystem.getCurrentPageItems();
     
-    // フィルタ中はフィルタ後の件数、そうでなければfullGuideListの件数
-    const filteredTotal = window.AppState?.filteredGuides?.length || 0;
-    const fullTotal = window.AppState?.fullGuideList?.length || guides.length;
-    const total = isFiltered ? filteredTotal : fullTotal;
+    // ✅ paginationSourceListを統一的に使用
+    const paginationSourceList = window.AppState?.paginationSourceList || guides;
+    const total = paginationSourceList.length;
     
     const pageSize = 12;
     const startIndex = (currentPage - 1) * pageSize + 1;
@@ -892,6 +900,8 @@ export async function renderFilteredGuides(filteredGuides) {
         window.AppState.currentPage = 1;
         window.AppState.filteredGuides = filteredGuides;
         window.AppState.guides = filteredGuides; // ✅ CRITICAL: 他のレンダーパスとの整合性
+        window.AppState.paginationSourceList = filteredGuides; // ✅ NEW: ページネーション統一ソース
+        window.AppState.isFiltered = true; // ✅ フィルタ状態を明示的に設定
     }
     
     // ✅ ページネーションシステムを使用（12件超の場合）

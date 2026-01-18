@@ -267,6 +267,9 @@ export async function filterGuides() {
     state.isFiltered = hasActiveFilter;
     state.currentPage = 1; // フィルタ後は必ず1ページ目
     state.filteredTotal = results.length; // ✅ カウンター表示用
+    state.paginationSourceList = results; // ✅ NEW: ページネーションが参照する統一リスト
+    
+    console.log(`[PAGINATION SYNC] paginationSourceList set to ${results.length} guides (isFiltered: ${hasActiveFilter})`)
     
     // ✅ 唯一の描画パス: renderFilteredGuides() を呼び出す（フォールバック付き）
     if (window.renderFilteredGuides) {
@@ -307,9 +310,13 @@ window.resetFilters = async function() {
     console.log(`[RESET] Restoring ${fullList.length} guides from fullGuideList`);
     
     appState.filteredGuides = [...fullList];
+    appState.guides = [...fullList]; // ✅ CRITICAL: 他のレンダーパスとの整合性のため
     appState.isFiltered = false;
     appState.currentPage = 1;
     appState.activeFilters = { location: '', language: '', price: '', keyword: '' };
+    appState.paginationSourceList = [...fullList]; // ✅ NEW: ページネーションが参照する統一リスト
+    
+    console.log(`[PAGINATION SYNC] paginationSourceList reset to ${fullList.length} guides (full list)`)
     
     // ✅ 通常の描画パス（フィルタなし）で描画
     if (window.renderGuideCards) {
