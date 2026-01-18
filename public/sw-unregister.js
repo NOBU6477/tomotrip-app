@@ -39,8 +39,10 @@
         });
     }
     
-    // Set build identifier for debugging - both environments should show same ID
-    window.APP_BUILD_ID = 'TomoTrip-v2025.08.09-UNIFIED-BUILD';
+    // Set build identifier for debugging - only if not already set by build-id.js
+    if (!window.APP_BUILD_ID) {
+        window.APP_BUILD_ID = 'TomoTrip-v2026.01.18-FILTER-FIX-V5';
+    }
     console.info('%c[TomoTrip] BUILD ID:', 'color: #ff6b35; font-weight: bold;', window.APP_BUILD_ID);
     console.info('%c[Environment]:', 'color: #007bff;', location.href);
     console.info('%c[Host Type]:', 'color: #28a745;', 

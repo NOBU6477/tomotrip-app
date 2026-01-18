@@ -964,11 +964,6 @@ class GuideAPIService {
       
       const approvedGuides = allGuides
         .filter(guide => guide.status === 'approved')
-        .filter(guide => {
-          // Filter by registration language if specified
-          const guideRegLang = guide.registrationLanguage || 'ja'; // Default to 'ja' for old data
-          return guideRegLang === requestedLang;
-        })
         .map(guide => ({
           id: guide.id,
           name: guide.guideName,

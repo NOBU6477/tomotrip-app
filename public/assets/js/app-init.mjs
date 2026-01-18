@@ -60,15 +60,10 @@ async function loadGuidesFromAPI() {
         }
 
         if (result.success && Array.isArray(result.guides)) {
-            // Client-side language filtering as safety measure
-
-            // Filter guides by registrationLanguage on client side (safety check)
-            const filteredByLang = result.guides.filter(guide => {
-                const guideRegLang = guide.registrationLanguage || 'ja';
-                return guideRegLang === currentLang;
-            });
-
-            console.log(`🌐 Client-side filter: ${filteredByLang.length}/${result.guides.length} guides match ${currentLang} language`);
+            // All approved guides are shown - user can filter by spoken language
+            const filteredByLang = result.guides;
+            
+            console.log(`✅ API returned ${result.guides.length} approved guides`);
 
             // Language mapping helper
             const languageMap = {
