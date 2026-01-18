@@ -8,36 +8,76 @@
 function setupAllButtons() {
     console.log('🔧 Setting up all button event handlers...');
     
+    // CRITICAL: Setup filter input listeners FIRST to ensure filtering always works
+    try {
+        setupFilterInputListeners();
+    } catch (e) {
+        console.error('❌ setupFilterInputListeners error:', e);
+    }
+    
     // Setup Dashboard Button
-    setupDashboardButton();
+    try {
+        setupDashboardButton();
+    } catch (e) {
+        console.error('❌ setupDashboardButton error:', e);
+    }
     
     // Setup Login Dropdown
-    setupLoginDropdown();
+    try {
+        setupLoginDropdown();
+    } catch (e) {
+        console.error('❌ setupLoginDropdown error:', e);
+    }
     
     // Setup Direct Login Buttons
-    setupDirectLoginButtons();
+    try {
+        setupDirectLoginButtons();
+    } catch (e) {
+        console.error('❌ setupDirectLoginButtons error:', e);
+    }
     
     // Setup Search Button and Reset Button
-    setupSearchButton();
-    setupResetButton();
+    try {
+        setupSearchButton();
+        setupResetButton();
+    } catch (e) {
+        console.error('❌ setupSearchButton/ResetButton error:', e);
+    }
     
     // Setup Contact Button
-    setupContactButton();
+    try {
+        setupContactButton();
+    } catch (e) {
+        console.error('❌ setupContactButton error:', e);
+    }
     
     // Setup Register Button (Header)
-    setupRegisterButton();
+    try {
+        setupRegisterButton();
+    } catch (e) {
+        console.error('❌ setupRegisterButton error:', e);
+    }
     
     // Setup Management Center Buttons
-    setupManagementButtons();
+    try {
+        setupManagementButtons();
+    } catch (e) {
+        console.error('❌ setupManagementButtons error:', e);
+    }
     
     // Setup Guide Card Management Buttons (delegated event handling)
-    setupGuideCardButtons();
+    try {
+        setupGuideCardButtons();
+    } catch (e) {
+        console.error('❌ setupGuideCardButtons error:', e);
+    }
     
     // Setup Admin Mode Toggle Button
-    setupAdminModeToggle();
-    
-    // Setup filter input event listeners for real-time feedback
-    setupFilterInputListeners();
+    try {
+        setupAdminModeToggle();
+    } catch (e) {
+        console.error('❌ setupAdminModeToggle error:', e);
+    }
     
     console.log('✅ All button event handlers setup complete');
 }
