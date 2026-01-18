@@ -1,5 +1,6 @@
 // 検索・フィルター機能モジュール
 import { normalizeLocationToCode } from '../utils/location-utils.mjs';
+import { logPaginationState, validateFilterResults, isDebugMode } from '../utils/pagination-debug.mjs';
 
 // 改良された検索フィルター関数
 export function applyAdvancedFilters(guides, filters) {
@@ -145,6 +146,10 @@ export async function executeSearch() {
         
         console.log(`✅ Search completed: ${filteredGuides.length}/${guides.length} guides found`);
         
+        // ✅ DEBUG: フィルタ結果の検証
+        validateFilterResults(filteredGuides, filters, 'executeSearch');
+        logPaginationState('afterFilter', { showFilters: true });
+        
         // ✅ AppState with filtered results を適切に設定
         if (window.AppState) {
             window.AppState.isFiltering = false;
@@ -214,6 +219,9 @@ export async function resetFilters() {
         window.AppState.currentPage = 1;
         
         console.log(`✅ Reset complete - restoring ${originalGuides.length} guides`);
+        
+        // ✅ DEBUG: リセット後の状態ログ
+        logPaginationState('afterReset', { showFilters: false });
         
         // ✅ FIXED: await を追加してレンダリング完了を待つ
         // itemsPerPage は常に 12 に固定 - resetPagination=true で初期化

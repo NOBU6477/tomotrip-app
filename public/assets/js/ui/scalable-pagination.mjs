@@ -1,6 +1,8 @@
 // スケーラブルなペジネーションシステム
 // Scalable pagination system for growing guide numbers
 
+import { logPaginationState, validateCounterDisplay, isDebugMode } from '../utils/pagination-debug.mjs';
+
 export class ScalablePagination {
     constructor(options = {}) {
         this.itemsPerPage = options.itemsPerPage || 12; // 3列x4行のグリッド（PC）/ 2列x6行のグリッド（モバイル）
@@ -54,6 +56,9 @@ export class ScalablePagination {
         this.currentPage = 1;
         
         console.log(`📄 [PAGINATION] setFilteredData: ${this.totalItems} items, ${this.totalPages} pages, reset to page 1`);
+        
+        // ✅ DEBUG: フィルタ適用後の状態ログ
+        logPaginationState('setFilteredData', { showFilters: true });
     }
     
     // 現在のページのアイテムを取得
@@ -72,6 +77,9 @@ export class ScalablePagination {
         
         this.currentPage = page;
         console.log(`📄 [PAGINATION] goToPage: ${page}/${this.totalPages}, filteredData.length=${this.filteredData.length}`);
+        
+        // ✅ DEBUG: ページ移動時の状態ログ
+        logPaginationState('goToPage', { showFilters: true });
         
         if (this.loadingCallback) {
             this.loadingCallback(this.getCurrentPageItems(), page, this.totalPages);

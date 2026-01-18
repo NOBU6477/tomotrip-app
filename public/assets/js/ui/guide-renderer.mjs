@@ -10,6 +10,9 @@ import { normalizePrefecture } from '../utils/location-utils.mjs';
 // ✅ NEW: 検索状態管理モジュール
 import { saveStateBeforeDetail } from '../utils/search-state.mjs';
 
+// ✅ NEW: ページネーションデバッグモジュール
+import { detectDuplicateIds, validateCounterDisplay, logPaginationState, isDebugMode } from '../utils/pagination-debug.mjs';
+
 // スケーラブルペジネーションのインポートと初期化
 let paginationSystem = null;
 
@@ -186,6 +189,12 @@ function renderPageCards(pageItems, startNum, endNum, total) {
     }
     
     console.log(`🎨 [RENDER PAGE] Rendering ${pageItems.length} cards (${startNum}-${endNum} of ${total})`);
+    
+    // ✅ DEBUG: 重複ID検知
+    detectDuplicateIds(pageItems, 'renderPageCards');
+    
+    // ✅ DEBUG: カウンター整合性チェック
+    validateCounterDisplay(startNum, endNum, total, 'renderPageCards');
     
     const cardsHTML = pageItems.map(guide => createGuideCardHTML(guide)).join('');
     container.innerHTML = cardsHTML;
