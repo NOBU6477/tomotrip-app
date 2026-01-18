@@ -52,6 +52,8 @@ export class ScalablePagination {
         this.totalItems = filteredData.length;
         this.totalPages = Math.ceil(this.totalItems / this.itemsPerPage);
         this.currentPage = 1;
+        
+        console.log(`📄 [PAGINATION] setFilteredData: ${this.totalItems} items, ${this.totalPages} pages, reset to page 1`);
     }
     
     // 現在のページのアイテムを取得
@@ -63,10 +65,13 @@ export class ScalablePagination {
     
     // ページに移動
     goToPage(page) {
-        if (page < 1 || page > this.totalPages) return;
+        if (page < 1 || page > this.totalPages) {
+            console.log(`⚠️ [PAGINATION] goToPage(${page}) blocked: out of range (1-${this.totalPages})`);
+            return;
+        }
         
         this.currentPage = page;
-        console.log(`📄 Page navigation: ${page}/${this.totalPages}`);
+        console.log(`📄 [PAGINATION] goToPage: ${page}/${this.totalPages}, filteredData.length=${this.filteredData.length}`);
         
         if (this.loadingCallback) {
             this.loadingCallback(this.getCurrentPageItems(), page, this.totalPages);
@@ -84,15 +89,21 @@ export class ScalablePagination {
     
     // 次のページ
     nextPage() {
+        console.log(`🔘 [PAGINATION] nextPage: current=${this.currentPage}, total=${this.totalPages}, filteredData=${this.filteredData.length}`);
         if (this.currentPage < this.totalPages) {
             this.goToPage(this.currentPage + 1);
+        } else {
+            console.log(`⚠️ [PAGINATION] nextPage blocked: already at last page`);
         }
     }
     
     // 前のページ
     prevPage() {
+        console.log(`🔘 [PAGINATION] prevPage: current=${this.currentPage}, total=${this.totalPages}`);
         if (this.currentPage > 1) {
             this.goToPage(this.currentPage - 1);
+        } else {
+            console.log(`⚠️ [PAGINATION] prevPage blocked: already at first page`);
         }
     }
     

@@ -44,6 +44,16 @@ export async function renderGuideCards(guidesToRender = null, usePagination = tr
         return; // ペジネーション使用時は早期リターン
     }
     
+    // ✅ CRITICAL FIX: 12件以下でもpaginationSystemを更新（次ページボタン混入防止）
+    if (window.paginationSystem) {
+        window.paginationSystem.setFilteredData(guides);
+        console.log(`📊 [PAGINATION] Low count: setFilteredData with ${guides.length} guides, totalPages: ${window.paginationSystem.totalPages}`);
+        
+        // ページネーションを非表示（1ページ以下なので）
+        const paginationContainer = document.getElementById('paginationContainer');
+        if (paginationContainer) paginationContainer.innerHTML = '';
+    }
+    
     // 少数のガイドの場合は従来通りの表示
     console.log('📊 Render kickoff:', {count: guides.length, currentPage: window.AppState?.currentPage});
     renderAllGuideCards(guides);
@@ -904,12 +914,17 @@ export async function renderFilteredGuides(filteredGuides) {
         window.AppState.isFiltered = true; // ✅ フィルタ状態を明示的に設定
     }
     
+    // ✅ CRITICAL FIX: 常にpaginationSystemをフィルタ結果で更新
+    // これにより次ページボタンが全体リストではなくフィルタ結果を参照する
+    if (window.paginationSystem) {
+        window.paginationSystem.setFilteredData(filteredGuides);
+        console.log(`[PAGINATION] setFilteredData: ${filteredGuides.length} guides, totalPages: ${window.paginationSystem.totalPages}`);
+    }
+    
     // ✅ ページネーションシステムを使用（12件超の場合）
     if (filteredGuides.length > pageSize && window.paginationSystem) {
         console.log('[PAGINATION] using filtered list:', filteredGuides.length, 'guides');
         
-        // ✅ FIXED: setFilteredData + goToPage(1)を使用してページネーションコールバックを発火
-        window.paginationSystem.setFilteredData(filteredGuides);
         window.paginationSystem.renderPagination();
         window.paginationSystem.updatePageInfo();
         
@@ -929,11 +944,11 @@ export async function renderFilteredGuides(filteredGuides) {
         // イベントリスナー設定
         setupViewDetailsEventListeners();
         
-        // ページネーションを非表示
+        // ✅ ページネーションを非表示（1ページ以下なので不要）
         const paginationContainer = document.getElementById('paginationContainer');
         if (paginationContainer) paginationContainer.innerHTML = '';
         
-        console.log(`[RENDER] Rendered ${pageItems.length} cards (no pagination needed)`);
+        console.log(`[RENDER] Rendered ${pageItems.length} cards (no pagination needed, totalPages: ${window.paginationSystem?.totalPages || 0})`);
     }
     
     console.log('[RENDER] ============ renderFilteredGuides() COMPLETE ============');
