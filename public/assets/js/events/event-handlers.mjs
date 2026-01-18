@@ -1,4 +1,5 @@
 // Event handlers - centralized setup with AppState support
+console.log('✅ LOADED: event-handlers.mjs v=20260118-2');
 import { showSponsorLoginModal, showSponsorRegistrationModal } from '../ui/modal.mjs';
 import { createGuideCardHTML } from '../ui/guide-renderer.mjs';
 import { getText } from '../utils/language-utils.mjs';

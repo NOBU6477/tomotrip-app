@@ -1,5 +1,6 @@
 // Unified Button Setup - CSP Compliant
 // Centralized event handler setup for all main buttons
+console.log('✅ LOADED: button-setup-v3.js v=20260118-2');
 
 /**
  * Setup all main application buttons with consistent event handling
@@ -136,22 +137,41 @@ function handleResetClick(e) {
 function setupFilterInputListeners() {
     console.log('🔧 Setting up filter input listeners...');
     
-    // Helper function to call filter
+    // Helper function to call filter with retry logic
     const triggerFilter = async () => {
-        console.log('[FILTER EVT] triggerFilter() called');
+        console.log('[FILTER EVT] triggerFilter() called at', new Date().toISOString());
         console.log('[FILTER EVT] window.filterGuides:', typeof window.filterGuides);
         console.log('[FILTER EVT] window.executeSearch:', typeof window.executeSearch);
+        console.log('[FILTER EVT] window.AppState:', window.AppState ? 'exists' : 'null');
+        console.log('[FILTER EVT] window.AppState.fullGuideList:', window.AppState?.fullGuideList?.length || 0);
+        
         try {
+            // ✅ 優先: window.filterGuides (event-handlers.mjs から)
             if (window.filterGuides && typeof window.filterGuides === 'function') {
                 console.log('[FILTER EVT] Calling window.filterGuides()...');
                 await window.filterGuides();
-                console.log('[FILTER EVT] window.filterGuides() completed');
-            } else if (window.executeSearch && typeof window.executeSearch === 'function') {
+                console.log('[FILTER EVT] window.filterGuides() completed successfully');
+                return;
+            }
+            
+            // フォールバック: window.executeSearch
+            if (window.executeSearch && typeof window.executeSearch === 'function') {
                 console.log('[FILTER EVT] Calling window.executeSearch()...');
                 await window.executeSearch();
-            } else {
-                console.warn('⚠️ No filter function available - filterGuides:', window.filterGuides, 'executeSearch:', window.executeSearch);
+                console.log('[FILTER EVT] window.executeSearch() completed');
+                return;
             }
+            
+            // どちらも未定義の場合、100ms待って再試行
+            console.warn('[FILTER EVT] No filter function available yet, retrying in 100ms...');
+            setTimeout(async () => {
+                if (window.filterGuides && typeof window.filterGuides === 'function') {
+                    console.log('[FILTER EVT] RETRY: Calling window.filterGuides()...');
+                    await window.filterGuides();
+                } else {
+                    console.error('[FILTER EVT] RETRY FAILED: filterGuides still not available');
+                }
+            }, 100);
         } catch (error) {
             console.error('❌ Filter error:', error);
         }
