@@ -6,9 +6,18 @@ const AppState = (window.AppState ??= {
   page: 1,
   guides: [],
   originalGuides: [], // Preserve original guides for filter reset
+  fullGuideList: [], // ✅ 不変のマスターデータ（フィルタ/検索時に上書きしない）
+  filteredGuides: [], // ✅ フィルタ適用後の結果
   pageSize: 12,
   currentPage: 1,
   filters: {},
+  activeFilters: { // ✅ 現在のフィルタ条件を保持
+    location: '',
+    language: '',
+    price: '',
+    keyword: ''
+  },
+  isFiltered: false,
   searchTerm: '',
   locationNames: {},
   
@@ -37,8 +46,10 @@ const AppState = (window.AppState ??= {
     this.guides = validGuides;
     // Preserve original guides for filter reset functionality  
     this.originalGuides = [...validGuides];
+    // ✅ fullGuideList も設定（フィルタのソースとして使用）
+    this.fullGuideList = [...validGuides];
     this.currentPage = 1;
-    console.log(`📚 AppState: Set ${validGuides.length} guides (${this.originalGuides.length} preserved as original)`);
+    console.log(`📚 AppState: Set ${validGuides.length} guides (fullGuideList: ${this.fullGuideList.length})`);
     return this;
   }
 });
