@@ -89,7 +89,8 @@ export async function showGuideDetailModalById(guideId) {
         const isEnglish = window.location.pathname.includes('-en.html');
         const detailPage = isEnglish ? 'guide-detail-en.html' : 'guide-detail.html';
         const detailUrl = `${detailPage}?id=${guideId}`;
-        window.open(detailUrl, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+        // ✅ FIX: 同一タブで遷移（新規タブではなく）- 検索状態保存/復元のため
+        window.location.href = detailUrl;
     } catch (error) {
         console.error('❌ Error opening guide details:', error);
         alert(getText('ガイド詳細を開けませんでした。', 'Could not open guide details.'));
