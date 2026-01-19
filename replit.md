@@ -61,6 +61,7 @@ User confirmed correct understanding of guide display system:
 - **Camera Integration**: Document photo capture, profile photo upload, mobile camera optimization, file fallback.
 - **Search & Filter System**: Multi-criteria, real-time, keyword-based matching, advanced filter combinations (location, language, price). Language normalization supports variants (英語/English/en). Filters apply to fullGuideList (immutable master) to ensure all guides are searched, not just current page. Filter state persists across 30-second data refreshes.
 - **Search State Preservation** (2026-01-18): Centralized module (`search-state.mjs`) manages search state (region/language/price/keyword/page/scrollY) when navigating to detail pages. URL query priority over sessionStorage with 10-minute expiry. State saved before detail navigation, registration redirect, and login prompts. Automatic restoration on page load.
+- **Same-Tab Navigation** (2026-01-19): Guide detail pages now open in the same tab (not new tab/window) to preserve browser history. This enables proper `history.back()` navigation and search state restoration when returning from detail pages.
 - **Management Center**: Centralized bookmark and comparison management, bulk data deletion.
 - **Access Control**: Guide detail viewing requires tourist registration, modal-based prompts, header login differentiation.
 - **Booking Flow**: Multilingual system for payment and confirmation, consistent guide rate display, language inheritance.
