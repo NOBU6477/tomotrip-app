@@ -56,7 +56,7 @@ User confirmed correct understanding of guide display system:
 
 ## Database
 - **ORM**: Drizzle (prepared for PostgreSQL integration).
-- **Storage**: Distributed LocalStorage for frontend, browser session storage for authentication. SponsorStorageManager for sponsor data. SQLite for scalable data management. File-based JSON storage for certain data (`data/sponsor-stores.json`, `data/guides.json`, `data/reservations.json`, `data/adult-shops.json`, `data/sponsor-referrals.json`).
+- **Storage**: Distributed LocalStorage for frontend, browser session storage for authentication. SponsorStorageManager for sponsor data. SQLite for scalable data management. File-based JSON storage for certain data (`data/sponsor-stores.json`, `data/guides.json`, `data/reservations.json`, `data/adult-shops.json`, `data/sponsor-referrals.json`, `data/extension-requests.json`).
 
 ## Key Technical Components
 - **Camera Integration**: Document photo capture, profile photo upload, mobile camera optimization, file fallback.
