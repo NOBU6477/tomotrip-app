@@ -608,9 +608,27 @@
                 return;
             }
             
+            // Check authentication
+            const touristAuth = sessionStorage.getItem('touristAuth');
+            const touristData = sessionStorage.getItem('touristData') || localStorage.getItem('touristRegistrationData');
+            const guideAuth = sessionStorage.getItem('guideAuth');
+            const guideAuthData = sessionStorage.getItem('guideData');
+            
+            if (!touristAuth && !touristData && !guideAuth && !guideAuthData) {
+                alert('Please log in as a tourist or guide to use the booking feature.');
+                window.location.href = '/index-en.html';
+                return;
+            }
+            
             console.log('📅 Booking guide:', guideId);
-            // Redirect to booking page with guide ID
-            window.location.href = `/booking-en.html?guideId=${guideId}`;
+            
+            // Save search state before navigation
+            if (typeof saveStateBeforeDetail === 'function') {
+                saveStateBeforeDetail();
+            }
+            
+            // Redirect to reservation page with guide ID
+            window.location.href = `/reservation-detail.html?guideId=${guideId}&lang=en`;
         }
 
         // Open chat with guide

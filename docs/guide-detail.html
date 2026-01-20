@@ -745,9 +745,14 @@
             }
             
             console.log('🎯 予約ボタンが押されました - ガイドID:', guideId);
-            alert('予約機能は開発中です。まもなく利用可能になります。');
-            // TODO: 実際の予約システムが実装されたら有効化
-            // window.location.href = `/booking.html?guide=${guideId}`;
+            
+            // Save search state before navigation (for proper return)
+            if (typeof saveStateBeforeDetail === 'function') {
+                saveStateBeforeDetail();
+            }
+            
+            // Navigate to reservation detail page with guideId
+            window.location.href = `/reservation-detail.html?guideId=${guideId}`;
         }
 
         function contactGuide() {
