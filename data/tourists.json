@@ -193,5 +193,20 @@
     "status": "active",
     "registeredAt": "2026-01-20T11:46:57.046Z",
     "updatedAt": "2026-01-20T11:46:57.046Z"
+  },
+  {
+    "id": "a7ab1f44-d494-48c3-b127-88e035be70a5",
+    "firstName": "真一",
+    "lastName": "石井",
+    "email": "shiniti@gmail.com",
+    "nationality": "japan",
+    "documentType": "license",
+    "phoneVerified": true,
+    "documentUploaded": true,
+    "registrationDate": "2026-01-20T13:37:54.261Z",
+    "phoneNumber": "+818078945611",
+    "status": "active",
+    "registeredAt": "2026-01-20T13:37:54.116Z",
+    "updatedAt": "2026-01-20T13:37:54.116Z"
   }
 ]

@@ -74,6 +74,8 @@ class ReservationAPIService {
     try {
       const {
         storeId,
+        guideId,
+        guideName,
         customerName,
         customerEmail,
         customerPhone,
@@ -83,7 +85,9 @@ class ReservationAPIService {
         notes,
       } = req.body;
 
-      if (!storeId || !customerName || !reservationDate || !reservationTime) {
+      // Accept either storeId (for sponsor stores) or guideId (for guide bookings)
+      const targetId = storeId || guideId;
+      if (!targetId || !customerName || !reservationDate || !reservationTime) {
         return res.status(400).json({
           success: false,
           error: "MISSING_REQUIRED_FIELDS",
@@ -96,7 +100,9 @@ class ReservationAPIService {
 
       const reservation = {
         id: reservationId,
-        storeId,
+        storeId: storeId || null,
+        guideId: guideId || null,
+        guideName: guideName || null,
         customerName,
         customerEmail: customerEmail || "",
         customerPhone: customerPhone || "",
@@ -122,6 +128,7 @@ class ReservationAPIService {
         success: true,
         message: "予約が作成されました",
         reservation,
+        reservationId: reservationId,
       });
     } catch (error) {
       console.error("Create reservation error:", error);

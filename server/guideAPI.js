@@ -982,7 +982,10 @@ class GuideAPIService {
           introduction: guide.guideIntroduction,
           averageRating: 4.8,
           status: guide.status,
-          registeredAt: guide.registeredAt
+          registeredAt: guide.registeredAt,
+          // Extension policy fields
+          extensionPolicy: guide.extensionPolicy || 'ask',
+          lateNightPolicy: guide.lateNightPolicy || 'no'
         }))
         .sort((a, b) => new Date(b.registeredAt) - new Date(a.registeredAt)); // Newest first
 

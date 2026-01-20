@@ -138,8 +138,10 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const reservationId = urlParams.get('id');
+        const guideId = urlParams.get('guideId');
         let selectedMinutes = null;
         let extensionPricing = null;
+        let currentGuideData = null;
 
         async function loadPricing() {
             try {
@@ -156,7 +158,155 @@
             }
         }
 
+        async function loadGuideForBooking() {
+            if (!guideId) return;
+            
+            try {
+                const response = await fetch(`/api/guides/${guideId}`);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.message || 'ガイドが見つかりません');
+                }
+                
+                currentGuideData = data.guide;
+                const g = data.guide;
+                
+                document.getElementById('reservationContent').innerHTML = `
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h3 class="mb-3"><i class="bi bi-calendar-plus me-2"></i>新規予約</h3>
+                            <p class="text-muted mb-4">ガイド: <strong>${g.name || g.guideName || 'ガイド'}</strong></p>
+                            
+                            <form id="bookingForm">
+                                <div class="mb-3">
+                                    <label class="form-label">お名前 <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="customerName" required>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">予約日 <span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" id="reservationDate" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">時間 <span class="text-danger">*</span></label>
+                                        <input type="time" class="form-control" id="reservationTime" required>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">人数</label>
+                                        <select class="form-select" id="numberOfGuests">
+                                            <option value="1">1名</option>
+                                            <option value="2">2名</option>
+                                            <option value="3">3名</option>
+                                            <option value="4">4名</option>
+                                            <option value="5">5名以上</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">連絡先電話番号</label>
+                                        <input type="tel" class="form-control" id="customerPhone" placeholder="090-1234-5678">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">備考・リクエスト</label>
+                                    <textarea class="form-control" id="notes" rows="3" placeholder="訪問したい場所、食事の希望など"></textarea>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-extension btn-lg">
+                                        <i class="bi bi-check-circle me-2"></i>予約を確定する
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-lg" onclick="history.back()">
+                                        キャンセル
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">ガイド情報</h5>
+                                    <p class="mb-1"><strong>${g.name || g.guideName}</strong></p>
+                                    <p class="text-muted mb-2">${g.location || '-'}</p>
+                                    <p class="mb-2">料金: <strong>¥${Number(g.sessionRate || g.guideSessionRate || 0).toLocaleString()}/時間</strong></p>
+                                    <p class="mb-0">
+                                        ${g.extensionPolicy === 'ok' ? '<span class="badge bg-info">延長OK</span>' : 
+                                          g.extensionPolicy === 'no' ? '<span class="badge bg-secondary">延長不可</span>' : 
+                                          '<span class="badge bg-warning text-dark">延長:要相談</span>'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Set minimum date to today
+                document.getElementById('reservationDate').min = new Date().toISOString().split('T')[0];
+                
+                // Setup form submission
+                document.getElementById('bookingForm').addEventListener('submit', submitBooking);
+                
+            } catch (error) {
+                document.getElementById('reservationContent').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-circle me-2"></i>${error.message}
+                    </div>
+                    <a href="/" class="btn btn-primary">ホームへ戻る</a>
+                `;
+            }
+        }
+        
+        async function submitBooking(e) {
+            e.preventDefault();
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>送信中...';
+            
+            try {
+                const reservationData = {
+                    guideId: guideId,
+                    guideName: currentGuideData?.name || currentGuideData?.guideName,
+                    customerName: document.getElementById('customerName').value,
+                    reservationDate: document.getElementById('reservationDate').value,
+                    reservationTime: document.getElementById('reservationTime').value,
+                    numberOfGuests: document.getElementById('numberOfGuests').value,
+                    customerPhone: document.getElementById('customerPhone').value,
+                    notes: document.getElementById('notes').value,
+                    status: 'pending'
+                };
+                
+                const response = await fetch('/api/reservations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(reservationData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('予約リクエストが送信されました！ガイドからの確認をお待ちください。');
+                    window.location.href = `/reservation-detail.html?id=${data.reservationId}`;
+                } else {
+                    alert(data.message || '予約に失敗しました');
+                }
+            } catch (error) {
+                alert('エラーが発生しました: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        }
+
         async function loadReservation() {
+            // If guideId is provided, show booking form instead
+            if (guideId && !reservationId) {
+                await loadGuideForBooking();
+                return;
+            }
+            
             if (!reservationId) {
                 document.getElementById('reservationContent').innerHTML = `
                     <div class="alert alert-warning">
