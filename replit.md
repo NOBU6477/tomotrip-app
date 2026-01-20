@@ -56,7 +56,30 @@ User confirmed correct understanding of guide display system:
 
 ## Database
 - **ORM**: Drizzle (prepared for PostgreSQL integration).
-- **Storage**: Distributed LocalStorage for frontend, browser session storage for authentication. SponsorStorageManager for sponsor data. SQLite for scalable data management. File-based JSON storage for certain data (`data/sponsor-stores.json`, `data/guides.json`, `data/reservations.json`, `data/adult-shops.json`, `data/sponsor-referrals.json`, `data/extension-requests.json`).
+- **Guide Data**: PostgreSQL is the authoritative source for guide data. JSON file (`data/guides.json`) serves as backup only after successful DB writes. See "Guide Data Architecture" section below.
+- **Storage**: Distributed LocalStorage for frontend, browser session storage for authentication. SponsorStorageManager for sponsor data. File-based JSON storage for certain data (`data/sponsor-stores.json`, `data/reservations.json`, `data/adult-shops.json`, `data/sponsor-referrals.json`, `data/extension-requests.json`).
+
+## Guide Data Architecture (2026-01-20)
+
+PostgreSQL is the authoritative source for guide data to ensure consistency between development (replit.dev) and production (replit.app) environments.
+
+**Write Operations (DB Mandatory):**
+- `registerGuide`: Returns 503 if DB fails, no JSON-only writes
+- `addGuide/addGuideToDb`: Throws if DB fails, JSON backup only after successful DB write
+- `updateGuideInStorage`: Returns null if DB fails, no JSON fallback for writes
+
+**Read Operations (DB First, JSON Fallback):**
+- `loadGuidesFromDb`: Uses DB result even if empty, only falls back to JSON if DB returns null
+- `guideLogin`: Uses DB first, JSON fallback only if DB unavailable
+- `getGuideFromStorage`: Uses DB first, JSON fallback only if DB unavailable
+- `getGuides`: Uses DB first, JSON fallback only if DB unavailable
+
+**Semantics:**
+- `null` from DB method = DB unavailable/error → fallback allowed for reads, error for writes
+- `undefined` from DB method = not found in DB → use as-is
+- Empty array from DB = authoritative empty result (no fallback)
+
+**Database Table:** `tourism_guides` with columns for all guide fields including location, guide_type, extension_policy, late_night_policy, achievements, and badge-related fields.
 
 ## Key Technical Components
 - **Camera Integration**: Document photo capture, profile photo upload, mobile camera optimization, file fallback.

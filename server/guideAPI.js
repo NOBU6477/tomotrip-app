@@ -2,7 +2,8 @@
 // Integrates SMS verification, file upload, and database storage
 const { smsService } = require('./smsService');
 const { adminAuthService } = require('./adminAuth');
-// Database storage - use simple file storage for now
+const { guideDbService } = require('./guideDbService');
+// Database storage - use PostgreSQL with JSON file fallback
 const fs = require('fs');
 const path = require('path');
 const { randomUUID } = require('crypto');
@@ -13,6 +14,7 @@ class GuideAPIService {
     this.guidesFilePath = path.join(__dirname, '../data/guides.json');
     this.touristsFilePath = path.join(__dirname, '../data/tourists.json');
     this.pendingRegistrations = new Map(); // Temporary storage for incomplete registrations
+    this.dbService = guideDbService; // PostgreSQL database service
     this.ensureDataDirectory();
     this.ensureTouristsFile();
   }
@@ -35,7 +37,36 @@ class GuideAPIService {
     }
   }
 
-  // Load guides from file
+  // Load guides from database (with file fallback only on DB error)
+  // Empty DB result is authoritative (returns empty array, not JSON fallback)
+  async loadGuidesFromDb() {
+    const dbGuides = await this.dbService.loadAllGuides();
+    
+    if (dbGuides !== null) {
+      // DB query succeeded - use result even if empty
+      console.log(`📊 [DB] Using PostgreSQL: ${dbGuides.length} guides`);
+      return dbGuides;
+    }
+    
+    // DB returned null (error or no pool) - fallback to JSON for reads
+    console.warn('⚠️ [DB] Database unavailable, using file fallback');
+    return this.loadGuidesFromFile();
+  }
+
+  // Load guides from file (fallback)
+  loadGuidesFromFile() {
+    try {
+      const data = fs.readFileSync(this.guidesFilePath, 'utf8');
+      const guides = JSON.parse(data);
+      console.log(`📋 [FILE] Using JSON fallback: ${guides.length} guides`);
+      return guides;
+    } catch (error) {
+      console.error('Error loading guides from file:', error);
+      return [];
+    }
+  }
+
+  // Sync load for backward compatibility
   loadGuides() {
     try {
       const data = fs.readFileSync(this.guidesFilePath, 'utf8');
@@ -75,11 +106,40 @@ class GuideAPIService {
     }
   }
 
-  // Add guide to storage
-  addGuide(guide) {
-    const guides = this.loadGuides();
-    guides.push(guide);
-    this.saveGuides(guides);
+  // Add guide to storage (PostgreSQL + JSON backup)
+  // DB is mandatory - throws on failure
+  async addGuideToDb(guide) {
+    // DB write is mandatory for consistency
+    await this.dbService.addGuide(guide);
+    console.log(`✅ [DB] Guide saved to PostgreSQL: ${guide.guideName}`);
+    
+    // Also save to JSON as backup (only after successful DB write)
+    try {
+      const guides = this.loadGuides();
+      guides.push(guide);
+      this.saveGuides(guides);
+      console.log(`💾 [FILE] Guide saved to JSON backup: ${guide.guideName}`);
+    } catch (fileError) {
+      console.warn('⚠️ [FILE] JSON backup failed (non-fatal):', fileError.message);
+    }
+  }
+
+  // Sync add guide - DEPRECATED: Use registerGuide for new registrations
+  // DB is mandatory - throws on failure
+  async addGuide(guide) {
+    // DB write is mandatory for consistency
+    await this.dbService.addGuide(guide);
+    console.log(`✅ [DB] Guide added via legacy method: ${guide.guideName || guide.name}`);
+    
+    // Also save to JSON backup (after successful DB write)
+    try {
+      const guides = this.loadGuides();
+      guides.push(guide);
+      this.saveGuides(guides);
+      console.log(`💾 [FILE] JSON backup saved: ${guide.guideName || guide.name}`);
+    } catch (fileError) {
+      console.warn('⚠️ [FILE] JSON backup failed (non-fatal):', fileError.message);
+    }
   }
 
   // Normalize phone number to international format
@@ -96,20 +156,54 @@ class GuideAPIService {
     return normalizedPhone;
   }
 
-  // Update guide in storage
-  updateGuideInStorage(guideId, updates) {
-    const guides = this.loadGuides();
-    const index = guides.findIndex(g => g.id === guideId);
-    if (index !== -1) {
-      guides[index] = { ...guides[index], ...updates, updatedAt: new Date().toISOString() };
-      this.saveGuides(guides);
-      return guides[index];
+  // Update guide in storage - DB mandatory, JSON backup only after successful DB write
+  // null = DB error, undefined = not found, object = success
+  async updateGuideInStorage(guideId, updates) {
+    // Try DB first (MANDATORY - no JSON fallback for writes)
+    const dbResult = await this.dbService.updateGuide(guideId, updates);
+    
+    if (dbResult === null) {
+      // DB returned null (error or no pool) - fail the update
+      console.error('❌ [DB] updateGuide returned null - DB unavailable, update failed');
+      return null; // Return null to signal failure
     }
-    return null;
+    
+    if (dbResult === undefined) {
+      // Guide not found in DB
+      console.warn('⚠️ [DB] Guide not found in DB:', guideId);
+      return undefined;
+    }
+    
+    // DB update succeeded - also update JSON backup
+    console.log(`✅ [DB] Guide updated in PostgreSQL: ${guideId}`);
+    try {
+      const guides = this.loadGuides();
+      const index = guides.findIndex(g => g.id === guideId);
+      if (index !== -1) {
+        guides[index] = { ...guides[index], ...updates, updatedAt: new Date().toISOString() };
+        this.saveGuides(guides);
+        console.log(`💾 [FILE] JSON backup updated: ${guideId}`);
+      }
+    } catch (fileError) {
+      console.warn('⚠️ [FILE] JSON backup update failed (non-fatal):', fileError.message);
+    }
+    
+    return dbResult;
   }
 
-  // Get guide by ID from storage
-  getGuideFromStorage(guideId) {
+  // Get guide by ID from storage - DB first with JSON fallback
+  // Returns: guide object, undefined (not found), or null (DB error)
+  async getGuideFromStorage(guideId) {
+    // Try DB first
+    const dbResult = await this.dbService.getGuideById(guideId);
+    
+    if (dbResult !== null) {
+      // DB query succeeded (dbResult is guide object or undefined for "not found")
+      return dbResult;
+    }
+    
+    // DB returned null (error or no pool) - fallback to JSON
+    console.warn('⚠️ [DB] getGuideById returned null, using JSON fallback');
     const guides = this.loadGuides();
     return guides.find(g => g.id === guideId);
   }
@@ -460,8 +554,21 @@ class GuideAPIService {
       const normalizedPhone = this.normalizePhoneNumber(phone);
       console.log(`🔐 Guide login attempt - identifier: ${identifier}, phone: ${phone}, normalized: ${normalizedPhone}`);
       
-      // Load all guides from storage
-      const guides = this.loadGuides();
+      // Load all guides - DB first with JSON fallback
+      let guides = [];
+      try {
+        const dbGuides = await this.dbService.loadAllGuides();
+        if (dbGuides !== null) {
+          guides = dbGuides;
+          console.log(`🔐 [DB] Login using ${guides.length} guides from PostgreSQL`);
+        } else {
+          guides = this.loadGuides();
+          console.log(`🔐 [FILE] Login using ${guides.length} guides from JSON fallback`);
+        }
+      } catch (dbError) {
+        console.warn('⚠️ [DB] Login DB access failed, using JSON fallback:', dbError.message);
+        guides = this.loadGuides();
+      }
       
       // Find guide by identifier (ID, email, or name) and phone
       const guide = guides.find(g => {
@@ -695,13 +802,27 @@ class GuideAPIService {
 
       // Normalize email address (trim whitespace)
       guideData.guideEmail = guideData.guideEmail.trim();
-      
-      // Check for duplicate email address
-      const existingGuides = this.loadGuides();
       const normalizedEmail = guideData.guideEmail.toLowerCase();
-      const emailExists = existingGuides.some(guide => 
-        guide.guideEmail && guide.guideEmail.trim().toLowerCase() === normalizedEmail
-      );
+      
+      // Check for duplicate email - PostgreSQL is authoritative
+      // undefined = not found, object = found, exception = DB error
+      let emailExists = false;
+      
+      try {
+        const dbGuide = await this.dbService.getGuideByEmail(normalizedEmail);
+        // undefined means not found in DB (email available)
+        // object means found in DB (email taken)
+        emailExists = (dbGuide !== undefined);
+        console.log(`🔍 [DB] Email check: ${normalizedEmail} -> ${emailExists ? 'EXISTS' : 'AVAILABLE'}`);
+      } catch (dbError) {
+        // DB error - fail the request (don't fall back to JSON for registration)
+        console.error('❌ [DB] Email check failed:', dbError.message);
+        return res.status(503).json({
+          success: false,
+          error: 'DATABASE_UNAVAILABLE',
+          message: 'データベースに接続できません。しばらくしてから再度お試しください。'
+        });
+      }
       
       if (emailExists) {
         return res.status(400).json({
@@ -726,8 +847,30 @@ class GuideAPIService {
         updatedAt: new Date().toISOString()
       };
 
-      // Store guide in file storage for persistence
-      this.addGuide(guide);
+      // Save to PostgreSQL (mandatory - DB is authoritative)
+      // addGuide throws on error, so we catch and return 503
+      try {
+        await this.dbService.addGuide(guide);
+        console.log(`✅ [DB] Guide saved to PostgreSQL: ${guide.guideName}`);
+      } catch (dbError) {
+        console.error('❌ [DB] PostgreSQL save failed:', dbError.message);
+        return res.status(503).json({
+          success: false,
+          error: 'DATABASE_ERROR',
+          message: 'データベースへの保存に失敗しました。しばらくしてから再度お試しください。'
+        });
+      }
+      
+      // Also save to JSON as backup (after successful DB write)
+      try {
+        const guides = this.loadGuides();
+        guides.push(guide);
+        this.saveGuides(guides);
+        console.log(`💾 [FILE] Guide saved to JSON backup: ${guide.guideName}`);
+      } catch (fileError) {
+        // JSON backup failure is non-fatal (DB is authoritative)
+        console.warn('⚠️ [FILE] JSON backup failed (non-fatal):', fileError.message);
+      }
 
       // Clean up session
       this.pendingRegistrations.delete(sessionId);
@@ -959,8 +1102,35 @@ class GuideAPIService {
       const { lang } = req.query;
       const requestedLang = (lang === 'en') ? 'en' : 'ja'; // Default to Japanese
       
-      // Get all approved guides from file storage
-      const allGuides = this.loadGuides();
+      // Determine data source and environment
+      const isProduction = process.env.NODE_ENV === 'production' || 
+                          process.env.REPL_SLUG !== undefined;
+      const envName = isProduction ? 'production' : 'development';
+      
+      // PostgreSQL is authoritative - try DB first, only fallback to JSON on failure
+      let allGuides = [];
+      let dataSource = 'unknown';
+      
+      // Always try DB if pool exists (connection may be lazy-initialized)
+      try {
+        const dbGuides = await this.dbService.loadApprovedGuides();
+        if (dbGuides !== null) {
+          // DB query succeeded - use DB result (even if empty)
+          allGuides = dbGuides;
+          dataSource = 'PostgreSQL';
+          console.log(`📊 [DB] Loaded ${allGuides.length} approved guides from PostgreSQL`);
+        } else {
+          // DB returned null (connection failed) - fallback to JSON
+          console.warn('⚠️ [DB] Query returned null, using JSON fallback');
+          allGuides = this.loadGuides();
+          dataSource = 'JSON-file-db-null';
+        }
+      } catch (dbError) {
+        console.error('❌ [DB] Query exception:', dbError.message);
+        // DB query threw exception - fallback to JSON
+        allGuides = this.loadGuides();
+        dataSource = 'JSON-file-error-fallback';
+      }
       
       const approvedGuides = allGuides
         .filter(guide => guide.status === 'approved')
@@ -989,12 +1159,17 @@ class GuideAPIService {
         }))
         .sort((a, b) => new Date(b.registeredAt) - new Date(a.registeredAt)); // Newest first
 
-      console.log(`📋 API returning ${approvedGuides.length} guides for language: ${requestedLang}`);
+      console.log(`📋 [${envName}] API returning ${approvedGuides.length} guides | source: ${dataSource} | lang: ${requestedLang}`);
 
       res.json({
         success: true,
         guides: approvedGuides,
-        total: approvedGuides.length
+        total: approvedGuides.length,
+        _meta: {
+          source: dataSource,
+          environment: envName,
+          timestamp: new Date().toISOString()
+        }
       });
     } catch (error) {
       console.error('❌ Get guides error:', error);

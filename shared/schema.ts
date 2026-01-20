@@ -81,10 +81,23 @@ export const tourismGuides = pgTable("tourism_guides", {
   isAvailable: boolean("is_available").default(true),
   rankName: varchar("rank_name", { length: 50 }).default('Bronze').references(() => ranks.name), // Current rank (references ranks.name)
   rankScore: integer("rank_score").default(0), // Current rank score
+  // Extended fields for guide services
+  location: varchar("location", { length: 200 }), // Prefecture and city
+  guideType: varchar("guide_type", { length: 20 }).default('day'), // day, night, both
+  extensionPolicy: varchar("extension_policy", { length: 20 }).default('ask'), // ok, ask, no
+  lateNightPolicy: varchar("late_night_policy", { length: 20 }).default('no'), // ok, ask, no
+  achievements: text("achievements"),
+  multiLingual: boolean("multi_lingual").default(false),
+  hospitalitySupport: boolean("hospitality_support").default(false),
+  emergencySupport: boolean("emergency_support").default(false),
+  localExpert: boolean("local_expert").default(false),
+  phoneVerified: boolean("phone_verified").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
   index("idx_guides_rank").on(table.rankName, table.rankScore),
+  index("idx_guides_location").on(table.location),
+  index("idx_guides_status").on(table.status),
 ]);
 
 // Experience programs table - 体験プログラム

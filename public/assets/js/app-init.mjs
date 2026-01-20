@@ -145,7 +145,9 @@ async function loadGuidesFromAPI() {
                 };
             });
 
-            console.log(`✅ Loaded ${apiGuides.length} guides from API`);
+            // Log data source info for debugging
+            const meta = result._meta || { source: 'unknown', environment: 'unknown' };
+            console.log(`✅ Loaded ${apiGuides.length} guides | source: ${meta.source} | env: ${meta.environment}`);
 
             // Sort to put newest guides first (top-left positioning)
             const approvedGuides = apiGuides
