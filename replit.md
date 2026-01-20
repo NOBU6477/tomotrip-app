@@ -52,6 +52,7 @@ User confirmed correct understanding of guide display system:
 - **Referral & Payout System**: Guide-to-sponsor-store referral tracking, guide ranking (Bronze/Silver/Gold/Platinum tiers), commission calculation, monthly payout display.
 - **Reservation Management**: Full CRUD operations for reservations, status workflow (pending → confirmed → completed / cancelled), email notifications.
 - **Feature Flags**: System for enabling/disabling features like payouts and guide ranking.
+- **Extension Request System**: Tourists can request trip extensions (30/60/120 minutes at ¥3,000/hour). Guides approve/reject via dashboard. One-way state machine: pending → approved/rejected.
 
 ## Database
 - **ORM**: Drizzle (prepared for PostgreSQL integration).

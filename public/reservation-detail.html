@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>予約詳細 - TomoTrip</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .ocean-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .detail-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .status-badge {
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
+        }
+        .extension-option {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #dee2e6;
+        }
+        .extension-option:hover {
+            border-color: #667eea;
+            background: #f8f9fa;
+        }
+        .extension-option.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea20, #764ba220);
+        }
+        .btn-extension {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+        }
+        .btn-extension:hover {
+            background: linear-gradient(135deg, #5a6fd6, #6a4190);
+            color: white;
+        }
+    </style>
+</head>
+<body class="ocean-bg">
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <button class="btn btn-outline-light" onclick="history.back()">
+                <i class="bi bi-arrow-left me-2"></i>戻る
+            </button>
+            <h1 class="text-white mb-0">
+                <i class="bi bi-calendar-check me-2"></i>予約詳細
+            </h1>
+            <div></div>
+        </div>
+
+        <div class="detail-container p-4">
+            <div id="reservationContent">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">読み込み中...</span>
+                    </div>
+                    <p class="mt-3">予約情報を読み込んでいます...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="extensionModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-clock-history me-2"></i>延長を相談する</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-4">延長時間を選択してください。料金は¥3,000/時間で計算されます。</p>
+                    
+                    <div class="row g-3" id="extensionOptions">
+                        <div class="col-4">
+                            <div class="extension-option rounded p-3 text-center" data-minutes="30">
+                                <h4 class="mb-1">30分</h4>
+                                <p class="text-muted mb-0" id="price30">¥1,500</p>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="extension-option rounded p-3 text-center" data-minutes="60">
+                                <h4 class="mb-1">60分</h4>
+                                <p class="text-muted mb-0" id="price60">¥3,000</p>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="extension-option rounded p-3 text-center" data-minutes="120">
+                                <h4 class="mb-1">120分</h4>
+                                <p class="text-muted mb-0" id="price120">¥6,000</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="selectedInfo" class="mt-4 p-3 bg-light rounded" style="display:none;">
+                        <div class="d-flex justify-content-between">
+                            <span>選択時間：</span>
+                            <strong id="selectedTime">-</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>料金目安：</span>
+                            <strong id="selectedPrice">-</strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-extension" id="sendExtensionRequest" disabled>
+                        <i class="bi bi-send me-2"></i>ガイドに相談を送る
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="extensionHistoryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-list-ul me-2"></i>延長リクエスト履歴</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="extensionHistoryContent">
+                    <p class="text-muted">読み込み中...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const reservationId = urlParams.get('id');
+        let selectedMinutes = null;
+        let extensionPricing = null;
+
+        async function loadPricing() {
+            try {
+                const response = await fetch('/api/extension-pricing');
+                const data = await response.json();
+                if (data.success) {
+                    extensionPricing = data.pricing;
+                    data.pricing.options.forEach(opt => {
+                        document.getElementById(`price${opt.minutes}`).textContent = `¥${opt.price.toLocaleString()}`;
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load pricing:', error);
+            }
+        }
+
+        async function loadReservation() {
+            if (!reservationId) {
+                document.getElementById('reservationContent').innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>予約IDが指定されていません
+                    </div>
+                    <a href="/" class="btn btn-primary">ホームへ戻る</a>
+                `;
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/reservations/${reservationId}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.message || '予約が見つかりません');
+                }
+
+                const r = data.reservation;
+                const statusBadges = {
+                    pending: { text: '確認待ち', color: 'warning' },
+                    confirmed: { text: '確認済み', color: 'success' },
+                    completed: { text: '完了', color: 'secondary' },
+                    cancelled: { text: 'キャンセル', color: 'danger' }
+                };
+                const status = statusBadges[r.status] || { text: r.status, color: 'secondary' };
+
+                document.getElementById('reservationContent').innerHTML = `
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h3 class="mb-3">${r.customerName || '予約者'} 様</h3>
+                            <span class="badge bg-${status.color} status-badge mb-4">${status.text}</span>
+                            
+                            <div class="row mt-4">
+                                <div class="col-6">
+                                    <p class="text-muted mb-1">予約日</p>
+                                    <h5>${r.reservationDate || '-'}</h5>
+                                </div>
+                                <div class="col-6">
+                                    <p class="text-muted mb-1">時間</p>
+                                    <h5>${r.reservationTime || '-'}</h5>
+                                </div>
+                            </div>
+                            
+                            <div class="row mt-3">
+                                <div class="col-6">
+                                    <p class="text-muted mb-1">人数</p>
+                                    <h5>${r.numberOfGuests || 1} 名</h5>
+                                </div>
+                                <div class="col-6">
+                                    <p class="text-muted mb-1">連絡先</p>
+                                    <h5>${r.customerPhone || '-'}</h5>
+                                </div>
+                            </div>
+                            
+                            ${r.notes ? `
+                            <div class="mt-4">
+                                <p class="text-muted mb-1">備考</p>
+                                <p>${r.notes}</p>
+                            </div>
+                            ` : ''}
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="card-title">アクション</h5>
+                                    ${r.status === 'confirmed' ? `
+                                    <button class="btn btn-extension w-100 mb-2" onclick="openExtensionModal()">
+                                        <i class="bi bi-clock-history me-2"></i>延長を相談する
+                                    </button>
+                                    ` : ''}
+                                    <button class="btn btn-outline-secondary w-100" onclick="openExtensionHistory()">
+                                        <i class="bi bi-list-ul me-2"></i>延長リクエスト履歴
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('reservationContent').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-circle me-2"></i>${error.message}
+                    </div>
+                    <a href="/" class="btn btn-primary">ホームへ戻る</a>
+                `;
+            }
+        }
+
+        function openExtensionModal() {
+            selectedMinutes = null;
+            document.querySelectorAll('.extension-option').forEach(el => el.classList.remove('selected'));
+            document.getElementById('selectedInfo').style.display = 'none';
+            document.getElementById('sendExtensionRequest').disabled = true;
+            new bootstrap.Modal(document.getElementById('extensionModal')).show();
+        }
+
+        async function openExtensionHistory() {
+            const modal = new bootstrap.Modal(document.getElementById('extensionHistoryModal'));
+            modal.show();
+            
+            try {
+                const response = await fetch(`/api/extension-requests/reservation/${reservationId}`);
+                const data = await response.json();
+                
+                if (!data.success || data.extensionRequests.length === 0) {
+                    document.getElementById('extensionHistoryContent').innerHTML = `
+                        <p class="text-muted text-center">延長リクエストはありません</p>
+                    `;
+                    return;
+                }
+                
+                const statusLabels = {
+                    pending: { text: '確認待ち', color: 'warning' },
+                    approved: { text: '承認済み', color: 'success' },
+                    rejected: { text: '拒否', color: 'danger' }
+                };
+                
+                document.getElementById('extensionHistoryContent').innerHTML = data.extensionRequests.map(req => {
+                    const status = statusLabels[req.status] || { text: req.status, color: 'secondary' };
+                    return `
+                        <div class="card mb-2">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between">
+                                    <span>${req.requestedMinutes}分延長</span>
+                                    <span class="badge bg-${status.color}">${status.text}</span>
+                                </div>
+                                <small class="text-muted">¥${req.price.toLocaleString()} - ${new Date(req.requestedAt).toLocaleString('ja-JP')}</small>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                document.getElementById('extensionHistoryContent').innerHTML = `
+                    <p class="text-danger">読み込みに失敗しました</p>
+                `;
+            }
+        }
+
+        document.querySelectorAll('.extension-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.extension-option').forEach(el => el.classList.remove('selected'));
+                this.classList.add('selected');
+                
+                selectedMinutes = parseInt(this.dataset.minutes);
+                const pricing = extensionPricing?.options.find(o => o.minutes === selectedMinutes);
+                
+                document.getElementById('selectedTime').textContent = `${selectedMinutes}分`;
+                document.getElementById('selectedPrice').textContent = pricing ? `¥${pricing.price.toLocaleString()}` : '-';
+                document.getElementById('selectedInfo').style.display = 'block';
+                document.getElementById('sendExtensionRequest').disabled = false;
+            });
+        });
+
+        document.getElementById('sendExtensionRequest').addEventListener('click', async function() {
+            if (!selectedMinutes) return;
+            
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>送信中...';
+            
+            try {
+                const response = await fetch('/api/extension-requests', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        reservationId,
+                        requestedMinutes: selectedMinutes
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('extensionModal')).hide();
+                    alert('延長リクエストを送信しました。ガイドからの返答をお待ちください。');
+                } else {
+                    alert(data.message || '送信に失敗しました');
+                }
+            } catch (error) {
+                alert('エラーが発生しました');
+            } finally {
+                this.disabled = false;
+                this.innerHTML = '<i class="bi bi-send me-2"></i>ガイドに相談を送る';
+            }
+        });
+
+        loadPricing();
+        loadReservation();
+    </script>
+</body>
+</html>

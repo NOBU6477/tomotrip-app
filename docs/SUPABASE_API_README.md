@@ -251,3 +251,9 @@ curl https://YOUR-REPLIT-URL/api/supabase/health
    - ボットが自動入力すると拒否
 
 3. **バリデーション**: サーバーサイドで必須項目・メール形式をチェック
+
+## 開発ルール
+- 設計ルール：docs/DESIGN_RULES.md
+- 登録/認証ルール：docs/AUTH_REGISTER_RULES.md
+- 回帰テスト：docs/REGRESSION_TEST.md
+- Agent修正テンプレ：docs/AGENT_FIX_TEMPLATE.md

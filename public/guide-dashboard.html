@@ -97,6 +97,21 @@
                 </div>
             </div>
 
+            <!-- 延長リクエスト管理 -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>延長リクエスト</h5>
+                            <span class="badge bg-warning" id="pendingCount">0</span>
+                        </div>
+                        <div class="card-body" id="extensionRequestsContainer">
+                            <p class="text-muted text-center">読み込み中...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- アクションボタン -->
             <div class="row mt-4">
                 <div class="col-12 text-center">
@@ -136,6 +151,98 @@
             } else {
                 alert('ガイドIDが取得できません');
             }
+        }
+        
+        // Load and display extension requests
+        async function loadExtensionRequests() {
+            if (!guideId) return;
+            
+            try {
+                const response = await fetch(`/api/extension-requests/guide/${guideId}`);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.message);
+                }
+                
+                document.getElementById('pendingCount').textContent = data.pending;
+                
+                if (data.extensionRequests.length === 0) {
+                    document.getElementById('extensionRequestsContainer').innerHTML = `
+                        <p class="text-muted text-center mb-0">延長リクエストはありません</p>
+                    `;
+                    return;
+                }
+                
+                const statusLabels = {
+                    pending: { text: '確認待ち', color: 'warning' },
+                    approved: { text: '承認済み', color: 'success' },
+                    rejected: { text: '拒否', color: 'danger' }
+                };
+                
+                document.getElementById('extensionRequestsContainer').innerHTML = data.extensionRequests.map(req => {
+                    const status = statusLabels[req.status] || { text: req.status, color: 'secondary' };
+                    const isPending = req.status === 'pending';
+                    
+                    return `
+                        <div class="card mb-2 ${isPending ? 'border-warning' : ''}">
+                            <div class="card-body py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>${req.touristName || '観光客'}</strong>
+                                        <span class="text-muted ms-2">${req.requestedMinutes}分延長</span>
+                                        <span class="badge bg-${status.color} ms-2">${status.text}</span>
+                                    </div>
+                                    <div>
+                                        <span class="me-3">¥${req.price.toLocaleString()}</span>
+                                        ${isPending ? `
+                                            <button class="btn btn-success btn-sm me-1" onclick="respondToRequest('${req.id}', 'approved')">
+                                                <i class="bi bi-check"></i> 承認
+                                            </button>
+                                            <button class="btn btn-outline-danger btn-sm" onclick="respondToRequest('${req.id}', 'rejected')">
+                                                <i class="bi bi-x"></i> 断る
+                                            </button>
+                                        ` : `
+                                            <small class="text-muted">${new Date(req.respondedAt || req.requestedAt).toLocaleDateString('ja-JP')}</small>
+                                        `}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Failed to load extension requests:', error);
+                document.getElementById('extensionRequestsContainer').innerHTML = `
+                    <p class="text-danger text-center mb-0">読み込みに失敗しました</p>
+                `;
+            }
+        }
+        
+        async function respondToRequest(requestId, status) {
+            try {
+                const response = await fetch(`/api/extension-requests/${requestId}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status, respondedBy: guideId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(status === 'approved' ? '延長リクエストを承認しました' : '延長リクエストを拒否しました');
+                    loadExtensionRequests();
+                } else {
+                    alert(data.message || '処理に失敗しました');
+                }
+            } catch (error) {
+                alert('エラーが発生しました');
+            }
+        }
+        
+        // Load extension requests when page loads
+        if (guideId) {
+            loadExtensionRequests();
         }
     </script>
 </body>

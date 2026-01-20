@@ -605,6 +605,40 @@ function toggleComparison(guideId) {
     // The actual functionality is in button-setup.js > handleCompareClick()
 }
 
+// 延長対応バッジのHTML生成
+function getExtensionBadgeHTML(guide) {
+  const policy = guide.extensionPolicy || 'ask';
+  const isEn = typeof isEnglishPage === 'function' ? isEnglishPage() : false;
+  
+  const badges = {
+    ok: {
+      text: isEn ? 'Extension OK' : '延長OK',
+      color: 'bg-info'
+    },
+    ask: {
+      text: isEn ? 'Extension: Ask' : '延長:要相談',
+      color: 'bg-warning text-dark'
+    },
+    no: {
+      text: isEn ? 'No Extension' : '延長不可',
+      color: 'bg-light text-muted'
+    }
+  };
+  
+  const badge = badges[policy] || badges.ask;
+  
+  // 深夜対応バッジ（オプション）
+  const lateNight = guide.lateNightPolicy === 'ok';
+  const lateNightBadge = lateNight 
+    ? `<span class="badge bg-dark me-1" style="font-size:.65rem"><i class="bi bi-moon"></i> ${isEn ? 'Late OK' : '深夜OK'}</span>`
+    : '';
+  
+  return `<div class="mb-1">
+    <span class="badge ${badge.color} me-1" style="font-size:.65rem"><i class="bi bi-clock-history"></i> ${badge.text}</span>
+    ${lateNightBadge}
+  </div>`;
+}
+
 // HTMLを1枚のガイドカードとして組み立てる（重複タイトルや画像404を解消）
 export function createGuideCardHTML(guide) {
   // 表示用の名前（日本語ページなら guide.name 優先、英語ページなら guide.guideName 優先）
@@ -692,6 +726,8 @@ export function createGuideCardHTML(guide) {
           <div class="mb-1">
             ${specialties.map(s => `<span class="badge bg-secondary me-1" style="font-size:.75rem">${s}</span>`).join('')}
           </div>
+
+          ${getExtensionBadgeHTML(guide)}
 
           <p class="card-text text-muted small mb-2">${guide.introduction || ''}</p>
 

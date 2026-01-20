@@ -449,5 +449,51 @@
     "hospitalitySupport": false,
     "emergencySupport": false,
     "localExpert": false
+  },
+  {
+    "id": "8e839549-6d96-4d2b-9eef-41b5b1ed14c9",
+    "guideName": "幸助",
+    "guideEmail": "kousuke@gmail.com",
+    "guideGender": "male",
+    "guideAge": "40",
+    "location": "gunma",
+    "phoneNumber": "+818078984565",
+    "verificationCode": "991333",
+    "documentType": "drivers_license",
+    "documentFile": {},
+    "documentFront": {},
+    "documentBack": {},
+    "guideExperience": "beginner",
+    "guideLanguages": [
+      "日本語",
+      "英語",
+      "中国語"
+    ],
+    "guideIntroduction": "英語・中国語でのご案内も可能です。",
+    "guideSpecialties": "グルメガイド",
+    "guideSessionRate": "10000",
+    "guideAvailability": "both",
+    "profilePhoto": {
+      "fileId": "588ca748-3933-4822-a529-a2ab6c4a60d8",
+      "fileName": "profiles_588ca748-3933-4822-a529-a2ab6c4a60d8.jpg",
+      "originalName": "IMG_20250813_124409.jpg",
+      "mimeType": "image/jpeg",
+      "size": 2158861,
+      "profileImageUrl": "/uploads/profiles/profiles_588ca748-3933-4822-a529-a2ab6c4a60d8.jpg"
+    },
+    "agreeTerms": "on",
+    "profileImageUrl": "/uploads/profiles/profiles_588ca748-3933-4822-a529-a2ab6c4a60d8.jpg",
+    "registrationLanguage": "ja",
+    "phoneVerified": true,
+    "documents": [],
+    "status": "approved",
+    "registeredAt": "2026-01-20T11:42:39.344Z",
+    "updatedAt": "2026-01-20T11:44:19.607Z",
+    "guideType": "day",
+    "achievements": "",
+    "multiLingual": true,
+    "hospitalitySupport": false,
+    "emergencySupport": false,
+    "localExpert": true
   }
 ]

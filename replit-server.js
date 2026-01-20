@@ -17,6 +17,7 @@ const { guideDashboardAPIService } = require("./server/guideDashboardAPI");
 const { adminAPIService } = require("./server/adminAPI");
 const { requireRole } = require("./server/rbac");
 const { supabaseAPIService, isSupabaseConfigured } = require("./server/supabaseAPI");
+const { extensionRequestAPIService } = require("./server/extensionRequestAPI");
 
 // Setup multer for file uploads
 const upload = multer({
@@ -243,6 +244,9 @@ sponsorReferralAPIService.setupRoutes(app);
 
 // Setup Reservation API routes
 reservationAPIService.setupRoutes(app);
+
+// Setup Extension Request API routes
+extensionRequestAPIService.setupRoutes(app);
 
 // Setup Supabase API routes (external form submissions)
 supabaseAPIService.setupRoutes(app);
