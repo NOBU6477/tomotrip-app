@@ -9,7 +9,9 @@ export const defaultGuideData = [
         image: "/assets/img/guides/default-1.svg",
         languages: ["ja", "en"],
         specialties: ["history", "culture"],
-        registrationLanguage: "ja"
+        registrationLanguage: "ja",
+        extensionPolicy: "ask",
+        lateNightPolicy: "no"
     },
     {
         id: 2,
@@ -20,7 +22,9 @@ export const defaultGuideData = [
         image: "/assets/img/guides/default-2.svg",
         languages: ["ja", "en", "zh"],
         specialties: ["food", "local"],
-        registrationLanguage: "ja"
+        registrationLanguage: "ja",
+        extensionPolicy: "ask",
+        lateNightPolicy: "no"
     },
     {
         id: 3,
@@ -31,7 +35,9 @@ export const defaultGuideData = [
         image: "/assets/img/guides/default-3.svg",
         languages: ["ja", "en"],
         specialties: ["temples", "traditional"],
-        registrationLanguage: "ja"
+        registrationLanguage: "ja",
+        extensionPolicy: "ok",
+        lateNightPolicy: "no"
     },
     {
         id: 4,
@@ -42,7 +48,9 @@ export const defaultGuideData = [
         image: "/assets/img/guides/default-4.svg",
         languages: ["ja", "en"],
         specialties: ["shopping", "food"],
-        registrationLanguage: "ja"
+        registrationLanguage: "ja",
+        extensionPolicy: "no",
+        lateNightPolicy: "no"
     },
     {
         id: 5,
@@ -53,7 +61,9 @@ export const defaultGuideData = [
         image: "/assets/img/guides/default-5.svg",
         languages: ["en", "ja"],
         specialties: ["business", "modern"],
-        registrationLanguage: "en"
+        registrationLanguage: "en",
+        extensionPolicy: "ask",
+        lateNightPolicy: "ok"
     },
     {
         id: 6,
@@ -64,7 +74,9 @@ export const defaultGuideData = [
         image: "attached_assets/image_1754399234136.png",
         languages: ["zh", "ja", "en"],
         specialties: ["culture", "temples"],
-        registrationLanguage: "ja"
+        registrationLanguage: "ja",
+        extensionPolicy: "ok",
+        lateNightPolicy: "no"
     },
     {
         id: 7,
@@ -75,7 +87,9 @@ export const defaultGuideData = [
         image: "attached_assets/image_1754399234136.png",
         languages: ["ja", "en"],
         specialties: ["nature", "skiing"],
-        registrationLanguage: "ja"
+        registrationLanguage: "ja",
+        extensionPolicy: "ask",
+        lateNightPolicy: "no"
     },
     {
         id: 8,
@@ -86,7 +100,9 @@ export const defaultGuideData = [
         image: "attached_assets/image_1754399234136.png",
         languages: ["en", "ja"],
         specialties: ["fashion", "youth"],
-        registrationLanguage: "en"
+        registrationLanguage: "en",
+        extensionPolicy: "ok",
+        lateNightPolicy: "ok"
     },
     {
         id: 9,
@@ -97,7 +113,9 @@ export const defaultGuideData = [
         image: "attached_assets/image_1754399234136.png",
         languages: ["ja", "ko"],
         specialties: ["food", "local"],
-        registrationLanguage: "ja"
+        registrationLanguage: "ja",
+        extensionPolicy: "ask",
+        lateNightPolicy: "no"
     },
     {
         id: 10,
@@ -108,7 +126,9 @@ export const defaultGuideData = [
         image: "attached_assets/image_1754399234136.png",
         languages: ["es", "en", "ja"],
         specialties: ["nightlife", "entertainment"],
-        registrationLanguage: "en"
+        registrationLanguage: "en",
+        extensionPolicy: "ok",
+        lateNightPolicy: "ok"
     },
     {
         id: 11,
@@ -119,7 +139,9 @@ export const defaultGuideData = [
         image: "attached_assets/image_1754399234136.png",
         languages: ["ja", "en"],
         specialties: ["history", "peace"],
-        registrationLanguage: "ja"
+        registrationLanguage: "ja",
+        extensionPolicy: "no",
+        lateNightPolicy: "no"
     },
     {
         id: 12,
@@ -130,7 +152,9 @@ export const defaultGuideData = [
         image: "attached_assets/image_1754399234136.png",
         languages: ["en", "ja"],
         specialties: ["zen", "meditation"],
-        registrationLanguage: "en"
+        registrationLanguage: "en",
+        extensionPolicy: "ask",
+        lateNightPolicy: "no"
     }
 ];
 

@@ -138,7 +138,10 @@ async function loadGuidesFromAPI() {
                     email: guide.email,
                     phone: guide.phone,
                     status: guide.status || 'approved',
-                    registeredAt: guide.registeredAt
+                    registeredAt: guide.registeredAt,
+                    // Extension policy fields (preserve API values)
+                    extensionPolicy: guide.extensionPolicy,
+                    lateNightPolicy: guide.lateNightPolicy
                 };
             });
 
