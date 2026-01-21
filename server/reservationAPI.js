@@ -99,7 +99,10 @@ class ReservationAPIService {
       const emailTrimmed = (customerEmail || "").trim();
       const phoneTrimmed = (customerPhone || "").trim();
       
+      const maskEmail = (e) => e ? `***@${e.split('@')[1] || 'unknown'}` : 'none';
+      
       if (!emailTrimmed || !phoneTrimmed) {
+        console.log(`❌ [RESERVATION] FAIL: CONTACT_INFO_REQUIRED | email=${!!emailTrimmed} phone=${!!phoneTrimmed} | 400`);
         return res.status(400).json({
           success: false,
           error: "CONTACT_INFO_REQUIRED",
@@ -107,9 +110,9 @@ class ReservationAPIService {
         });
       }
       
-      // email形式チェック
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(emailTrimmed)) {
+        console.log(`❌ [RESERVATION] FAIL: INVALID_EMAIL | email=${maskEmail(emailTrimmed)} | 400`);
         return res.status(400).json({
           success: false,
           error: "INVALID_EMAIL",
@@ -117,9 +120,9 @@ class ReservationAPIService {
         });
       }
       
-      // phone形式チェック（10桁以上の数字）
       const phoneClean = phoneTrimmed.replace(/[\s\-\(\)]/g, "");
       if (!/^[0-9]{10,15}$/.test(phoneClean)) {
+        console.log(`❌ [RESERVATION] FAIL: INVALID_PHONE | digits=${phoneClean.length} | 400`);
         return res.status(400).json({
           success: false,
           error: "INVALID_PHONE",
@@ -156,6 +159,8 @@ class ReservationAPIService {
       // Send email notifications (async, don't block response)
       this.sendReservationEmails(reservation, storeId);
 
+      console.log(`✅ [RESERVATION] OK: id=${reservationId} | guide=${guideId || 'store:' + storeId} | date=${reservationDate} ${reservationTime} | email=${maskEmail(emailTrimmed)} | 201`);
+
       return res.status(201).json({
         success: true,
         message: "予約が作成されました",
@@ -163,7 +168,7 @@ class ReservationAPIService {
         reservationId: reservationId,
       });
     } catch (error) {
-      console.error("Create reservation error:", error);
+      console.log(`❌ [RESERVATION] FAIL: SERVER_ERROR | ${error.message} | 500`);
       return res.status(500).json({
         success: false,
         error: "SERVER_ERROR",
@@ -176,35 +181,20 @@ class ReservationAPIService {
     try {
       // ✅ ガイド予約の場合
       if (reservation.guideId && !storeId) {
-        console.log("📧 Sending guide reservation confirmation email...");
-        const guideResult = await emailService.sendGuideReservationConfirmation(reservation);
-        console.log("Guide reservation email result:", guideResult);
+        await emailService.sendGuideReservationConfirmation(reservation);
         return;
       }
       
-      // 店舗予約の場合
       const store = this.getStoreById(storeId);
       if (!store) {
-        console.error("Store not found for email notification:", storeId);
+        console.log(`⚠️ [EMAIL] SKIP: store not found for storeId=${storeId}`);
         return;
       }
 
-      // Send email to customer
-      const customerResult =
-        await emailService.sendReservationConfirmationToCustomer(
-          reservation,
-          store,
-        );
-      console.log("Customer email result:", customerResult);
-
-      // Send email to store
-      const storeResult = await emailService.sendReservationNotificationToStore(
-        reservation,
-        store,
-      );
-      console.log("Store email result:", storeResult);
+      await emailService.sendReservationConfirmationToCustomer(reservation, store);
+      await emailService.sendReservationNotificationToStore(reservation, store);
     } catch (error) {
-      console.error("Error sending reservation emails:", error);
+      console.log(`❌ [EMAIL] FAIL: sendReservationEmails error=${error.message}`);
     }
   }
 

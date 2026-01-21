@@ -40,22 +40,10 @@ class EmailService {
   }
 
   simulateSend(emailData) {
-    console.log('\n' + '='.repeat(60));
-    console.log('📧 EMAIL SIMULATION - Would send:');
-    console.log('='.repeat(60));
-    console.log(`To: ${emailData.to}`);
-    console.log(`From: ${emailData.from}`);
-    console.log(`Subject: ${emailData.subject}`);
-    console.log('-'.repeat(60));
-    console.log('Content:');
-    console.log(emailData.text);
-    console.log('='.repeat(60) + '\n');
-    
-    return {
-      success: true,
-      messageId: 'SIM-' + Date.now(),
-      provider: 'simulation'
-    };
+    const maskEmail = (e) => e ? `***@${e.split('@')[1] || 'unknown'}` : 'none';
+    const messageId = 'SIM-' + Date.now();
+    console.log(`✅ [EMAIL] OK: to=${maskEmail(emailData.to)} | provider=simulation | msgId=${messageId}`);
+    return { success: true, messageId, provider: 'simulation' };
   }
 
   async sendWithSendGrid(emailData) {
@@ -77,16 +65,18 @@ class EmailService {
         })
       });
 
+      const maskEmail = (e) => e ? `***@${e.split('@')[1] || 'unknown'}` : 'none';
       if (response.ok || response.status === 202) {
-        console.log(`✅ Email sent via SendGrid to ${emailData.to}`);
-        return { success: true, provider: 'sendgrid' };
+        const messageId = response.headers.get('x-message-id') || 'SG-' + Date.now();
+        console.log(`✅ [EMAIL] OK: to=${maskEmail(emailData.to)} | provider=sendgrid | msgId=${messageId}`);
+        return { success: true, messageId, provider: 'sendgrid' };
       } else {
         const error = await response.text();
-        console.error('SendGrid error:', error);
+        console.log(`❌ [EMAIL] FAIL: to=${maskEmail(emailData.to)} | provider=sendgrid | error=${error.substring(0, 100)}`);
         return { success: false, error, provider: 'sendgrid' };
       }
     } catch (error) {
-      console.error('SendGrid send failed:', error);
+      console.log(`❌ [EMAIL] FAIL: provider=sendgrid | error=${error.message}`);
       return { success: false, error: error.message, provider: 'sendgrid' };
     }
   }
@@ -109,16 +99,17 @@ class EmailService {
       });
 
       const result = await response.json();
+      const maskEmail = (e) => e ? `***@${e.split('@')[1] || 'unknown'}` : 'none';
       
       if (response.ok) {
-        console.log(`✅ Email sent via Resend to ${emailData.to}`);
+        console.log(`✅ [EMAIL] OK: to=${maskEmail(emailData.to)} | provider=resend | msgId=${result.id}`);
         return { success: true, messageId: result.id, provider: 'resend' };
       } else {
-        console.error('Resend error:', result);
+        console.log(`❌ [EMAIL] FAIL: to=${maskEmail(emailData.to)} | provider=resend | error=${JSON.stringify(result).substring(0, 100)}`);
         return { success: false, error: result, provider: 'resend' };
       }
     } catch (error) {
-      console.error('Resend send failed:', error);
+      console.log(`❌ [EMAIL] FAIL: provider=resend | error=${error.message}`);
       return { success: false, error: error.message, provider: 'resend' };
     }
   }
