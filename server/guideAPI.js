@@ -1133,23 +1133,37 @@ class GuideAPIService {
       }
       
       const approvedGuides = allGuides
-        .filter(guide => guide.status === 'approved')
+        .filter(guide => {
+          // ✅ Filter out incomplete guides (missing name or price)
+          if (guide.status !== 'approved') return false;
+          const hasName = guide.guideName && guide.guideName.trim().length > 0;
+          const hasPrice = guide.guideSessionRate && parseFloat(guide.guideSessionRate) > 0;
+          if (!hasName || !hasPrice) {
+            console.warn(`⚠️ Incomplete guide filtered out: id=${guide.id}, name="${guide.guideName || ''}", price=${guide.guideSessionRate || 0}`);
+            return false;
+          }
+          return true;
+        })
         .map(guide => ({
           id: guide.id,
           name: guide.guideName,
           guideName: guide.guideName, // Keep for compatibility
           email: guide.guideEmail,
+          phone: guide.phoneNumber, // ✅ Added phone for consistency
           location: guide.location || guide.prefecture || '東京都 東京',
           languages: Array.isArray(guide.guideLanguages) ? guide.guideLanguages : [guide.guideLanguages],
           specialties: guide.guideSpecialties,
           experience: guide.guideExperience,
           sessionRate: guide.guideSessionRate,
+          price: guide.guideSessionRate, // ✅ Added price alias for compatibility
+          basePrice: guide.guideSessionRate, // ✅ Added basePrice for canonical format
           availability: guide.guideAvailability,
           registrationLanguage: guide.registrationLanguage || 'ja', // Include in response
           // Use profileImageUrl if available, fallback to generated URL
           profileImageUrl: guide.profileImageUrl || this.generateProfilePhotoUrl(guide.profilePhoto),
           profilePhoto: this.generateProfilePhotoUrl(guide.profilePhoto), // Keep for backward compatibility
           introduction: guide.guideIntroduction,
+          description: guide.guideIntroduction, // ✅ Added description alias
           averageRating: 4.8,
           status: guide.status,
           registeredAt: guide.registeredAt,
@@ -1216,11 +1230,15 @@ class GuideAPIService {
           location: guide.location || guide.prefecture || '東京都 東京',
           languages: Array.isArray(guide.guideLanguages) ? guide.guideLanguages : [guide.guideLanguages],
           introduction: guide.guideIntroduction,
+          description: guide.guideIntroduction, // ✅ Added description alias
           specialties: guide.guideSpecialties,
           experience: guide.guideExperience,
           sessionRate: guide.guideSessionRate,
           guideSessionRate: guide.guideSessionRate, // Keep for compatibility
+          price: guide.guideSessionRate, // ✅ Added price alias
+          basePrice: guide.guideSessionRate, // ✅ Added basePrice alias
           availability: guide.guideAvailability,
+          registrationLanguage: guide.registrationLanguage || 'ja',
           profileImageUrl: guide.profileImageUrl || this.generateProfilePhotoUrl(guide.profilePhoto),
           profilePhoto: this.generateProfilePhotoUrl(guide.profilePhoto),
           extensionPolicy: guide.extensionPolicy || 'ask',

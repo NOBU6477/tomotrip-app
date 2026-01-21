@@ -115,13 +115,16 @@ async function loadGuidesFromAPI() {
                 // ✅ Normalize field names - API returns 'name' and 'sessionRate'
                 // Also support legacy field names for backward compatibility
                 const guideName = guide.name || guide.guideName || '';
-                const guidePrice = parseInt(guide.sessionRate || guide.guideSessionRate || 0);
+                // ✅ Full price fallback chain: sessionRate, guideSessionRate, price, basePrice
+                const rawPrice = guide.sessionRate || guide.guideSessionRate || guide.price || guide.basePrice || 0;
+                const guidePrice = parseInt(rawPrice) || 0;
                 const guideEmail = guide.email || guide.guideEmail || '';
                 const guidePhone = guide.phone || guide.phoneNumber || '';
-                const guideIntro = guide.introduction || guide.guideIntroduction || defaultIntro;
+                // ✅ Full intro fallback chain: introduction, guideIntroduction, description
+                const guideIntro = guide.introduction || guide.guideIntroduction || guide.description || defaultIntro;
                 const guideExp = guide.experience || guide.guideExperience || 'intermediate';
                 const guideAvail = guide.availability || guide.guideAvailability || 'weekdays';
-                const guideSpecs = guide.specialties || guide.guideSpecialties || '';
+                const guideSpecs = guide.specialties || guide.guideSpecialties || guide.genres || '';
                 
                 return {
                     id: guide.id,
