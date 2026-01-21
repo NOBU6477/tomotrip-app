@@ -68,7 +68,12 @@ User confirmed correct understanding of guide display system:
     - Write Operations: DB mandatory, no JSON-only writes.
     - Read Operations: DB first, JSON fallback if DB returns null.
 - **Storage**: Distributed LocalStorage for frontend, browser session storage for authentication. SponsorStorageManager for sponsor data. File-based JSON storage for certain data.
-- **Canonical Guide Data Structure**: Unified field naming convention across the application. API normalizes database fields to canonical names, and frontend transformation ensures backward compatibility.
+- **Canonical Guide Data Structure**: Unified field naming convention across the application:
+    - Database fields: `guideName`, `guideSessionRate`, `guideIntroduction`, `guideSpecialties`
+    - API canonical names: `name`, `price`/`basePrice`/`sessionRate`, `description`/`introduction`, `specialties`
+    - Frontend normalization: Complete fallback chains for all field variants
+    - Server-side validation: API filters out incomplete guides (missing name or price) before returning
+    - Both list and detail endpoints use identical field structure
 
 ## Dual Dashboard System
 - `sponsor-dashboard.html`: Admin/operations dashboard.
