@@ -162,6 +162,8 @@
                     </p>
                     <div id="guideLanguages" class="mb-3"></div>
                     <div id="guideSpecialties" class="mb-3"></div>
+                    <!-- ✅ 延長・深夜ポリシーバッジ -->
+                    <div id="guidePolicyBadges" class="mb-3"></div>
                 </div>
                 <div class="col-md-3">
                     <div class="booking-card">
@@ -575,9 +577,14 @@
                 sessionRate: guide.sessionRate || guide.guideSessionRate || guide.price,
                 availability: guide.availability || guide.guideAvailability,
                 rating: guide.rating || guide.averageRating || 4.8,
-                status: guide.status
+                status: guide.status,
+                // ✅ ポリシー情報を追加
+                extensionPolicy: guide.extensionPolicy,
+                lateNightPolicy: guide.lateNightPolicy
             };
             
+            // ✅ [DEBUG] extensionPolicy確認ログ
+            console.log(`🏷️ [DETAIL] guide.id=${guide.id}, extensionPolicy="${guide.extensionPolicy}", lateNightPolicy="${guide.lateNightPolicy}"`);
             console.log('🔒 Sanitized guide data for tourist view');
             return sanitized;
         }
@@ -613,6 +620,36 @@
             const reviewCount = guide.reviewCount || 12;
             document.getElementById('guideRating').innerHTML = generateStars(rating);
             document.getElementById('reviewCount').textContent = reviewCount;
+            
+            // ✅ Extension & LateNight Policy Badges
+            const policyBadgesContainer = document.getElementById('guidePolicyBadges');
+            if (policyBadgesContainer) {
+                let policyBadgesHtml = '';
+                
+                // Extension Policy - 正規化（大文字/小文字両対応）
+                const rawExtPolicy = guide.extensionPolicy;
+                let extBadge = null;
+                if (rawExtPolicy !== undefined && rawExtPolicy !== null && rawExtPolicy !== '') {
+                    const upper = String(rawExtPolicy).toUpperCase();
+                    if (upper === 'OK') {
+                        extBadge = '<span class="badge bg-info me-2"><i class="bi bi-clock-history me-1"></i>延長OK</span>';
+                    } else if (upper === 'CONSULT' || upper === 'ASK') {
+                        extBadge = '<span class="badge bg-warning text-dark me-2"><i class="bi bi-clock-history me-1"></i>延長:要相談</span>';
+                    } else if (upper === 'NG' || upper === 'NO') {
+                        extBadge = '<span class="badge bg-light text-muted me-2"><i class="bi bi-clock-history me-1"></i>延長不可</span>';
+                    }
+                }
+                if (extBadge) policyBadgesHtml += extBadge;
+                
+                // LateNight Policy - 正規化
+                const rawLateNight = guide.lateNightPolicy;
+                if (rawLateNight && String(rawLateNight).toUpperCase() === 'OK') {
+                    policyBadgesHtml += '<span class="badge bg-dark"><i class="bi bi-moon me-1"></i>深夜OK</span>';
+                }
+                
+                policyBadgesContainer.innerHTML = policyBadgesHtml;
+                console.log(`🏷️ [DETAIL DISPLAY] Policy badges: ${policyBadgesHtml || 'none'}`);
+            }
             
             // Languages - ローカライズして日本語表示
             const languageMap = {

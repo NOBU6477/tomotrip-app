@@ -607,7 +607,36 @@ function toggleComparison(guideId) {
 
 // 延長対応バッジのHTML生成
 function getExtensionBadgeHTML(guide) {
-  const policy = guide.extensionPolicy || 'ask';
+  // ✅ [DEBUG] extensionPolicy 確認ログ
+  console.log(`🏷️ [EXTENSION] guide.id=${guide.id}, extensionPolicy="${guide.extensionPolicy}", canExtend="${guide.canExtend}", extension="${guide.extension}"`);
+  
+  // ✅ extensionPolicy を正規化（大文字/小文字両対応）
+  const rawPolicy = guide.extensionPolicy;
+  let normalizedPolicy = null;
+  
+  if (rawPolicy !== undefined && rawPolicy !== null && rawPolicy !== '') {
+    const upper = String(rawPolicy).toUpperCase();
+    if (upper === 'OK') normalizedPolicy = 'ok';
+    else if (upper === 'CONSULT' || upper === 'ASK') normalizedPolicy = 'ask';
+    else if (upper === 'NG' || upper === 'NO') normalizedPolicy = 'no';
+    else normalizedPolicy = String(rawPolicy).toLowerCase();
+  }
+  
+  // legacy fallback: extensionPolicy が未設定の場合のみ
+  if (!normalizedPolicy) {
+    if (guide.canExtend === true || guide.extension === true) {
+      normalizedPolicy = 'ok';
+    } else if (guide.canExtend === false || guide.extension === false) {
+      normalizedPolicy = 'no';
+    }
+  }
+  
+  // 未設定の場合は表示しない
+  if (!normalizedPolicy) {
+    console.log(`🏷️ [EXTENSION] No policy set, hiding badge`);
+    return '';
+  }
+  
   const isEn = typeof isEnglishPage === 'function' ? isEnglishPage() : false;
   
   const badges = {
@@ -625,10 +654,19 @@ function getExtensionBadgeHTML(guide) {
     }
   };
   
-  const badge = badges[policy] || badges.ask;
+  const badge = badges[normalizedPolicy] || null;
   
-  // 深夜対応バッジ（オプション）
-  const lateNight = guide.lateNightPolicy === 'ok';
+  // 未知の値の場合は表示しない
+  if (!badge) {
+    console.log(`🏷️ [EXTENSION] Unknown policy "${normalizedPolicy}", hiding badge`);
+    return '';
+  }
+  
+  console.log(`🏷️ [EXTENSION] Showing badge: ${badge.text}`);
+  
+  // 深夜対応バッジ（オプション）- 大文字/小文字両対応
+  const rawLateNight = guide.lateNightPolicy;
+  const lateNight = rawLateNight && String(rawLateNight).toUpperCase() === 'OK';
   const lateNightBadge = lateNight 
     ? `<span class="badge bg-dark me-1" style="font-size:.65rem"><i class="bi bi-moon"></i> ${isEn ? 'Late OK' : '深夜OK'}</span>`
     : '';
