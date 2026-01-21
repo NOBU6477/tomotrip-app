@@ -174,6 +174,15 @@ class ReservationAPIService {
 
   async sendReservationEmails(reservation, storeId) {
     try {
+      // ✅ ガイド予約の場合
+      if (reservation.guideId && !storeId) {
+        console.log("📧 Sending guide reservation confirmation email...");
+        const guideResult = await emailService.sendGuideReservationConfirmation(reservation);
+        console.log("Guide reservation email result:", guideResult);
+        return;
+      }
+      
+      // 店舗予約の場合
       const store = this.getStoreById(storeId);
       if (!store) {
         console.error("Store not found for email notification:", storeId);

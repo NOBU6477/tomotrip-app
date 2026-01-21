@@ -372,6 +372,124 @@ TomoTrip 店舗パートナー向け通知
 
     return this.sendEmail(store.email, subject, htmlContent, textContent);
   }
+
+  async sendGuideReservationConfirmation(reservation) {
+    const subject = `【TomoTrip】ガイド予約リクエストを受け付けました`;
+    
+    const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #00a8cc, #0077b6); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+    .content { background: #fff; padding: 30px; border: 1px solid #e0e0e0; }
+    .footer { background: #f5f5f5; padding: 20px; text-align: center; font-size: 12px; color: #666; border-radius: 0 0 10px 10px; }
+    .detail-box { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
+    .detail-row { margin: 10px 0; }
+    .detail-label { font-weight: bold; color: #555; display: inline-block; width: 120px; }
+    .highlight { color: #00a8cc; font-weight: bold; }
+    .note { background: #fff3cd; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107; }
+    .reservation-id { font-family: monospace; background: #e9ecef; padding: 5px 10px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🌴 TomoTrip</h1>
+      <p>ガイド予約リクエスト受付完了</p>
+    </div>
+    <div class="content">
+      <p>${reservation.customerName} 様</p>
+      <p>この度は<strong>${reservation.guideName || 'ガイド'}</strong>へのご予約リクエストをいただき、誠にありがとうございます。</p>
+      <p>以下の内容でご予約リクエストを承りました。ガイドからの確認連絡をお待ちください。</p>
+      
+      <div class="detail-box">
+        <h3 style="margin-top: 0; color: #00a8cc;">📋 ご予約内容</h3>
+        <div class="detail-row">
+          <span class="detail-label">予約ID:</span>
+          <span class="reservation-id">${reservation.id}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">ガイド名:</span>
+          <span>${reservation.guideName || 'ガイド'}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">ご予約日:</span>
+          <span class="highlight">${this.formatDate(reservation.reservationDate)}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">ご予約時間:</span>
+          <span class="highlight">${reservation.reservationTime}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">人数:</span>
+          <span>${reservation.numberOfGuests}名様</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">連絡先電話:</span>
+          <span>${reservation.customerPhone}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">メール:</span>
+          <span>${reservation.customerEmail}</span>
+        </div>
+        ${reservation.notes ? `
+        <div class="detail-row">
+          <span class="detail-label">ご要望:</span>
+          <span>${reservation.notes}</span>
+        </div>` : ''}
+      </div>
+
+      <div class="note">
+        <strong>⚠️ ご注意:</strong> このメールは予約リクエストの受付確認です。ガイドからの確認連絡をもって予約確定となります。
+      </div>
+      
+      <p>ご不明点がございましたら、お気軽にお問い合わせください。</p>
+      <p>素敵な旅になりますように！</p>
+    </div>
+    <div class="footer">
+      <p>🌴 TomoTrip - 特別な旅の体験を</p>
+      <p>© 2026 TomoTrip. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+    const textContent = `
+【TomoTrip】ガイド予約リクエスト受付完了
+
+${reservation.customerName} 様
+
+この度は ${reservation.guideName || 'ガイド'} へのご予約リクエストをいただき、誠にありがとうございます。
+
+■ ご予約内容
+予約ID: ${reservation.id}
+ガイド名: ${reservation.guideName || 'ガイド'}
+ご予約日: ${this.formatDate(reservation.reservationDate)}
+ご予約時間: ${reservation.reservationTime}
+人数: ${reservation.numberOfGuests}名様
+連絡先電話: ${reservation.customerPhone}
+メール: ${reservation.customerEmail}
+${reservation.notes ? `ご要望: ${reservation.notes}` : ''}
+
+※このメールは予約リクエストの受付確認です。ガイドからの確認連絡をもって予約確定となります。
+
+素敵な旅になりますように！
+
+🌴 TomoTrip
+`;
+
+    if (!reservation.customerEmail) {
+      console.log('⚠️ Customer email not provided, skipping guide reservation email');
+      return { success: false, reason: 'no_email' };
+    }
+
+    return this.sendEmail(reservation.customerEmail, subject, htmlContent, textContent);
+  }
 }
 
 const emailService = new EmailService();
