@@ -112,36 +112,58 @@ async function loadGuidesFromAPI() {
                 const imageUrl = guide.profileImageUrl ||
                     (guide.profilePhoto ? `/uploads/${guide.profilePhoto}` : '/assets/img/guides/default-1.svg');
 
+                // ✅ Normalize field names - API returns 'name' and 'sessionRate'
+                // Also support legacy field names for backward compatibility
+                const guideName = guide.name || guide.guideName || '';
+                const guidePrice = parseInt(guide.sessionRate || guide.guideSessionRate || 0);
+                const guideEmail = guide.email || guide.guideEmail || '';
+                const guidePhone = guide.phone || guide.phoneNumber || '';
+                const guideIntro = guide.introduction || guide.guideIntroduction || defaultIntro;
+                const guideExp = guide.experience || guide.guideExperience || 'intermediate';
+                const guideAvail = guide.availability || guide.guideAvailability || 'weekdays';
+                const guideSpecs = guide.specialties || guide.guideSpecialties || '';
+                
                 return {
                     id: guide.id,
-                    name: guide.name,
+                    name: guideName,
                     city: locationData,
                     location: locationData,
                     rating: guide.averageRating ? parseFloat(guide.averageRating) : 4.8,
-                    price: parseInt(guide.sessionRate || 0),
-                    sessionRate: parseInt(guide.sessionRate || 0),
+                    price: guidePrice,
+                    sessionRate: guidePrice,
+                    basePrice: guidePrice, // Canonical field name
+                    priceUnit: 'hour',
                     image: imageUrl,
                     photo: imageUrl,
                     profileImageUrl: guide.profileImageUrl, // Keep original for reference
                     languages: processedLanguages,
                     // Process specialties string from API
-                    specialties: guide.specialties ?
-                        (typeof guide.specialties === 'string' ? guide.specialties.split(/[,・・]/).map(s => s.trim()).filter(s => s) : guide.specialties) :
+                    specialties: guideSpecs ?
+                        (typeof guideSpecs === 'string' ? guideSpecs.split(/[,・・]/).map(s => s.trim()).filter(s => s) : guideSpecs) :
                         [],
-                    tags: guide.specialties ?
-                        (typeof guide.specialties === 'string' ? guide.specialties.split(/[,・・]/).map(s => s.trim()).filter(s => s) : guide.specialties) :
+                    genres: guideSpecs ?
+                        (typeof guideSpecs === 'string' ? guideSpecs.split(/[,・・]/).map(s => s.trim()).filter(s => s) : guideSpecs) :
+                        [], // Canonical field name for categories
+                    tags: guideSpecs ?
+                        (typeof guideSpecs === 'string' ? guideSpecs.split(/[,・・]/).map(s => s.trim()).filter(s => s) : guideSpecs) :
                         [],
-                    availability: guide.availability || 'weekdays',
-                    experience: guide.experience || 'intermediate',
-                    introduction: guide.introduction || defaultIntro,
-                    description: guide.introduction || defaultIntro,
-                    email: guide.email,
-                    phone: guide.phone,
+                    availability: guideAvail,
+                    experience: guideExp,
+                    experienceYears: guideExp, // Canonical field name
+                    introduction: guideIntro,
+                    description: guideIntro,
+                    email: guideEmail,
+                    phone: guidePhone,
                     status: guide.status || 'approved',
                     registeredAt: guide.registeredAt,
                     // Extension policy fields (preserve API values)
-                    extensionPolicy: guide.extensionPolicy,
-                    lateNightPolicy: guide.lateNightPolicy
+                    extensionPolicy: guide.extensionPolicy || 'ask',
+                    lateNightPolicy: guide.lateNightPolicy || 'no',
+                    // Area structure for canonical format
+                    area: {
+                        prefecture: locationData.split(' ')[0] || locationData,
+                        city: locationData.split(' ')[1] || ''
+                    }
                 };
             });
 
