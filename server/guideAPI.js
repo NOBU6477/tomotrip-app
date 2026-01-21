@@ -19,6 +19,144 @@ class GuideAPIService {
     this.ensureTouristsFile();
   }
 
+  // ============================================
+  // CANONICAL SCHEMA DEFINITION
+  // ============================================
+  // Normalize guide data to canonical schema format
+  // Input: Raw guide data from DB/form (any field naming)
+  // Output: Canonical schema object
+  normalizeToCanonical(rawGuide) {
+    if (!rawGuide) return null;
+    
+    // Extract name (multiple sources)
+    const name = rawGuide.name || rawGuide.guideName || '';
+    
+    // Extract price (multiple sources, always number)
+    const price = parseFloat(
+      rawGuide.price || rawGuide.guideSessionRate || rawGuide.sessionRate || rawGuide.basePrice || 0
+    ) || 0;
+    
+    // Extract area (multiple sources)
+    const area = rawGuide.area || rawGuide.location || rawGuide.guideLocation || '';
+    
+    // Extract description (multiple sources)
+    const description = rawGuide.description || rawGuide.guideIntroduction || rawGuide.introduction || '';
+    
+    // Extract specialties (multiple formats: array or comma-separated string)
+    let specialties = [];
+    if (Array.isArray(rawGuide.specialties)) {
+      specialties = rawGuide.specialties;
+    } else if (Array.isArray(rawGuide.guideSpecialties)) {
+      specialties = rawGuide.guideSpecialties;
+    } else if (typeof rawGuide.guideSpecialties === 'string' && rawGuide.guideSpecialties.trim()) {
+      specialties = rawGuide.guideSpecialties.split(',').map(s => s.trim()).filter(Boolean);
+    } else if (typeof rawGuide.specialties === 'string' && rawGuide.specialties.trim()) {
+      specialties = rawGuide.specialties.split(',').map(s => s.trim()).filter(Boolean);
+    }
+    
+    // Extract languages (multiple formats)
+    let languages = [];
+    if (Array.isArray(rawGuide.languages)) {
+      languages = rawGuide.languages;
+    } else if (Array.isArray(rawGuide.guideLanguages)) {
+      languages = rawGuide.guideLanguages;
+    }
+    
+    // Extract photos
+    let photos = [];
+    if (rawGuide.profilePhoto?.profileImageUrl) {
+      photos.push(rawGuide.profilePhoto.profileImageUrl);
+    } else if (rawGuide.profileImageUrl) {
+      photos.push(rawGuide.profileImageUrl);
+    }
+    if (Array.isArray(rawGuide.photos)) {
+      photos = photos.concat(rawGuide.photos);
+    }
+    
+    // Canonical schema object
+    return {
+      // Required fields
+      id: rawGuide.id,
+      name: name,
+      area: area,
+      price: price,
+      guideType: rawGuide.guideType || 'day',
+      
+      // Optional fields
+      description: description,
+      specialties: specialties,
+      languages: languages,
+      photos: photos,
+      extensionPolicy: rawGuide.extensionPolicy || 'CONSULT',
+      lateNightPolicy: rawGuide.lateNightPolicy || 'no',
+      isPublished: rawGuide.isPublished !== false && name && price > 0,
+      
+      // System fields (preserved from original)
+      email: rawGuide.email || rawGuide.guideEmail || '',
+      phone: rawGuide.phone || rawGuide.phoneNumber || '',
+      status: rawGuide.status || 'pending',
+      registeredAt: rawGuide.registeredAt,
+      updatedAt: rawGuide.updatedAt,
+      
+      // Additional fields (for backward compatibility)
+      guideExperience: rawGuide.guideExperience || rawGuide.experience || '',
+      guideAvailability: rawGuide.guideAvailability || rawGuide.availability || '',
+      gender: rawGuide.guideGender || rawGuide.gender || '',
+      age: rawGuide.guideAge || rawGuide.age || null,
+      profilePhoto: rawGuide.profilePhoto,
+      profileImageUrl: rawGuide.profileImageUrl || rawGuide.profilePhoto?.profileImageUrl || null
+    };
+  }
+
+  // Convert canonical schema back to DB format for storage
+  canonicalToDbFormat(canonical) {
+    if (!canonical) return null;
+    
+    return {
+      id: canonical.id,
+      guideName: canonical.name,
+      guideSessionRate: canonical.price,
+      location: canonical.area,
+      guideType: canonical.guideType,
+      guideIntroduction: canonical.description,
+      guideSpecialties: Array.isArray(canonical.specialties) ? canonical.specialties.join(', ') : canonical.specialties,
+      guideLanguages: canonical.languages,
+      extensionPolicy: canonical.extensionPolicy,
+      lateNightPolicy: canonical.lateNightPolicy,
+      isPublished: canonical.isPublished,
+      guideEmail: canonical.email,
+      phoneNumber: canonical.phone,
+      status: canonical.status,
+      registeredAt: canonical.registeredAt,
+      updatedAt: canonical.updatedAt,
+      guideExperience: canonical.guideExperience,
+      guideAvailability: canonical.guideAvailability,
+      guideGender: canonical.gender,
+      guideAge: canonical.age,
+      profilePhoto: canonical.profilePhoto,
+      profileImageUrl: canonical.profileImageUrl
+    };
+  }
+
+  // Validate canonical guide data
+  // Returns: { valid: boolean, errors: string[] }
+  validateCanonicalGuide(guide) {
+    const errors = [];
+    
+    if (!guide.name || guide.name.trim().length === 0) {
+      errors.push('ガイド名は必須です');
+    }
+    
+    if (!guide.price || guide.price <= 0) {
+      errors.push('料金は1以上を入力してください');
+    }
+    
+    return {
+      valid: errors.length === 0,
+      errors: errors
+    };
+  }
+
   // Ensure data directory exists
   ensureDataDirectory() {
     const dataDir = path.join(__dirname, '../data');
@@ -800,6 +938,23 @@ class GuideAPIService {
         }
       }
 
+      // ✅ [CANONICAL VALIDATION] Validate name and price using canonical schema
+      const canonicalGuide = this.normalizeToCanonical({
+        ...guideData,
+        id: 'temp-validation'
+      });
+      
+      const validation = this.validateCanonicalGuide(canonicalGuide);
+      if (!validation.valid) {
+        console.warn(`⚠️ [REGISTRATION] Validation failed:`, validation.errors);
+        return res.status(400).json({
+          success: false,
+          error: 'VALIDATION_FAILED',
+          message: validation.errors.join('、'),
+          errors: validation.errors
+        });
+      }
+
       // Normalize email address (trim whitespace)
       guideData.guideEmail = guideData.guideEmail.trim();
       const normalizedEmail = guideData.guideEmail.toLowerCase();
@@ -843,9 +998,20 @@ class GuideAPIService {
         profilePhoto: session.profilePhoto,
         profileImageUrl: session.profilePhoto?.profileImageUrl || null, // Save profile image URL for easy access
         status: 'approved', // Auto-approve for development/demo
+        isPublished: true, // ✅ New guides with valid data are published
         registeredAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
+
+      // ✅ [CANONICAL LOG] Log the canonical object being saved
+      const canonicalToSave = this.normalizeToCanonical(guide);
+      console.log(`📋 [REGISTRATION] Saving canonical guide:`, JSON.stringify({
+        id: canonicalToSave.id,
+        name: canonicalToSave.name,
+        price: canonicalToSave.price,
+        area: canonicalToSave.area,
+        isPublished: canonicalToSave.isPublished
+      }, null, 2));
 
       // Save to PostgreSQL (mandatory - DB is authoritative)
       // addGuide throws on error, so we catch and return 503
@@ -1376,7 +1542,7 @@ class GuideAPIService {
   async getGuideById(req, res) {
     try {
       const { id } = req.params;
-      const guide = this.getGuideFromStorage(id);
+      const guide = await this.getGuideFromStorage(id);
       
       if (!guide) {
         return res.status(404).json({
@@ -1385,9 +1551,35 @@ class GuideAPIService {
         });
       }
 
+      // ✅ [EDIT API] Return both canonical and legacy field names
+      const canonical = this.normalizeToCanonical(guide);
+      
+      console.log(`📋 [EDIT API] Returning guide for edit:`, JSON.stringify({
+        id: canonical.id,
+        name: canonical.name,
+        price: canonical.price,
+        isPublished: canonical.isPublished
+      }, null, 2));
+
+      // Merge original data with canonical fields for maximum compatibility
       res.json({
         success: true,
-        guide: guide
+        guide: {
+          ...guide,
+          // Add canonical field names
+          name: canonical.name,
+          price: canonical.price,
+          area: canonical.area,
+          description: canonical.description,
+          specialties: canonical.specialties,
+          languages: canonical.languages,
+          photos: canonical.photos,
+          extensionPolicy: canonical.extensionPolicy,
+          lateNightPolicy: canonical.lateNightPolicy,
+          isPublished: canonical.isPublished,
+          email: canonical.email,
+          phone: canonical.phone
+        }
       });
 
     } catch (error) {
@@ -1405,7 +1597,8 @@ class GuideAPIService {
       const { id } = req.params;
       const updates = req.body;
       
-      const existingGuide = this.getGuideFromStorage(id);
+      // ✅ Use async getGuideFromStorage
+      const existingGuide = await this.getGuideFromStorage(id);
       if (!existingGuide) {
         return res.status(404).json({
           success: false,
@@ -1413,8 +1606,32 @@ class GuideAPIService {
         });
       }
 
+      // ✅ [EDIT LOAD LOG] Log existing guide data and normalized version
+      const existingCanonical = this.normalizeToCanonical(existingGuide);
+      console.log(`📋 [EDIT LOAD] Loading guide for edit:`, JSON.stringify({
+        id: existingCanonical.id,
+        name: existingCanonical.name,
+        price: existingCanonical.price,
+        isPublished: existingCanonical.isPublished
+      }, null, 2));
+
+      // ✅ [CANONICAL VALIDATION] Validate updated data
+      const mergedData = { ...existingGuide, ...updates, id };
+      const canonicalUpdated = this.normalizeToCanonical(mergedData);
+      const validation = this.validateCanonicalGuide(canonicalUpdated);
+      
+      if (!validation.valid) {
+        console.warn(`⚠️ [EDIT] Validation failed:`, validation.errors);
+        return res.status(400).json({
+          success: false,
+          error: 'VALIDATION_FAILED',
+          message: validation.errors.join('、'),
+          errors: validation.errors
+        });
+      }
+
       // Check for email change and validate uniqueness
-      if (updates.guideEmail && updates.guideEmail.trim().toLowerCase() !== existingGuide.guideEmail.toLowerCase()) {
+      if (updates.guideEmail && updates.guideEmail.trim().toLowerCase() !== (existingGuide.guideEmail || '').toLowerCase()) {
         const normalizedNewEmail = updates.guideEmail.trim().toLowerCase();
         const allGuides = this.loadGuides();
         const emailExists = allGuides.some(guide => 
@@ -1435,8 +1652,11 @@ class GuideAPIService {
         updates.guideEmail = updates.guideEmail.trim();
       }
 
+      // ✅ Determine isPublished based on validation
+      updates.isPublished = validation.valid;
+
       // Update guide data while preserving critical fields
-      const updatedGuide = this.updateGuideInStorage(id, {
+      const updatedGuide = await this.updateGuideInStorage(id, {
         ...updates,
         // Preserve critical fields
         id: existingGuide.id,
@@ -1447,6 +1667,14 @@ class GuideAPIService {
       });
 
       if (updatedGuide) {
+        // ✅ [EDIT SAVE LOG] Log saved canonical data
+        const savedCanonical = this.normalizeToCanonical(updatedGuide);
+        console.log(`📋 [EDIT SAVE] Guide updated:`, JSON.stringify({
+          id: savedCanonical.id,
+          name: savedCanonical.name,
+          price: savedCanonical.price,
+          isPublished: savedCanonical.isPublished
+        }, null, 2));
         console.log(`✅ Guide updated: ${updatedGuide.guideName} (${id})`);
 
         res.json({

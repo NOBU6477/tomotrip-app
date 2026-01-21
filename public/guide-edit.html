@@ -279,6 +279,39 @@
                 </div>
             </div>
 
+            <!-- ポリシーセクション -->
+            <div class="section-card p-3">
+                <div class="section-header">
+                    <h4 class="mb-0"><i class="bi bi-clock-history me-2"></i>対応ポリシー</h4>
+                </div>
+                <div class="p-3">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">延長対応</label>
+                            <select class="form-control" id="extensionPolicy">
+                                <option value="CONSULT">要相談</option>
+                                <option value="OK">延長OK</option>
+                                <option value="NG">延長不可</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">深夜対応（22時以降）</label>
+                            <select class="form-control" id="lateNightPolicy">
+                                <option value="no">深夜対応不可</option>
+                                <option value="ok">深夜対応OK</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 不完全データ警告 (動的表示) -->
+            <div id="incompleteDataWarning" class="alert alert-warning d-none" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>注意：</strong> このガイド情報は不完全です。以下の項目を入力して保存してください：
+                <ul id="incompleteFieldsList" class="mb-0 mt-2"></ul>
+            </div>
+
             <!-- その他の情報セクション -->
             <div class="section-card p-3">
                 <div class="section-header">
@@ -399,16 +432,47 @@
 
         // フォームにデータを入力
         function populateForm(guide) {
-            document.getElementById('guideName').value = guide.guideName || '';
-            document.getElementById('dailyRate').value = guide.guideSessionRate || '';
-            document.getElementById('location').value = guide.location || '京都府 京都市';
+            // ✅ [EDIT LOAD LOG] Log normalized data
+            console.log('📋 [EDIT] Loading guide data:', JSON.stringify({
+                id: guide.id,
+                name: guide.name || guide.guideName,
+                price: guide.price || guide.guideSessionRate,
+                isPublished: guide.isPublished
+            }, null, 2));
+            
+            // Normalize field names (handle both canonical and legacy formats)
+            const name = guide.name || guide.guideName || '';
+            const price = guide.price || guide.guideSessionRate || '';
+            const area = guide.area || guide.location || '';
+            const description = guide.description || guide.guideIntroduction || guide.introduction || '';
+            
+            document.getElementById('guideName').value = name;
+            document.getElementById('dailyRate').value = price;
+            document.getElementById('location').value = area || '京都府 京都市';
             document.getElementById('guideType').value = guide.guideType || 'day';
-            document.getElementById('introduction').value = guide.guideIntroduction || '';
-            document.getElementById('experience').value = guide.guideExperience || 'intermediate';
+            document.getElementById('introduction').value = description;
+            document.getElementById('experience').value = guide.guideExperience || guide.experience || 'intermediate';
             document.getElementById('achievements').value = guide.achievements || '';
-            document.getElementById('email').value = guide.guideEmail || '';
-            document.getElementById('phone').value = guide.phoneNumber || '';
-            document.getElementById('availability').value = guide.guideAvailability || '';
+            document.getElementById('email').value = guide.email || guide.guideEmail || '';
+            document.getElementById('phone').value = guide.phone || guide.phoneNumber || '';
+            document.getElementById('availability').value = guide.guideAvailability || guide.availability || '';
+            
+            // ✅ Policy fields
+            document.getElementById('extensionPolicy').value = guide.extensionPolicy || 'CONSULT';
+            document.getElementById('lateNightPolicy').value = guide.lateNightPolicy || 'no';
+            
+            // ✅ Check for incomplete data and show warning
+            const incompleteFields = [];
+            if (!name || name.trim() === '') incompleteFields.push('ガイド名');
+            if (!price || parseFloat(price) <= 0) incompleteFields.push('料金');
+            
+            if (incompleteFields.length > 0) {
+                const warningDiv = document.getElementById('incompleteDataWarning');
+                const fieldsList = document.getElementById('incompleteFieldsList');
+                fieldsList.innerHTML = incompleteFields.map(f => `<li>${f}</li>`).join('');
+                warningDiv.classList.remove('d-none');
+                console.warn('⚠️ [EDIT] Incomplete guide data detected:', incompleteFields);
+            }
             
             // 対応言語のチェックボックス設定
             if (guide.guideLanguages && Array.isArray(guide.guideLanguages)) {
@@ -491,13 +555,20 @@
 
         // ガイド情報保存
         async function saveGuideData() {
+            // フォームデータ収集
+            const formData = collectFormData();
+            
+            // ✅ [VALIDATION] Validate before saving
+            const validation = validateFormData(formData);
+            if (!validation.valid) {
+                showToast(validation.errors.join('、'), 'error');
+                return;
+            }
+            
             const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
             loadingModal.show();
             
             try {
-                // フォームデータ収集
-                const formData = collectFormData();
-                
                 const response = await fetch(`/api/guides/${currentGuideId}/edit`, {
                     method: 'PUT',
                     headers: {
@@ -584,10 +655,32 @@
                 achievements: document.getElementById('achievements').value,
                 guideSpecialties: selectedSpecialties.join(', '),
                 guideAvailability: document.getElementById('availability').value,
+                // ✅ Policy fields
+                extensionPolicy: document.getElementById('extensionPolicy').value,
+                lateNightPolicy: document.getElementById('lateNightPolicy').value,
                 multiLingual: document.getElementById('multiLingual').checked,
                 hospitalitySupport: document.getElementById('hospitalitySupport').checked,
                 emergencySupport: document.getElementById('emergencySupport').checked,
                 localExpert: document.getElementById('localExpert').checked
+            };
+        }
+        
+        // ✅ [VALIDATION] Validate form data before save
+        function validateFormData(formData) {
+            const errors = [];
+            
+            if (!formData.guideName || formData.guideName.trim() === '') {
+                errors.push('ガイド名は必須です');
+            }
+            
+            const price = parseFloat(formData.guideSessionRate);
+            if (!price || price <= 0) {
+                errors.push('料金は1以上を入力してください');
+            }
+            
+            return {
+                valid: errors.length === 0,
+                errors: errors
             };
         }
 

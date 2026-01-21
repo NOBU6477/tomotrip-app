@@ -667,6 +667,23 @@ function formatPhoneNumber(phone) {
                     return;
                 }
                 
+                // ✅ [CANONICAL VALIDATION] Validate required fields: name and price
+                const guideNameInput = document.getElementById('guideName');
+                const guideName = guideNameInput ? guideNameInput.value.trim() : '';
+                if (!guideName) {
+                    showToast('ガイド名は必須です', 'error', 'guideName');
+                    return;
+                }
+                
+                const guideSessionRateInput = document.getElementById('guideSessionRate');
+                const guideSessionRate = guideSessionRateInput ? parseFloat(guideSessionRateInput.value) : 0;
+                if (!guideSessionRate || guideSessionRate <= 0) {
+                    showToast('料金は1以上を入力してください', 'error', 'guideSessionRate');
+                    return;
+                }
+                
+                console.log('✅ [VALIDATION] Name and price validated:', { guideName, guideSessionRate });
+
                 // Validate document upload based on type
                 const documentType = document.getElementById('documentType').value;
                 if (!documentType) {
