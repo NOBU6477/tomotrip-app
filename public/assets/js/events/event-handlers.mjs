@@ -64,20 +64,7 @@ export async function showGuideDetailModalById(guideId) {
     const hasPersistentAuth = isRegisteredTourist === 'true' || touristLogin;
     const isAuthValid = hasValidTimestampAuth || hasPersistentAuth;
     
-    // Mobile debug logging
-    console.log('📱 [AUTH CHECK] showGuideDetailModalById:', {
-        guideId,
-        touristAuth,
-        touristAuthTimestamp,
-        isRegisteredTourist,
-        touristLogin: !!touristLogin,
-        hasValidTimestampAuth,
-        hasPersistentAuth,
-        isAuthValid
-    });
-
     if (!isAuthValid) {
-        console.log('📱 [AUTH CHECK] Auth invalid - showing registration prompt');
         showTouristRegistrationPrompt(guideId);
         return;
     }

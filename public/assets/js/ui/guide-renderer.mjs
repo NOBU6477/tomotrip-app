@@ -608,7 +608,6 @@ function toggleComparison(guideId) {
 // 延長対応バッジのHTML生成
 function getExtensionBadgeHTML(guide) {
   // ✅ [DEBUG] extensionPolicy 確認ログ
-  console.log(`🏷️ [EXTENSION] guide.id=${guide.id}, extensionPolicy="${guide.extensionPolicy}", canExtend="${guide.canExtend}", extension="${guide.extension}"`);
   
   // ✅ extensionPolicy を正規化（大文字/小文字両対応）
   const rawPolicy = guide.extensionPolicy;
@@ -633,7 +632,6 @@ function getExtensionBadgeHTML(guide) {
   
   // 未設定の場合は表示しない
   if (!normalizedPolicy) {
-    console.log(`🏷️ [EXTENSION] No policy set, hiding badge`);
     return '';
   }
   
@@ -658,11 +656,9 @@ function getExtensionBadgeHTML(guide) {
   
   // 未知の値の場合は表示しない
   if (!badge) {
-    console.log(`🏷️ [EXTENSION] Unknown policy "${normalizedPolicy}", hiding badge`);
     return '';
   }
   
-  console.log(`🏷️ [EXTENSION] Showing badge: ${badge.text}`);
   
   // ✅ 深夜対応バッジ - 大文字/小文字両対応、全ステータス表示
   const rawLateNight = guide.lateNightPolicy;
@@ -685,7 +681,6 @@ function getExtensionBadgeHTML(guide) {
     }
   }
   
-  console.log(`🌙 [LATENIGHT] guide.id=${guide.id}, lateNightPolicy="${rawLateNight}", normalized="${normalizedLateNight}"`);
   
   const lateNightBadges = {
     ok: {
@@ -706,9 +701,6 @@ function getExtensionBadgeHTML(guide) {
     ? `<span class="badge ${lateNightBadges[normalizedLateNight].color} me-1" style="font-size:.65rem"><i class="bi bi-moon"></i> ${lateNightBadges[normalizedLateNight].text}</span>`
     : '';
   
-  if (lateNightBadge) {
-    console.log(`🌙 [LATENIGHT] Showing badge: ${lateNightBadges[normalizedLateNight].text}`);
-  }
   
   return `<div class="mb-1">
     <span class="badge ${badge.color} me-1" style="font-size:.65rem"><i class="bi bi-clock-history"></i> ${badge.text}</span>

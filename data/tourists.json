@@ -208,5 +208,20 @@
     "status": "active",
     "registeredAt": "2026-01-20T13:37:54.116Z",
     "updatedAt": "2026-01-20T13:37:54.116Z"
+  },
+  {
+    "id": "84968da7-4e83-4540-aa16-567eb783dae5",
+    "firstName": "幸太郎",
+    "lastName": "テスト",
+    "email": "koutarou@gmail.com",
+    "nationality": "japan",
+    "documentType": "passport",
+    "phoneVerified": true,
+    "documentUploaded": true,
+    "registrationDate": "2026-01-21T20:46:17.901Z",
+    "phoneNumber": "+817045651232",
+    "status": "active",
+    "registeredAt": "2026-01-21T20:46:17.460Z",
+    "updatedAt": "2026-01-21T20:46:17.460Z"
   }
 ]

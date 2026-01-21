@@ -438,23 +438,11 @@
             const guideAuth = sessionStorage.getItem('guideAuth');
             const guideAuthData = sessionStorage.getItem('guideData');
             
-            // Mobile debug logging
-            console.log('📱 [AUTH CHECK] guide-detail.html:', {
-                touristAuth,
-                touristData: !!touristData,
-                isRegisteredTourist,
-                touristLogin: !!touristLogin,
-                guideAuth: !!guideAuth,
-                localStorage_keys: Object.keys(localStorage).filter(k => k.includes('tourist') || k.includes('Auth')),
-                sessionStorage_keys: Object.keys(sessionStorage).filter(k => k.includes('tourist') || k.includes('Auth'))
-            });
-            
             // Allow access if user is logged in as either tourist or guide
             const hasTouristAuth = touristAuth || touristData || isRegisteredTourist || touristLogin;
             const hasGuideAuth = guideAuth || guideAuthData;
             
             if (!hasTouristAuth && !hasGuideAuth) {
-                console.log('❌ [AUTH CHECK] No valid authentication found');
                 alert('この機能をご利用いただくには観光客またはガイドとしてログインする必要があります。');
                 window.location.href = '/';
                 return;
@@ -657,7 +645,6 @@
                 if (lateNightBadge) policyBadgesHtml += lateNightBadge;
                 
                 policyBadgesContainer.innerHTML = policyBadgesHtml;
-                console.log(`🏷️ [DETAIL DISPLAY] Policy badges: ${policyBadgesHtml || 'none'}`);
             }
             
             // Languages - ローカライズして日本語表示
