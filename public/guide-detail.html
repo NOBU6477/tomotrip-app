@@ -641,11 +641,20 @@
                 }
                 if (extBadge) policyBadgesHtml += extBadge;
                 
-                // LateNight Policy - 正規化
+                // LateNight Policy - 正規化（大文字/小文字両対応、全ステータス表示）
                 const rawLateNight = guide.lateNightPolicy;
-                if (rawLateNight && String(rawLateNight).toUpperCase() === 'OK') {
-                    policyBadgesHtml += '<span class="badge bg-dark"><i class="bi bi-moon me-1"></i>深夜OK</span>';
+                let lateNightBadge = null;
+                if (rawLateNight !== undefined && rawLateNight !== null && rawLateNight !== '') {
+                    const upperLN = String(rawLateNight).toUpperCase();
+                    if (upperLN === 'OK') {
+                        lateNightBadge = '<span class="badge bg-dark"><i class="bi bi-moon me-1"></i>深夜OK</span>';
+                    } else if (upperLN === 'CONSULT' || upperLN === 'ASK') {
+                        lateNightBadge = '<span class="badge bg-secondary"><i class="bi bi-moon me-1"></i>深夜:要相談</span>';
+                    } else if (upperLN === 'NG' || upperLN === 'NO') {
+                        lateNightBadge = '<span class="badge bg-light text-muted"><i class="bi bi-moon me-1"></i>深夜不可</span>';
+                    }
                 }
+                if (lateNightBadge) policyBadgesHtml += lateNightBadge;
                 
                 policyBadgesContainer.innerHTML = policyBadgesHtml;
                 console.log(`🏷️ [DETAIL DISPLAY] Policy badges: ${policyBadgesHtml || 'none'}`);

@@ -231,9 +231,23 @@
                                     <p class="text-muted mb-2">${g.location || '-'}</p>
                                     <p class="mb-2">料金: <strong>¥${Number(g.sessionRate || g.guideSessionRate || 0).toLocaleString()}/時間</strong></p>
                                     <p class="mb-0">
-                                        ${g.extensionPolicy === 'ok' ? '<span class="badge bg-info">延長OK</span>' : 
-                                          g.extensionPolicy === 'no' ? '<span class="badge bg-secondary">延長不可</span>' : 
-                                          '<span class="badge bg-warning text-dark">延長:要相談</span>'}
+                                        ${(() => {
+                                            // Extension Policy - 正規化（大文字/小文字両対応）
+                                            const extUpper = String(g.extensionPolicy || '').toUpperCase();
+                                            let extBadge = '';
+                                            if (extUpper === 'OK') extBadge = '<span class="badge bg-info me-1">延長OK</span>';
+                                            else if (extUpper === 'CONSULT' || extUpper === 'ASK') extBadge = '<span class="badge bg-warning text-dark me-1">延長:要相談</span>';
+                                            else if (extUpper === 'NG' || extUpper === 'NO') extBadge = '<span class="badge bg-secondary me-1">延長不可</span>';
+                                            
+                                            // LateNight Policy - 正規化（大文字/小文字両対応）
+                                            const lnUpper = String(g.lateNightPolicy || '').toUpperCase();
+                                            let lnBadge = '';
+                                            if (lnUpper === 'OK') lnBadge = '<span class="badge bg-dark">深夜OK</span>';
+                                            else if (lnUpper === 'CONSULT' || lnUpper === 'ASK') lnBadge = '<span class="badge bg-secondary">深夜:要相談</span>';
+                                            else if (lnUpper === 'NG' || lnUpper === 'NO') lnBadge = '<span class="badge bg-light text-muted">深夜不可</span>';
+                                            
+                                            return extBadge + lnBadge;
+                                        })()}
                                     </p>
                                 </div>
                             </div>

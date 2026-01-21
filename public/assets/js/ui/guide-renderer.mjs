@@ -664,12 +664,51 @@ function getExtensionBadgeHTML(guide) {
   
   console.log(`🏷️ [EXTENSION] Showing badge: ${badge.text}`);
   
-  // 深夜対応バッジ（オプション）- 大文字/小文字両対応
+  // ✅ 深夜対応バッジ - 大文字/小文字両対応、全ステータス表示
   const rawLateNight = guide.lateNightPolicy;
-  const lateNight = rawLateNight && String(rawLateNight).toUpperCase() === 'OK';
-  const lateNightBadge = lateNight 
-    ? `<span class="badge bg-dark me-1" style="font-size:.65rem"><i class="bi bi-moon"></i> ${isEn ? 'Late OK' : '深夜OK'}</span>`
+  let normalizedLateNight = null;
+  
+  if (rawLateNight !== undefined && rawLateNight !== null && rawLateNight !== '') {
+    const upperLN = String(rawLateNight).toUpperCase();
+    if (upperLN === 'OK') normalizedLateNight = 'ok';
+    else if (upperLN === 'CONSULT' || upperLN === 'ASK') normalizedLateNight = 'ask';
+    else if (upperLN === 'NG' || upperLN === 'NO') normalizedLateNight = 'no';
+    else normalizedLateNight = String(rawLateNight).toLowerCase();
+  }
+  
+  // legacy fallback: lateNightPolicy が未設定の場合のみ
+  if (!normalizedLateNight) {
+    if (guide.canLateNight === true || guide.nightAvailable === true) {
+      normalizedLateNight = 'ok';
+    } else if (guide.canLateNight === false || guide.nightAvailable === false) {
+      normalizedLateNight = 'no';
+    }
+  }
+  
+  console.log(`🌙 [LATENIGHT] guide.id=${guide.id}, lateNightPolicy="${rawLateNight}", normalized="${normalizedLateNight}"`);
+  
+  const lateNightBadges = {
+    ok: {
+      text: isEn ? 'Late OK' : '深夜OK',
+      color: 'bg-dark'
+    },
+    ask: {
+      text: isEn ? 'Late: Ask' : '深夜:要相談',
+      color: 'bg-secondary'
+    },
+    no: {
+      text: isEn ? 'No Late' : '深夜不可',
+      color: 'bg-light text-muted'
+    }
+  };
+  
+  const lateNightBadge = normalizedLateNight && lateNightBadges[normalizedLateNight]
+    ? `<span class="badge ${lateNightBadges[normalizedLateNight].color} me-1" style="font-size:.65rem"><i class="bi bi-moon"></i> ${lateNightBadges[normalizedLateNight].text}</span>`
     : '';
+  
+  if (lateNightBadge) {
+    console.log(`🌙 [LATENIGHT] Showing badge: ${lateNightBadges[normalizedLateNight].text}`);
+  }
   
   return `<div class="mb-1">
     <span class="badge ${badge.color} me-1" style="font-size:.65rem"><i class="bi bi-clock-history"></i> ${badge.text}</span>
