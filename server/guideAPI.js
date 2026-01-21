@@ -1182,10 +1182,19 @@ class GuideAPIService {
   }
 
   // Get specific guide details
+  // ✅ Uses PostgreSQL as authoritative source with JSON fallback
   async getGuide(req, res) {
     try {
       const { id } = req.params;
-      const guide = this.guides.get(id);
+      
+      // Try database first (authoritative source)
+      let guide = await this.dbService.getGuideById(id);
+      
+      // If DB returned null (unavailable), fallback to in-memory/JSON
+      if (guide === null) {
+        console.warn(`⚠️ [DB] getGuideById returned null, using in-memory fallback`);
+        guide = this.guides.get(id);
+      }
 
       if (!guide || guide.status !== 'approved') {
         return res.status(404).json({
@@ -1195,19 +1204,29 @@ class GuideAPIService {
         });
       }
 
+      // ✅ Return consistent field names matching the list API
       res.json({
         success: true,
         guide: {
           id: guide.id,
           name: guide.guideName,
+          guideName: guide.guideName, // Keep for compatibility
           email: guide.guideEmail,
-          languages: guide.guideLanguages,
+          phone: guide.phoneNumber,
+          location: guide.location || guide.prefecture || '東京都 東京',
+          languages: Array.isArray(guide.guideLanguages) ? guide.guideLanguages : [guide.guideLanguages],
           introduction: guide.guideIntroduction,
           specialties: guide.guideSpecialties,
           experience: guide.guideExperience,
           sessionRate: guide.guideSessionRate,
+          guideSessionRate: guide.guideSessionRate, // Keep for compatibility
           availability: guide.guideAvailability,
-          profilePhoto: guide.profilePhoto?.fileName
+          profileImageUrl: guide.profileImageUrl || this.generateProfilePhotoUrl(guide.profilePhoto),
+          profilePhoto: this.generateProfilePhotoUrl(guide.profilePhoto),
+          extensionPolicy: guide.extensionPolicy || 'ask',
+          lateNightPolicy: guide.lateNightPolicy || 'no',
+          status: guide.status,
+          registeredAt: guide.registeredAt
         }
       });
     } catch (error) {
