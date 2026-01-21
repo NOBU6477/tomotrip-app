@@ -205,9 +205,15 @@
                                         </select>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label">連絡先電話番号</label>
-                                        <input type="tel" class="form-control" id="customerPhone" placeholder="090-1234-5678">
+                                        <label class="form-label">連絡先電話番号 <span class="text-danger">*</span></label>
+                                        <input type="tel" class="form-control" id="customerPhone" placeholder="090-1234-5678" required>
+                                        <div id="phoneError" class="text-danger small mt-1" style="display:none;"></div>
                                     </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">メールアドレス <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" id="customerEmail" placeholder="example@email.com" required>
+                                    <div id="emailError" class="text-danger small mt-1" style="display:none;"></div>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">備考・リクエスト</label>
@@ -271,8 +277,60 @@
             }
         }
         
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+        
+        function validatePhone(phone) {
+            const cleaned = phone.replace(/[\s\-\(\)]/g, '');
+            return /^[0-9]{10,15}$/.test(cleaned);
+        }
+        
+        function showError(elementId, message) {
+            const el = document.getElementById(elementId);
+            if (el) {
+                el.textContent = message;
+                el.style.display = 'block';
+            }
+        }
+        
+        function clearError(elementId) {
+            const el = document.getElementById(elementId);
+            if (el) {
+                el.textContent = '';
+                el.style.display = 'none';
+            }
+        }
+        
         async function submitBooking(e) {
             e.preventDefault();
+            
+            const customerEmail = document.getElementById('customerEmail').value.trim();
+            const customerPhone = document.getElementById('customerPhone').value.trim();
+            
+            clearError('emailError');
+            clearError('phoneError');
+            
+            let hasError = false;
+            
+            if (!customerEmail) {
+                showError('emailError', 'メールアドレスは必須です');
+                hasError = true;
+            } else if (!validateEmail(customerEmail)) {
+                showError('emailError', '正しいメールアドレス形式で入力してください');
+                hasError = true;
+            }
+            
+            if (!customerPhone) {
+                showError('phoneError', '電話番号は必須です');
+                hasError = true;
+            } else if (!validatePhone(customerPhone)) {
+                showError('phoneError', '電話番号は10桁以上の数字で入力してください（ハイフン可）');
+                hasError = true;
+            }
+            
+            if (hasError) return;
             
             const submitBtn = e.target.querySelector('button[type="submit"]');
             const originalText = submitBtn.innerHTML;
@@ -284,10 +342,11 @@
                     guideId: guideId,
                     guideName: currentGuideData?.name || currentGuideData?.guideName,
                     customerName: document.getElementById('customerName').value,
+                    customerEmail: customerEmail,
+                    customerPhone: customerPhone,
                     reservationDate: document.getElementById('reservationDate').value,
                     reservationTime: document.getElementById('reservationTime').value,
                     numberOfGuests: document.getElementById('numberOfGuests').value,
-                    customerPhone: document.getElementById('customerPhone').value,
                     notes: document.getElementById('notes').value,
                     status: 'pending'
                 };
@@ -371,8 +430,14 @@
                                     <h5>${r.numberOfGuests || 1} 名</h5>
                                 </div>
                                 <div class="col-6">
-                                    <p class="text-muted mb-1">連絡先</p>
-                                    <h5>${r.customerPhone || '-'}</h5>
+                                    <p class="text-muted mb-1">電話番号</p>
+                                    <h5>${r.customerPhone || '未登録'}</h5>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <p class="text-muted mb-1">メールアドレス</p>
+                                    <h5>${r.customerEmail || '未登録'}</h5>
                                 </div>
                             </div>
                             

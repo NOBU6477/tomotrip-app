@@ -94,6 +94,38 @@ class ReservationAPIService {
           message: "必須項目が入力されていません",
         });
       }
+      
+      // ✅ Step1-B: email と phone の必須チェック
+      const emailTrimmed = (customerEmail || "").trim();
+      const phoneTrimmed = (customerPhone || "").trim();
+      
+      if (!emailTrimmed || !phoneTrimmed) {
+        return res.status(400).json({
+          success: false,
+          error: "CONTACT_INFO_REQUIRED",
+          message: "メールアドレスと電話番号は必須です",
+        });
+      }
+      
+      // email形式チェック
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailTrimmed)) {
+        return res.status(400).json({
+          success: false,
+          error: "INVALID_EMAIL",
+          message: "正しいメールアドレス形式で入力してください",
+        });
+      }
+      
+      // phone形式チェック（10桁以上の数字）
+      const phoneClean = phoneTrimmed.replace(/[\s\-\(\)]/g, "");
+      if (!/^[0-9]{10,15}$/.test(phoneClean)) {
+        return res.status(400).json({
+          success: false,
+          error: "INVALID_PHONE",
+          message: "電話番号は10桁以上の数字で入力してください",
+        });
+      }
 
       const reservationId = randomUUID();
       const now = new Date().toISOString();
@@ -104,8 +136,8 @@ class ReservationAPIService {
         guideId: guideId || null,
         guideName: guideName || null,
         customerName,
-        customerEmail: customerEmail || "",
-        customerPhone: customerPhone || "",
+        customerEmail: emailTrimmed,
+        customerPhone: phoneTrimmed,
         numberOfGuests: parseInt(numberOfGuests) || 1,
         reservationDate,
         reservationTime,
