@@ -178,23 +178,40 @@ class ReservationAPIService {
   }
 
   async sendReservationEmails(reservation, storeId) {
+    const maskEmail = (e) => e ? `***@${e.split('@')[1] || 'unknown'}` : 'none';
+    const resId = reservation.id;
+    
     try {
       // ✅ ガイド予約の場合
       if (reservation.guideId && !storeId) {
-        await emailService.sendGuideReservationConfirmation(reservation);
+        const result = await emailService.sendGuideReservationConfirmation(reservation);
+        if (result && result.success) {
+          console.log(`✅ [EMAIL] SENT: reservationId=${resId} | to=${maskEmail(reservation.customerEmail)} | provider=${result.provider}`);
+        } else {
+          console.log(`❌ [EMAIL] ERROR: reservationId=${resId} | reason=${result?.error || 'unknown'}`);
+        }
         return;
       }
       
       const store = this.getStoreById(storeId);
       if (!store) {
-        console.log(`⚠️ [EMAIL] SKIP: store not found for storeId=${storeId}`);
+        console.log(`⚠️ [EMAIL] SKIP: reservationId=${resId} | reason=store not found`);
         return;
       }
 
-      await emailService.sendReservationConfirmationToCustomer(reservation, store);
-      await emailService.sendReservationNotificationToStore(reservation, store);
+      const customerResult = await emailService.sendReservationConfirmationToCustomer(reservation, store);
+      if (customerResult && customerResult.success) {
+        console.log(`✅ [EMAIL] SENT: reservationId=${resId} | to=${maskEmail(reservation.customerEmail)} | provider=${customerResult.provider}`);
+      } else {
+        console.log(`❌ [EMAIL] ERROR: reservationId=${resId} | reason=${customerResult?.error || 'unknown'}`);
+      }
+      
+      const storeResult = await emailService.sendReservationNotificationToStore(reservation, store);
+      if (storeResult && storeResult.success) {
+        console.log(`✅ [EMAIL] SENT: reservationId=${resId} | to=${maskEmail(store.email)} | type=store-notify`);
+      }
     } catch (error) {
-      console.log(`❌ [EMAIL] FAIL: sendReservationEmails error=${error.message}`);
+      console.log(`❌ [EMAIL] ERROR: reservationId=${resId} | reason=${error.message}`);
     }
   }
 

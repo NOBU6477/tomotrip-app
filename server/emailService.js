@@ -8,6 +8,7 @@ class EmailService {
     this.resendApiKey = process.env.RESEND_API_KEY;
     this.fromEmail = process.env.EMAIL_FROM || 'noreply@tomotrip.com';
     this.fromName = process.env.EMAIL_FROM_NAME || 'TomoTrip';
+    this.isProduction = process.env.NODE_ENV === 'production' || process.env.REPL_SLUG;
     
     if (this.sendgridApiKey) {
       this.provider = 'sendgrid';
@@ -16,9 +17,21 @@ class EmailService {
       this.provider = 'resend';
       console.log('✅ Email service initialized with Resend');
     } else {
-      this.provider = 'simulation';
-      console.log('📧 Email service running in SIMULATION mode (emails logged to console)');
+      if (this.isProduction) {
+        console.log('❌ [EMAIL] FAIL: missing env SENDGRID_API_KEY (production requires real provider)');
+        this.provider = 'disabled';
+      } else {
+        this.provider = 'simulation';
+        console.log('📧 Email service running in SIMULATION mode (development only)');
+      }
     }
+  }
+  
+  validateProductionConfig() {
+    if (this.isProduction && this.provider === 'disabled') {
+      return { valid: false, error: 'MISSING_EMAIL_PROVIDER' };
+    }
+    return { valid: true };
   }
 
   async sendEmail(to, subject, htmlContent, textContent) {
@@ -30,7 +43,11 @@ class EmailService {
       text: textContent || this.stripHtml(htmlContent)
     };
 
-    if (this.provider === 'simulation') {
+    if (this.provider === 'disabled') {
+      const maskEmail = (e) => e ? `***@${e.split('@')[1] || 'unknown'}` : 'none';
+      console.log(`❌ [EMAIL] SKIP: to=${maskEmail(to)} | provider=disabled (no API key in production)`);
+      return { success: false, error: 'EMAIL_PROVIDER_DISABLED', provider: 'disabled' };
+    } else if (this.provider === 'simulation') {
       return this.simulateSend(emailData);
     } else if (this.provider === 'sendgrid') {
       return this.sendWithSendGrid(emailData);
