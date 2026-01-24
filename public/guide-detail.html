@@ -149,7 +149,8 @@
         <div class="guide-header">
             <div class="row align-items-center">
                 <div class="col-md-3 text-center">
-                    <img id="guideProfileImg" src="" alt="ガイドプロフィール" class="guide-profile-img">
+                    <img id="guideProfileImg" src="" alt="ガイドプロフィール" class="guide-profile-img"
+                         onerror="this.onerror=null; this.src='/assets/images/default-avatar.jpg';">
                 </div>
                 <div class="col-md-6">
                     <h1 id="guideName" class="display-5 fw-bold mb-3"></h1>
@@ -556,7 +557,7 @@
                 // Keep public profile information
                 id: guide.id,
                 name: guide.name || guide.guideName,
-                profileImage: guide.profilePhoto || guide.profileImage,
+                profileImage: guide.profileImageUrl || guide.profilePhoto || guide.profileImage,
                 location: guide.location || guide.city || 'tokyo',
                 introduction: guide.introduction || guide.guideIntroduction,
                 experience: guide.experience || guide.guideExperience,
@@ -583,7 +584,12 @@
             
             // Basic info (personal information excluded for tourist view)
             document.getElementById('guideName').textContent = guide.name || '名前未設定';
-            document.getElementById('guideProfileImg').src = guide.profileImage || '/assets/images/default-avatar.jpg';
+            // 画像URL正規化
+            let imgSrc = guide.profileImage || '/assets/images/default-avatar.jpg';
+            if (imgSrc && !imgSrc.startsWith('http') && !imgSrc.startsWith('/')) {
+                imgSrc = '/' + imgSrc;
+            }
+            document.getElementById('guideProfileImg').src = imgSrc;
             document.getElementById('guideLocation').innerHTML = `<i class="bi bi-geo-alt me-2"></i>${guide.location || '場所未設定'}`;
             document.getElementById('guidePrice').textContent = guide.sessionRate || guide.price || '0';
             

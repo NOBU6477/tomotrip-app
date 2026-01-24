@@ -149,7 +149,8 @@
         <div class="guide-header">
             <div class="row align-items-center">
                 <div class="col-md-3 text-center">
-                    <img id="guideProfileImg" src="" alt="Guide Profile" class="guide-profile-img">
+                    <img id="guideProfileImg" src="" alt="Guide Profile" class="guide-profile-img"
+                         onerror="this.onerror=null; this.src='/assets/images/default-avatar.jpg';">
                 </div>
                 <div class="col-md-6">
                     <h1 id="guideName" class="display-5 fw-bold mb-3"></h1>
@@ -536,7 +537,12 @@
         // Display guide data
         function displayGuideData(guide) {
             // Profile image
-            document.getElementById('guideProfileImg').src = guide.photoURL || 'https://via.placeholder.com/200';
+            // Normalize image URL
+            let imgSrc = guide.profileImageUrl || guide.profilePhoto || guide.photoURL || '/assets/images/default-avatar.jpg';
+            if (imgSrc && !imgSrc.startsWith('http') && !imgSrc.startsWith('/')) {
+                imgSrc = '/' + imgSrc;
+            }
+            document.getElementById('guideProfileImg').src = imgSrc;
             
             // Basic info
             document.getElementById('guideName').textContent = guide.guideName || 'Guide Name';

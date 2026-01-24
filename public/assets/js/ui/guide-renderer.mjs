@@ -724,13 +724,29 @@ export function createGuideCardHTML(guide) {
   const defaultImageIndex = ((guide.id?.charCodeAt(0) || 1) % 5) + 1; // 1-5のバリエーション
   const defaultImage = `/assets/img/guides/default-${defaultImageIndex}.svg`;
   
-  const photoSrc = guide.profileImageUrl
-    ? guide.profileImageUrl
-    : (guide.profilePhoto?.profileImageUrl
-      ? guide.profilePhoto.profileImageUrl
-      : (guide.profilePhoto
-        ? (String(guide.profilePhoto).startsWith('http') ? guide.profilePhoto : `/uploads/${guide.profilePhoto}`)
-        : defaultImage));
+  // 画像URL正規化関数
+  const normalizeImageUrl = (url) => {
+    if (!url || url === 'null' || url === 'undefined') return null;
+    const urlStr = String(url).trim();
+    if (!urlStr) return null;
+    if (urlStr.startsWith('http://') || urlStr.startsWith('https://')) return urlStr;
+    if (urlStr.startsWith('/')) return urlStr;
+    return '/' + urlStr;
+  };
+  
+  let photoSrc = normalizeImageUrl(guide.profileImageUrl);
+  if (!photoSrc) {
+    photoSrc = normalizeImageUrl(guide.profilePhoto?.profileImageUrl);
+  }
+  if (!photoSrc && guide.profilePhoto) {
+    const photo = String(guide.profilePhoto).trim();
+    if (photo && photo !== 'null' && photo !== 'undefined') {
+      photoSrc = photo.startsWith('http') ? photo : `/uploads/${photo}`;
+    }
+  }
+  if (!photoSrc) {
+    photoSrc = defaultImage;
+  }
 
   // 価格表記
   const priceNum = Number(guide.sessionRate || guide.guideSessionRate || guide.price || 0);
@@ -778,7 +794,7 @@ export function createGuideCardHTML(guide) {
         <img src="${photoSrc}" class="card-img-top"
              style="height:200px; object-fit:cover;"
              alt="${nameToShow}"
-             onerror="this.src='assets/img/guides/default-1.svg';">
+             onerror="this.onerror=null; this.src='/assets/img/guides/default-${defaultImageIndex}.svg';">
 
         <div class="card-body d-flex flex-column">
           <!-- タイトルは1つだけ（重複表示を解消） -->

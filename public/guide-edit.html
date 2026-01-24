@@ -109,7 +109,8 @@
                             <div class="profile-photo-container mb-3">
                                 <img id="profilePhotoPreview" src="/assets/images/default-guide.jpg" 
                                      class="rounded-circle border" width="120" height="120" 
-                                     style="object-fit: cover;">
+                                     style="object-fit: cover;"
+                                     onerror="this.onerror=null; this.src='/assets/images/default-guide.jpg';">
                                 <div class="mt-2">
                                     <input type="file" id="profilePhotoInput" class="d-none" accept="image/*">
                                     <button class="btn btn-sm edit-btn" onclick="document.getElementById('profilePhotoInput').click()">
@@ -507,9 +508,21 @@
                 });
             }
             
-            // プロフィール写真設定
-            if (guide.profilePhoto && guide.profilePhoto.fileName) {
-                document.getElementById('profilePhotoPreview').src = `/uploads/${guide.profilePhoto.fileName}`;
+            // プロフィール写真設定（profileImageUrl優先）
+            const imgEl = document.getElementById('profilePhotoPreview');
+            let photoUrl = null;
+            
+            // 優先順位: profileImageUrl > profilePhoto.fileName > profilePhoto (文字列)
+            if (guide.profileImageUrl && guide.profileImageUrl !== 'null') {
+                photoUrl = guide.profileImageUrl.startsWith('/') ? guide.profileImageUrl : '/' + guide.profileImageUrl;
+            } else if (guide.profilePhoto && guide.profilePhoto.fileName) {
+                photoUrl = `/uploads/${guide.profilePhoto.fileName}`;
+            } else if (guide.profilePhoto && typeof guide.profilePhoto === 'string' && guide.profilePhoto !== 'null') {
+                photoUrl = guide.profilePhoto.startsWith('/') ? guide.profilePhoto : `/uploads/${guide.profilePhoto}`;
+            }
+            
+            if (photoUrl) {
+                imgEl.src = photoUrl;
             }
         }
 
