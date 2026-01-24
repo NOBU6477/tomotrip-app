@@ -135,6 +135,99 @@ class EmailService {
     return html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
   }
 
+  async sendEmailWithReplyTo(to, subject, htmlContent, textContent, replyTo) {
+    const emailData = {
+      to,
+      from: `${this.fromName} <${this.fromEmail}>`,
+      subject,
+      html: htmlContent,
+      text: textContent || this.stripHtml(htmlContent),
+      replyTo
+    };
+
+    if (this.provider === 'disabled') {
+      const maskEmail = (e) => e ? `***@${e.split('@')[1] || 'unknown'}` : 'none';
+      console.log(`❌ [EMAIL] SKIP: to=${maskEmail(to)} | provider=disabled (no API key in production)`);
+      return { success: false, error: 'EMAIL_PROVIDER_DISABLED', provider: 'disabled' };
+    } else if (this.provider === 'simulation') {
+      return this.simulateSend(emailData);
+    } else if (this.provider === 'sendgrid') {
+      return this.sendWithSendGridReplyTo(emailData);
+    } else if (this.provider === 'resend') {
+      return this.sendWithResendReplyTo(emailData);
+    }
+  }
+
+  async sendWithSendGridReplyTo(emailData) {
+    try {
+      const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.sendgridApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          personalizations: [{ to: [{ email: emailData.to }] }],
+          from: { email: this.fromEmail, name: this.fromName },
+          reply_to: emailData.replyTo ? { email: emailData.replyTo } : undefined,
+          subject: emailData.subject,
+          content: [
+            { type: 'text/plain', value: emailData.text },
+            { type: 'text/html', value: emailData.html }
+          ]
+        })
+      });
+
+      const maskEmail = (e) => e ? `***@${e.split('@')[1] || 'unknown'}` : 'none';
+      if (response.ok || response.status === 202) {
+        const messageId = response.headers.get('x-message-id') || 'SG-' + Date.now();
+        console.log(`✅ [EMAIL] OK: to=${maskEmail(emailData.to)} | replyTo=${maskEmail(emailData.replyTo)} | provider=sendgrid | msgId=${messageId}`);
+        return { success: true, messageId, provider: 'sendgrid' };
+      } else {
+        const error = await response.text();
+        console.log(`❌ [EMAIL] FAIL: to=${maskEmail(emailData.to)} | provider=sendgrid | error=${error.substring(0, 100)}`);
+        return { success: false, error, provider: 'sendgrid' };
+      }
+    } catch (error) {
+      console.log(`❌ [EMAIL] FAIL: provider=sendgrid | error=${error.message}`);
+      return { success: false, error: error.message, provider: 'sendgrid' };
+    }
+  }
+
+  async sendWithResendReplyTo(emailData) {
+    try {
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.resendApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: emailData.from,
+          to: emailData.to,
+          reply_to: emailData.replyTo,
+          subject: emailData.subject,
+          html: emailData.html,
+          text: emailData.text
+        })
+      });
+
+      const result = await response.json();
+      const maskEmail = (e) => e ? `***@${e.split('@')[1] || 'unknown'}` : 'none';
+      
+      if (response.ok) {
+        console.log(`✅ [EMAIL] OK: to=${maskEmail(emailData.to)} | replyTo=${maskEmail(emailData.replyTo)} | provider=resend | msgId=${result.id}`);
+        return { success: true, messageId: result.id, provider: 'resend' };
+      } else {
+        console.log(`❌ [EMAIL] FAIL: to=${maskEmail(emailData.to)} | provider=resend | error=${JSON.stringify(result).substring(0, 100)}`);
+        return { success: false, error: result, provider: 'resend' };
+      }
+    } catch (error) {
+      console.log(`❌ [EMAIL] FAIL: provider=resend | error=${error.message}`);
+      return { success: false, error: error.message, provider: 'resend' };
+    }
+  }
+
   formatDate(dateStr) {
     const date = new Date(dateStr);
     return date.toLocaleDateString('ja-JP', {

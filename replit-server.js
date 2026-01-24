@@ -18,6 +18,7 @@ const { adminAPIService } = require("./server/adminAPI");
 const { requireRole } = require("./server/rbac");
 const { supabaseAPIService, isSupabaseConfigured } = require("./server/supabaseAPI");
 const { extensionRequestAPIService } = require("./server/extensionRequestAPI");
+const { contactAPIService } = require("./server/contactAPI");
 
 // Setup multer for file uploads
 const upload = multer({
@@ -247,6 +248,9 @@ reservationAPIService.setupRoutes(app);
 
 // Setup Extension Request API routes
 extensionRequestAPIService.setupRoutes(app);
+
+// Setup Contact Form API routes
+contactAPIService.initRoutes(app);
 
 // Setup Supabase API routes (external form submissions)
 supabaseAPIService.setupRoutes(app);
