@@ -1,4 +1,4 @@
-const EmailService = require('./emailService');
+const { EmailService } = require('./emailService');
 
 class ContactAPIService {
   constructor() {
