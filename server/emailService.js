@@ -1,35 +1,52 @@
 // Email Service for TomoTrip - 予約自動メール配信
 // Supports: SendGrid, Resend, or Simulation Mode
-const fetch = require('node-fetch');
+const fetch = require("node-fetch");
 
 class EmailService {
   constructor() {
-    this.sendgridApiKey = process.env.SENDGRID_API_KEY;
-    this.resendApiKey = process.env.RESEND_API_KEY;
-    this.fromEmail = process.env.EMAIL_FROM || 'noreply@tomotrip.com';
-    this.fromName = process.env.EMAIL_FROM_NAME || 'TomoTrip';
-    this.isProduction = process.env.NODE_ENV === 'production' || process.env.REPL_SLUG;
-    
+    this.sendgridApiKey = (process.env.SENDGRID_API_KEY || "").trim();
+    this.resendApiKey = (process.env.RESEND_API_KEY || "").trim();
+
+    // ✅ FROM は必ず Secrets の EMAIL_FROM を使う（フォールバック禁止）
+    this.fromEmail = (process.env.EMAIL_FROM || "").trim();
+    this.fromName = (process.env.EMAIL_FROM_NAME || "TomoTrip").trim();
+
+    // Replit公開時の判定にも使える
+    this.isProduction =
+      process.env.NODE_ENV === "production" || !!process.env.REPL_SLUG;
+
+    // FROM が無いのは即アウト（SendGrid/Resend以前の問題）
+    if (!this.fromEmail) {
+      console.log("❌ [EMAIL] FAIL: missing env EMAIL_FROM");
+      // 本番でも開発でも気づけるように止める
+      throw new Error("MISSING_EMAIL_FROM");
+    }
+
+    // provider決定（この判定は constructor 内に1回だけ）
     if (this.sendgridApiKey) {
-      this.provider = 'sendgrid';
-      console.log('✅ Email service initialized with SendGrid');
+      this.provider = "sendgrid";
+      console.log("✅ Email service initialized with SendGrid");
     } else if (this.resendApiKey) {
-      this.provider = 'resend';
-      console.log('✅ Email service initialized with Resend');
+      this.provider = "resend";
+      console.log("✅ Email service initialized with Resend");
     } else {
       if (this.isProduction) {
-        console.log('❌ [EMAIL] FAIL: missing env SENDGRID_API_KEY (production requires real provider)');
-        this.provider = 'disabled';
+        console.log(
+          "❌ [EMAIL] FAIL: missing env SENDGRID_API_KEY / RESEND_API_KEY (production requires real provider)",
+        );
+        this.provider = "disabled";
       } else {
-        this.provider = 'simulation';
-        console.log('📧 Email service running in SIMULATION mode (development only)');
+        this.provider = "simulation";
+        console.log(
+          "🧪 Email service running in SIMULATION mode (development only)",
+        );
       }
     }
   }
-  
+
   validateProductionConfig() {
-    if (this.isProduction && this.provider === 'disabled') {
-      return { valid: false, error: 'MISSING_EMAIL_PROVIDER' };
+    if (this.isProduction && this.provider === "disabled") {
+      return { valid: false, error: "MISSING_EMAIL_PROVIDER" };
     }
     return { valid: true };
   }
@@ -40,99 +57,125 @@ class EmailService {
       from: `${this.fromName} <${this.fromEmail}>`,
       subject,
       html: htmlContent,
-      text: textContent || this.stripHtml(htmlContent)
+      text: textContent || this.stripHtml(htmlContent),
     };
 
-    if (this.provider === 'disabled') {
-      const maskEmail = (e) => e ? `***@${e.split('@')[1] || 'unknown'}` : 'none';
-      console.log(`❌ [EMAIL] SKIP: to=${maskEmail(to)} | provider=disabled (no API key in production)`);
-      return { success: false, error: 'EMAIL_PROVIDER_DISABLED', provider: 'disabled' };
-    } else if (this.provider === 'simulation') {
+    if (this.provider === "disabled") {
+      const maskEmail = (e) =>
+        e ? `***@${e.split("@")[1] || "unknown"}` : "none";
+      console.log(
+        `❌ [EMAIL] SKIP: to=${maskEmail(to)} | provider=disabled (no API key in production)`,
+      );
+      return {
+        success: false,
+        error: "EMAIL_PROVIDER_DISABLED",
+        provider: "disabled",
+      };
+    } else if (this.provider === "simulation") {
       return this.simulateSend(emailData);
-    } else if (this.provider === 'sendgrid') {
+    } else if (this.provider === "sendgrid") {
       return this.sendWithSendGrid(emailData);
-    } else if (this.provider === 'resend') {
+    } else if (this.provider === "resend") {
       return this.sendWithResend(emailData);
     }
   }
 
   simulateSend(emailData) {
-    const maskEmail = (e) => e ? `***@${e.split('@')[1] || 'unknown'}` : 'none';
-    const messageId = 'SIM-' + Date.now();
-    console.log(`✅ [EMAIL] OK: to=${maskEmail(emailData.to)} | provider=simulation | msgId=${messageId}`);
-    return { success: true, messageId, provider: 'simulation' };
+    const maskEmail = (e) =>
+      e ? `***@${e.split("@")[1] || "unknown"}` : "none";
+    const messageId = "SIM-" + Date.now();
+    console.log(
+      `✅ [EMAIL] OK: to=${maskEmail(emailData.to)} | provider=simulation | msgId=${messageId}`,
+    );
+    return { success: true, messageId, provider: "simulation" };
   }
 
   async sendWithSendGrid(emailData) {
     try {
-      const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
-        method: 'POST',
+      const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${this.sendgridApiKey}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${this.sendgridApiKey}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           personalizations: [{ to: [{ email: emailData.to }] }],
           from: { email: this.fromEmail, name: this.fromName },
           subject: emailData.subject,
           content: [
-            { type: 'text/plain', value: emailData.text },
-            { type: 'text/html', value: emailData.html }
-          ]
-        })
+            { type: "text/plain", value: emailData.text },
+            { type: "text/html", value: emailData.html },
+          ],
+        }),
       });
 
-      const maskEmail = (e) => e ? `***@${e.split('@')[1] || 'unknown'}` : 'none';
+      const maskEmail = (e) =>
+        e ? `***@${e.split("@")[1] || "unknown"}` : "none";
       if (response.ok || response.status === 202) {
-        const messageId = response.headers.get('x-message-id') || 'SG-' + Date.now();
-        console.log(`✅ [EMAIL] OK: to=${maskEmail(emailData.to)} | provider=sendgrid | msgId=${messageId}`);
-        return { success: true, messageId, provider: 'sendgrid' };
+        const messageId =
+          response.headers.get("x-message-id") || "SG-" + Date.now();
+        console.log(
+          `✅ [EMAIL] OK: to=${maskEmail(emailData.to)} | provider=sendgrid | msgId=${messageId}`,
+        );
+        return { success: true, messageId, provider: "sendgrid" };
       } else {
         const error = await response.text();
-        console.log(`❌ [EMAIL] FAIL: to=${maskEmail(emailData.to)} | provider=sendgrid | error=${error.substring(0, 100)}`);
-        return { success: false, error, provider: 'sendgrid' };
+        console.log(
+          `❌ [EMAIL] FAIL: to=${maskEmail(emailData.to)} | provider=sendgrid | error=${error.substring(0, 100)}`,
+        );
+        return { success: false, error, provider: "sendgrid" };
       }
     } catch (error) {
-      console.log(`❌ [EMAIL] FAIL: provider=sendgrid | error=${error.message}`);
-      return { success: false, error: error.message, provider: 'sendgrid' };
+      console.log(
+        `❌ [EMAIL] FAIL: provider=sendgrid | error=${error.message}`,
+      );
+      return { success: false, error: error.message, provider: "sendgrid" };
     }
   }
 
   async sendWithResend(emailData) {
     try {
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${this.resendApiKey}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${this.resendApiKey}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           from: emailData.from,
           to: emailData.to,
           subject: emailData.subject,
           html: emailData.html,
-          text: emailData.text
-        })
+          text: emailData.text,
+        }),
       });
 
       const result = await response.json();
-      const maskEmail = (e) => e ? `***@${e.split('@')[1] || 'unknown'}` : 'none';
-      
+      const maskEmail = (e) =>
+        e ? `***@${e.split("@")[1] || "unknown"}` : "none";
+
       if (response.ok) {
-        console.log(`✅ [EMAIL] OK: to=${maskEmail(emailData.to)} | provider=resend | msgId=${result.id}`);
-        return { success: true, messageId: result.id, provider: 'resend' };
+        console.log(
+          `✅ [EMAIL] OK: to=${maskEmail(emailData.to)} | provider=resend | msgId=${result.id}`,
+        );
+        return { success: true, messageId: result.id, provider: "resend" };
       } else {
-        console.log(`❌ [EMAIL] FAIL: to=${maskEmail(emailData.to)} | provider=resend | error=${JSON.stringify(result).substring(0, 100)}`);
-        return { success: false, error: result, provider: 'resend' };
+        console.log(
+          `❌ [EMAIL] FAIL: to=${maskEmail(emailData.to)} | provider=resend | error=${JSON.stringify(result).substring(0, 100)}`,
+        );
+        return { success: false, error: result, provider: "resend" };
       }
     } catch (error) {
       console.log(`❌ [EMAIL] FAIL: provider=resend | error=${error.message}`);
-      return { success: false, error: error.message, provider: 'resend' };
+      return { success: false, error: error.message, provider: "resend" };
     }
   }
 
   stripHtml(html) {
-    return html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    return html
+      .replace(/<[^>]*>/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
   }
 
   async sendEmailWithReplyTo(to, subject, htmlContent, textContent, replyTo) {
@@ -142,65 +185,82 @@ class EmailService {
       subject,
       html: htmlContent,
       text: textContent || this.stripHtml(htmlContent),
-      replyTo
+      replyTo,
     };
 
-    if (this.provider === 'disabled') {
-      const maskEmail = (e) => e ? `***@${e.split('@')[1] || 'unknown'}` : 'none';
-      console.log(`❌ [EMAIL] SKIP: to=${maskEmail(to)} | provider=disabled (no API key in production)`);
-      return { success: false, error: 'EMAIL_PROVIDER_DISABLED', provider: 'disabled' };
-    } else if (this.provider === 'simulation') {
+    if (this.provider === "disabled") {
+      const maskEmail = (e) =>
+        e ? `***@${e.split("@")[1] || "unknown"}` : "none";
+      console.log(
+        `❌ [EMAIL] SKIP: to=${maskEmail(to)} | provider=disabled (no API key in production)`,
+      );
+      return {
+        success: false,
+        error: "EMAIL_PROVIDER_DISABLED",
+        provider: "disabled",
+      };
+    } else if (this.provider === "simulation") {
       return this.simulateSend(emailData);
-    } else if (this.provider === 'sendgrid') {
+    } else if (this.provider === "sendgrid") {
       return this.sendWithSendGridReplyTo(emailData);
-    } else if (this.provider === 'resend') {
+    } else if (this.provider === "resend") {
       return this.sendWithResendReplyTo(emailData);
     }
   }
 
   async sendWithSendGridReplyTo(emailData) {
     try {
-      const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
-        method: 'POST',
+      const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${this.sendgridApiKey}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${this.sendgridApiKey}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           personalizations: [{ to: [{ email: emailData.to }] }],
           from: { email: this.fromEmail, name: this.fromName },
-          reply_to: emailData.replyTo ? { email: emailData.replyTo } : undefined,
+          reply_to: emailData.replyTo
+            ? { email: emailData.replyTo }
+            : undefined,
           subject: emailData.subject,
           content: [
-            { type: 'text/plain', value: emailData.text },
-            { type: 'text/html', value: emailData.html }
-          ]
-        })
+            { type: "text/plain", value: emailData.text },
+            { type: "text/html", value: emailData.html },
+          ],
+        }),
       });
 
-      const maskEmail = (e) => e ? `***@${e.split('@')[1] || 'unknown'}` : 'none';
+      const maskEmail = (e) =>
+        e ? `***@${e.split("@")[1] || "unknown"}` : "none";
       if (response.ok || response.status === 202) {
-        const messageId = response.headers.get('x-message-id') || 'SG-' + Date.now();
-        console.log(`✅ [EMAIL] OK: to=${maskEmail(emailData.to)} | replyTo=${maskEmail(emailData.replyTo)} | provider=sendgrid | msgId=${messageId}`);
-        return { success: true, messageId, provider: 'sendgrid' };
+        const messageId =
+          response.headers.get("x-message-id") || "SG-" + Date.now();
+        console.log(
+          `✅ [EMAIL] OK: to=${maskEmail(emailData.to)} | replyTo=${maskEmail(emailData.replyTo)} | provider=sendgrid | msgId=${messageId}`,
+        );
+        return { success: true, messageId, provider: "sendgrid" };
       } else {
         const error = await response.text();
-        console.log(`❌ [EMAIL] FAIL: to=${maskEmail(emailData.to)} | provider=sendgrid | error=${error.substring(0, 100)}`);
-        return { success: false, error, provider: 'sendgrid' };
+        console.log(
+          `❌ [EMAIL] FAIL: to=${maskEmail(emailData.to)} | provider=sendgrid | error=${error.substring(0, 100)}`,
+        );
+        return { success: false, error, provider: "sendgrid" };
       }
     } catch (error) {
-      console.log(`❌ [EMAIL] FAIL: provider=sendgrid | error=${error.message}`);
-      return { success: false, error: error.message, provider: 'sendgrid' };
+      console.log(
+        `❌ [EMAIL] FAIL: provider=sendgrid | error=${error.message}`,
+      );
+      return { success: false, error: error.message, provider: "sendgrid" };
     }
   }
 
   async sendWithResendReplyTo(emailData) {
     try {
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${this.resendApiKey}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${this.resendApiKey}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           from: emailData.from,
@@ -208,39 +268,44 @@ class EmailService {
           reply_to: emailData.replyTo,
           subject: emailData.subject,
           html: emailData.html,
-          text: emailData.text
-        })
+          text: emailData.text,
+        }),
       });
 
       const result = await response.json();
-      const maskEmail = (e) => e ? `***@${e.split('@')[1] || 'unknown'}` : 'none';
-      
+      const maskEmail = (e) =>
+        e ? `***@${e.split("@")[1] || "unknown"}` : "none";
+
       if (response.ok) {
-        console.log(`✅ [EMAIL] OK: to=${maskEmail(emailData.to)} | replyTo=${maskEmail(emailData.replyTo)} | provider=resend | msgId=${result.id}`);
-        return { success: true, messageId: result.id, provider: 'resend' };
+        console.log(
+          `✅ [EMAIL] OK: to=${maskEmail(emailData.to)} | replyTo=${maskEmail(emailData.replyTo)} | provider=resend | msgId=${result.id}`,
+        );
+        return { success: true, messageId: result.id, provider: "resend" };
       } else {
-        console.log(`❌ [EMAIL] FAIL: to=${maskEmail(emailData.to)} | provider=resend | error=${JSON.stringify(result).substring(0, 100)}`);
-        return { success: false, error: result, provider: 'resend' };
+        console.log(
+          `❌ [EMAIL] FAIL: to=${maskEmail(emailData.to)} | provider=resend | error=${JSON.stringify(result).substring(0, 100)}`,
+        );
+        return { success: false, error: result, provider: "resend" };
       }
     } catch (error) {
       console.log(`❌ [EMAIL] FAIL: provider=resend | error=${error.message}`);
-      return { success: false, error: error.message, provider: 'resend' };
+      return { success: false, error: error.message, provider: "resend" };
     }
   }
 
   formatDate(dateStr) {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      weekday: 'long'
+    return date.toLocaleDateString("ja-JP", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      weekday: "long",
     });
   }
 
   async sendReservationConfirmationToCustomer(reservation, store) {
     const subject = `【TomoTrip】ご予約リクエストを受け付けました - ${store.storeName}`;
-    
+
     const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -288,11 +353,15 @@ class EmailService {
           <span class="detail-label">人数:</span>
           <span>${reservation.numberOfGuests}名様</span>
         </div>
-        ${reservation.notes ? `
+        ${
+          reservation.notes
+            ? `
         <div class="detail-row">
           <span class="detail-label">ご要望:</span>
           <span>${reservation.notes}</span>
-        </div>` : ''}
+        </div>`
+            : ""
+        }
       </div>
 
       <div class="note">
@@ -300,7 +369,7 @@ class EmailService {
       </div>
 
       <p>ご不明な点がございましたら、店舗まで直接お問い合わせください。</p>
-      ${store.phone ? `<p>店舗電話番号: <strong>${store.phone}</strong></p>` : ''}
+      ${store.phone ? `<p>店舗電話番号: <strong>${store.phone}</strong></p>` : ""}
       
       <p>素敵な旅のひとときをお過ごしください。</p>
     </div>
@@ -325,14 +394,14 @@ ${reservation.customerName} 様
 ご予約日: ${this.formatDate(reservation.reservationDate)}
 ご予約時間: ${reservation.reservationTime}
 人数: ${reservation.numberOfGuests}名様
-${reservation.notes ? `ご要望: ${reservation.notes}` : ''}
+${reservation.notes ? `ご要望: ${reservation.notes}` : ""}
 ━━━━━━━━━━━━━━━━━━━━
 
 ※ このメールは予約リクエストの受付確認です。
 ※ 店舗からの確認連絡をもって予約確定となります。
 
 ご不明な点がございましたら、店舗まで直接お問い合わせください。
-${store.phone ? `店舗電話番号: ${store.phone}` : ''}
+${store.phone ? `店舗電話番号: ${store.phone}` : ""}
 
 素敵な旅のひとときをお過ごしください。
 
@@ -341,16 +410,23 @@ TomoTrip - 沖縄の素敵な体験をあなたに
 `;
 
     if (!reservation.customerEmail) {
-      console.log('⚠️ Customer email not provided, skipping customer notification');
-      return { success: false, reason: 'no_email' };
+      console.log(
+        "⚠️ Customer email not provided, skipping customer notification",
+      );
+      return { success: false, reason: "no_email" };
     }
 
-    return this.sendEmail(reservation.customerEmail, subject, htmlContent, textContent);
+    return this.sendEmail(
+      reservation.customerEmail,
+      subject,
+      htmlContent,
+      textContent,
+    );
   }
 
   async sendReservationNotificationToStore(reservation, store) {
     const subject = `【新規予約】${reservation.customerName}様より予約リクエストがありました`;
-    
+
     const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -390,11 +466,15 @@ TomoTrip - 沖縄の素敵な体験をあなたに
           <span class="detail-label">人数:</span>
           <span>${reservation.numberOfGuests}名様</span>
         </div>
-        ${reservation.notes ? `
+        ${
+          reservation.notes
+            ? `
         <div class="detail-row">
           <span class="detail-label">お客様からのご要望:</span><br>
           <span>${reservation.notes}</span>
-        </div>` : ''}
+        </div>`
+            : ""
+        }
       </div>
 
       <div class="customer-box">
@@ -403,16 +483,24 @@ TomoTrip - 沖縄の素敵な体験をあなたに
           <span class="detail-label">お名前:</span>
           <span>${reservation.customerName}</span>
         </div>
-        ${reservation.customerEmail ? `
+        ${
+          reservation.customerEmail
+            ? `
         <div class="detail-row">
           <span class="detail-label">メール:</span>
           <span>${reservation.customerEmail}</span>
-        </div>` : ''}
-        ${reservation.customerPhone ? `
+        </div>`
+            : ""
+        }
+        ${
+          reservation.customerPhone
+            ? `
         <div class="detail-row">
           <span class="detail-label">電話番号:</span>
           <span>${reservation.customerPhone}</span>
-        </div>` : ''}
+        </div>`
+            : ""
+        }
       </div>
 
       <p>店舗ダッシュボードから予約の確認・管理を行ってください。</p>
@@ -445,14 +533,14 @@ ${store.storeName} 様
 ━━━━━━━━━━━━━━━━━━━━
 予約日時: ${this.formatDate(reservation.reservationDate)} ${reservation.reservationTime}
 人数: ${reservation.numberOfGuests}名様
-${reservation.notes ? `ご要望: ${reservation.notes}` : ''}
+${reservation.notes ? `ご要望: ${reservation.notes}` : ""}
 ━━━━━━━━━━━━━━━━━━━━
 
 ■ お客様情報
 ━━━━━━━━━━━━━━━━━━━━
 お名前: ${reservation.customerName}
-${reservation.customerEmail ? `メール: ${reservation.customerEmail}` : ''}
-${reservation.customerPhone ? `電話番号: ${reservation.customerPhone}` : ''}
+${reservation.customerEmail ? `メール: ${reservation.customerEmail}` : ""}
+${reservation.customerPhone ? `電話番号: ${reservation.customerPhone}` : ""}
 ━━━━━━━━━━━━━━━━━━━━
 
 対応が必要な項目:
@@ -467,8 +555,8 @@ TomoTrip 店舗パートナー向け通知
 `;
 
     if (!store.email) {
-      console.log('⚠️ Store email not found, skipping store notification');
-      return { success: false, reason: 'no_email' };
+      console.log("⚠️ Store email not found, skipping store notification");
+      return { success: false, reason: "no_email" };
     }
 
     return this.sendEmail(store.email, subject, htmlContent, textContent);
@@ -476,7 +564,7 @@ TomoTrip 店舗パートナー向け通知
 
   async sendGuideReservationConfirmation(reservation) {
     const subject = `【TomoTrip】ガイド予約リクエストを受け付けました`;
-    
+
     const htmlContent = `
 <!DOCTYPE html>
 <html>
@@ -504,7 +592,7 @@ TomoTrip 店舗パートナー向け通知
     </div>
     <div class="content">
       <p>${reservation.customerName} 様</p>
-      <p>この度は<strong>${reservation.guideName || 'ガイド'}</strong>へのご予約リクエストをいただき、誠にありがとうございます。</p>
+      <p>この度は<strong>${reservation.guideName || "ガイド"}</strong>へのご予約リクエストをいただき、誠にありがとうございます。</p>
       <p>以下の内容でご予約リクエストを承りました。ガイドからの確認連絡をお待ちください。</p>
       
       <div class="detail-box">
@@ -515,7 +603,7 @@ TomoTrip 店舗パートナー向け通知
         </div>
         <div class="detail-row">
           <span class="detail-label">ガイド名:</span>
-          <span>${reservation.guideName || 'ガイド'}</span>
+          <span>${reservation.guideName || "ガイド"}</span>
         </div>
         <div class="detail-row">
           <span class="detail-label">ご予約日:</span>
@@ -537,11 +625,15 @@ TomoTrip 店舗パートナー向け通知
           <span class="detail-label">メール:</span>
           <span>${reservation.customerEmail}</span>
         </div>
-        ${reservation.notes ? `
+        ${
+          reservation.notes
+            ? `
         <div class="detail-row">
           <span class="detail-label">ご要望:</span>
           <span>${reservation.notes}</span>
-        </div>` : ''}
+        </div>`
+            : ""
+        }
       </div>
 
       <div class="note">
@@ -565,17 +657,17 @@ TomoTrip 店舗パートナー向け通知
 
 ${reservation.customerName} 様
 
-この度は ${reservation.guideName || 'ガイド'} へのご予約リクエストをいただき、誠にありがとうございます。
+この度は ${reservation.guideName || "ガイド"} へのご予約リクエストをいただき、誠にありがとうございます。
 
 ■ ご予約内容
 予約ID: ${reservation.id}
-ガイド名: ${reservation.guideName || 'ガイド'}
+ガイド名: ${reservation.guideName || "ガイド"}
 ご予約日: ${this.formatDate(reservation.reservationDate)}
 ご予約時間: ${reservation.reservationTime}
 人数: ${reservation.numberOfGuests}名様
 連絡先電話: ${reservation.customerPhone}
 メール: ${reservation.customerEmail}
-${reservation.notes ? `ご要望: ${reservation.notes}` : ''}
+${reservation.notes ? `ご要望: ${reservation.notes}` : ""}
 
 ※このメールは予約リクエストの受付確認です。ガイドからの確認連絡をもって予約確定となります。
 
@@ -585,11 +677,18 @@ ${reservation.notes ? `ご要望: ${reservation.notes}` : ''}
 `;
 
     if (!reservation.customerEmail) {
-      console.log('⚠️ Customer email not provided, skipping guide reservation email');
-      return { success: false, reason: 'no_email' };
+      console.log(
+        "⚠️ Customer email not provided, skipping guide reservation email",
+      );
+      return { success: false, reason: "no_email" };
     }
 
-    return this.sendEmail(reservation.customerEmail, subject, htmlContent, textContent);
+    return this.sendEmail(
+      reservation.customerEmail,
+      subject,
+      htmlContent,
+      textContent,
+    );
   }
 }
 
