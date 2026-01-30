@@ -51,4 +51,3 @@ defaultBucketID = "replit-objstore-ffca8552-6aa5-41a1-a733-65b4ece4aaf4"
 [userenv]
 
 [userenv.shared]
-MAIL_FROM = "tomotrip50@gmail.com"
