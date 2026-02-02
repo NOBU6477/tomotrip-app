@@ -61,6 +61,10 @@ User confirmed correct understanding of guide display system:
 - **Reservation Management**: Full CRUD operations for reservations, status workflow (pending → confirmed → completed / cancelled), email notifications.
 - **Feature Flags**: System for enabling/disabling features like payouts and guide ranking.
 - **Extension Request System**: Tourists can request trip extensions. Guides approve/reject via dashboard.
+- **Contact Form System**: Multi-type contact form (guide/tourist/sponsor) with dual email delivery using Promise.all:
+    - Admin notification: Sent to info@tomotrip.com with Reply-To set to user's email
+    - Auto-reply: Sent to user with confirmation message and submitted content
+    - Route: `POST /api/contact` with validation (name, email format, message ≥10 chars, valid type)
 
 ## Database
 - **ORM**: Drizzle (prepared for PostgreSQL integration).
