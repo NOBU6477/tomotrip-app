@@ -78,7 +78,8 @@
 
                 <div class="contact-methods">
                     <div class="row">
-                        <div class="col-md-6 mb-4">
+                        <!-- メールお問い合わせ：3分岐 -->
+                        <div class="col-12 mb-4">
                             <div class="contact-card text-center h-100">
                                 <i class="bi bi-envelope-fill contact-icon"></i>
                                 <h5 class="fw-bold text-primary">
@@ -87,14 +88,26 @@
                                 <p class="text-muted mb-3">
                                     24時間受付・1営業日以内に回答
                                 </p>
-                                <a
-                                    href="/contact.html"
-                                    target="_blank"
-                                    class="btn btn-primary"
-                                >
-                                    <i class="bi bi-envelope me-2"></i
-                                    >メールを送る
-                                </a>
+                                <div class="d-flex flex-column flex-md-row justify-content-center gap-2">
+                                    <a
+                                        href="/contact.html?type=tourist"
+                                        class="btn btn-primary"
+                                    >
+                                        <i class="bi bi-person me-1"></i>観光客の方
+                                    </a>
+                                    <a
+                                        href="/contact.html?type=guide"
+                                        class="btn btn-success"
+                                    >
+                                        <i class="bi bi-compass me-1"></i>ガイドの方
+                                    </a>
+                                    <a
+                                        href="/contact.html?type=sponsor"
+                                        class="btn btn-warning text-dark"
+                                    >
+                                        <i class="bi bi-building me-1"></i>協賛店の方
+                                    </a>
+                                </div>
                             </div>
                         </div>
 
