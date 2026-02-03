@@ -79,28 +79,34 @@ class ContactAPIService {
       font-size: 15px;
       margin-bottom: 20px;
     }
-    .section-title {
-      font-size: 13px;
-      font-weight: bold;
-      color: #555;
-      margin: 16px 0 8px 0;
-      padding-bottom: 4px;
-      border-bottom: 1px solid #eee;
-    }
-    .section-content {
+    .body-text {
       font-size: 14px;
-      margin: 0 0 16px 0;
-      padding-left: 8px;
+      margin-bottom: 20px;
+    }
+    .divider {
+      border: none;
+      border-top: 1px solid #ddd;
+      margin: 20px 0;
+    }
+    .info-block {
+      font-size: 14px;
+      margin: 12px 0;
+    }
+    .info-label {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .info-content {
+      margin: 0;
+      padding-left: 0;
       white-space: pre-wrap;
       word-break: break-word;
     }
     .notice {
       font-size: 12px;
-      color: #888;
+      color: #666;
       margin-top: 24px;
-      padding: 12px;
-      background: #fafafa;
-      border-radius: 4px;
+      line-height: 1.7;
     }
     .footer {
       font-size: 12px;
@@ -119,40 +125,58 @@ class ContactAPIService {
 <body>
   <div class="container">
     <div class="content">
-      <p class="greeting">
-        ${this.escapeHtml(data.name)} 様<br><br>
-        このたびは TomoTrip へお問い合わせいただき、<br>
+      <p class="greeting">${this.escapeHtml(data.name)} 様</p>
+      
+      <p class="body-text">
+        このたびは TomoTrip（旅友） へお問い合わせいただき、<br>
         誠にありがとうございます。
       </p>
       
-      <p style="font-size: 14px;">
-        以下の内容でお問い合わせを受け付けいたしました。<br>
-        内容を確認のうえ、担当者より順次ご連絡いたします。<br>
+      <p class="body-text">
+        以下の内容で、お問い合わせを受け付けいたしました。
+      </p>
+      
+      <p class="body-text">
+        内容を確認のうえ、必要に応じて<br>
+        担当者より順次ご連絡いたします。<br>
         今しばらくお待ちくださいませ。
       </p>
       
-      <div class="section-title">お名前</div>
-      <p class="section-content">${this.escapeHtml(data.name)}</p>
+      <hr class="divider">
       
-      <div class="section-title">メールアドレス</div>
-      <p class="section-content">${data.email}</p>
+      <div class="info-block">
+        <p class="info-label">【お名前】</p>
+        <p class="info-content">${this.escapeHtml(data.name)}</p>
+      </div>
       
-      <div class="section-title">お問い合わせ内容</div>
-      <p class="section-content">${this.escapeHtml(data.message)}</p>
+      <div class="info-block">
+        <p class="info-label">【メールアドレス】</p>
+        <p class="info-content">${data.email}</p>
+      </div>
+      
+      <div class="info-block">
+        <p class="info-label">【お問い合わせ内容】</p>
+        <p class="info-content">${this.escapeHtml(data.message)}</p>
+      </div>
+      
+      <hr class="divider">
       
       <div class="notice">
-        ※ このメールは自動送信されています。<br>
-        ※ ご返信いただいてもお答えできない場合がございます。<br>
-        　 追加のご質問は <a href="mailto:info@tomotrip.com">info@tomotrip.com</a> まで<br>
-        　 お気軽にご連絡ください。
+        <p style="margin: 0 0 8px 0;">※ このメールは自動送信されています。</p>
+        <p style="margin: 0 0 12px 0;">※ 本メールに直接ご返信いただいても、<br>
+        　お答えできない場合がございます。</p>
+        <p style="margin: 0;">ご不明点や追加のご質問がございましたら、<br>
+        下記までお気軽にご連絡ください。</p>
       </div>
       
       <div class="footer">
+        <p style="margin: 0 0 4px 0;">─────────────────</p>
         <p style="margin: 0 0 8px 0; font-weight: bold;">TomoTrip（旅友）</p>
         <p style="margin: 0;">
           公式サイト：<a href="https://tomotrip.com">https://tomotrip.com</a><br>
           お問い合わせ：<a href="mailto:info@tomotrip.com">info@tomotrip.com</a>
         </p>
+        <p style="margin: 4px 0 0 0;">─────────────────</p>
       </div>
     </div>
   </div>
@@ -161,36 +185,35 @@ class ContactAPIService {
 
     const text = `${data.name} 様
 
-このたびは TomoTrip へお問い合わせいただき、
+このたびは TomoTrip（旅友） へお問い合わせいただき、
 誠にありがとうございます。
 
-以下の内容でお問い合わせを受け付けいたしました。
-内容を確認のうえ、担当者より順次ご連絡いたします。
+以下の内容で、お問い合わせを受け付けいたしました。
+
+内容を確認のうえ、必要に応じて
+担当者より順次ご連絡いたします。
 今しばらくお待ちくださいませ。
 
-━━━━━━━━━━━━━━━━━━━━
-
-【お名前】
-${data.name}
-
-【メールアドレス】
-${data.email}
+─────────────────
+【お名前】 ${data.name}
+【メールアドレス】 ${data.email}
 
 【お問い合わせ内容】
 ${data.message}
-
-━━━━━━━━━━━━━━━━━━━━
+─────────────────
 
 ※ このメールは自動送信されています。
-※ ご返信いただいてもお答えできない場合がございます。
-   追加のご質問は info@tomotrip.com まで
-   お気軽にご連絡ください。
+※ 本メールに直接ご返信いただいても、
+　お答えできない場合がございます。
 
-━━━━━━━━━━━━━━━━━━━━
+ご不明点や追加のご質問がございましたら、
+下記までお気軽にご連絡ください。
+
+─────────────────
 TomoTrip（旅友）
 公式サイト：https://tomotrip.com
 お問い合わせ：info@tomotrip.com
-━━━━━━━━━━━━━━━━━━━━
+─────────────────
 `;
 
     return { html, text };
