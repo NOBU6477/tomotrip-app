@@ -39,76 +39,158 @@ class ContactAPIService {
     });
   }
 
+  getAutoReplySubject(type) {
+    const typeLabels = {
+      guide: 'ガイド',
+      tourist: '観光客',
+      sponsor: '協賛店'
+    };
+    const label = typeLabels[type] || '一般';
+    return `【TomoTrip｜${label}】お問い合わせありがとうございます`;
+  }
+
   buildAutoReplyContent(data) {
     const html = `
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.8; color: #333; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .content { background: #fff; padding: 20px; }
-    .divider { border-top: 1px solid #ccc; margin: 20px 0; }
-    .footer { font-size: 12px; color: #666; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ccc; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+      line-height: 1.8;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+    .container { 
+      max-width: 560px; 
+      margin: 0 auto; 
+      padding: 24px 16px;
+    }
+    .content { 
+      background: #fff; 
+      padding: 24px;
+      border-radius: 8px;
+    }
+    .greeting {
+      font-size: 15px;
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-size: 13px;
+      font-weight: bold;
+      color: #555;
+      margin: 16px 0 8px 0;
+      padding-bottom: 4px;
+      border-bottom: 1px solid #eee;
+    }
+    .section-content {
+      font-size: 14px;
+      margin: 0 0 16px 0;
+      padding-left: 8px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .notice {
+      font-size: 12px;
+      color: #888;
+      margin-top: 24px;
+      padding: 12px;
+      background: #fafafa;
+      border-radius: 4px;
+    }
+    .footer {
+      font-size: 12px;
+      color: #666;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid #ddd;
+      text-align: center;
+    }
+    .footer a {
+      color: #0077b6;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="content">
-      <p>このたびは TomoTrip へお問い合わせいただき、ありがとうございます。</p>
-      <p>以下の内容で、お問い合わせを受け付けました。</p>
+      <p class="greeting">
+        ${this.escapeHtml(data.name)} 様<br><br>
+        このたびは TomoTrip へお問い合わせいただき、<br>
+        誠にありがとうございます。
+      </p>
       
-      <div class="divider"></div>
+      <p style="font-size: 14px;">
+        以下の内容でお問い合わせを受け付けいたしました。<br>
+        内容を確認のうえ、担当者より順次ご連絡いたします。<br>
+        今しばらくお待ちくださいませ。
+      </p>
       
-      <p><strong>■ お名前</strong><br>${this.escapeHtml(data.name)}</p>
-      <p><strong>■ メールアドレス</strong><br>${data.email}</p>
-      <p><strong>■ お問い合わせ内容</strong><br><span style="white-space: pre-wrap;">${this.escapeHtml(data.message)}</span></p>
+      <div class="section-title">お名前</div>
+      <p class="section-content">${this.escapeHtml(data.name)}</p>
       
-      <div class="divider"></div>
+      <div class="section-title">メールアドレス</div>
+      <p class="section-content">${data.email}</p>
       
-      <p>内容を確認のうえ、必要に応じて担当者よりご連絡いたします。<br>今しばらくお待ちください。</p>
+      <div class="section-title">お問い合わせ内容</div>
+      <p class="section-content">${this.escapeHtml(data.message)}</p>
       
-      <p style="font-size: 13px; color: #666;">※このメールは自動送信されています。<br>※このメールに返信しても、回答できない場合があります。</p>
+      <div class="notice">
+        ※ このメールは自動送信されています。<br>
+        ※ ご返信いただいてもお答えできない場合がございます。<br>
+        　 追加のご質問は <a href="mailto:info@tomotrip.com">info@tomotrip.com</a> まで<br>
+        　 お気軽にご連絡ください。
+      </div>
       
       <div class="footer">
-        <p style="margin: 0;">────────────────────</p>
-        <p style="margin: 8px 0;">TomoTrip（旅友）<br>
-        公式サイト：<a href="https://tomotrip.com">https://tomotrip.com</a><br>
-        お問い合わせ：<a href="mailto:info@tomotrip.com">info@tomotrip.com</a></p>
-        <p style="margin: 0;">────────────────────</p>
+        <p style="margin: 0 0 8px 0; font-weight: bold;">TomoTrip（旅友）</p>
+        <p style="margin: 0;">
+          公式サイト：<a href="https://tomotrip.com">https://tomotrip.com</a><br>
+          お問い合わせ：<a href="mailto:info@tomotrip.com">info@tomotrip.com</a>
+        </p>
       </div>
     </div>
   </div>
 </body>
 </html>`;
 
-    const text = `このたびは TomoTrip へお問い合わせいただき、ありがとうございます。
+    const text = `${data.name} 様
 
-以下の内容で、お問い合わせを受け付けました。
+このたびは TomoTrip へお問い合わせいただき、
+誠にありがとうございます。
 
-────────────────────
-■ お名前
+以下の内容でお問い合わせを受け付けいたしました。
+内容を確認のうえ、担当者より順次ご連絡いたします。
+今しばらくお待ちくださいませ。
+
+━━━━━━━━━━━━━━━━━━━━
+
+【お名前】
 ${data.name}
 
-■ メールアドレス
+【メールアドレス】
 ${data.email}
 
-■ お問い合わせ内容
+【お問い合わせ内容】
 ${data.message}
-────────────────────
 
-内容を確認のうえ、必要に応じて担当者よりご連絡いたします。
-今しばらくお待ちください。
+━━━━━━━━━━━━━━━━━━━━
 
-※このメールは自動送信されています。
-※このメールに返信しても、回答できない場合があります。
+※ このメールは自動送信されています。
+※ ご返信いただいてもお答えできない場合がございます。
+   追加のご質問は info@tomotrip.com まで
+   お気軽にご連絡ください。
 
-────────────────────
+━━━━━━━━━━━━━━━━━━━━
 TomoTrip（旅友）
 公式サイト：https://tomotrip.com
 お問い合わせ：info@tomotrip.com
-────────────────────
+━━━━━━━━━━━━━━━━━━━━
 `;
 
     return { html, text };
@@ -251,7 +333,7 @@ UserAgent: ${data.userAgent || '不明'}
         const adminSubject = `${this.getSubjectPrefix(type, source)}お問い合わせ｜TomoTrip`;
         const { html: adminHtml, text: adminText } = this.buildEmailContent(contactData);
 
-        const autoReplySubject = '【TomoTrip】お問い合わせありがとうございます';
+        const autoReplySubject = this.getAutoReplySubject(type);
         const { html: autoReplyHtml, text: autoReplyText } = this.buildAutoReplyContent(contactData);
 
         const [adminEmailResult, autoReplyResult] = await Promise.all([
