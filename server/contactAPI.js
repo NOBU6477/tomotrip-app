@@ -59,6 +59,10 @@ class ContactAPIService {
   }
 
   buildAutoReplyContent(data, type = 'tourist') {
+    if (type === 'sponsor') {
+      return this.buildSponsorAutoReplyContent(data);
+    }
+    
     const greeting = this.getAutoReplyGreeting(type);
     
     const html = `
@@ -220,6 +224,178 @@ ${data.message}
 
 ご不明点や追加のご質問がございましたら、
 下記までお気軽にご連絡ください。
+
+─────────────────
+TomoTrip（旅友）
+公式サイト：https://tomotrip.com
+お問い合わせ：info@tomotrip.com
+─────────────────
+`;
+
+    return { html, text };
+  }
+
+  buildSponsorAutoReplyContent(data) {
+    const html = `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+      line-height: 1.8;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+    .container { 
+      max-width: 560px; 
+      margin: 0 auto; 
+      padding: 24px 16px;
+    }
+    .content { 
+      background: #fff; 
+      padding: 24px;
+      border-radius: 8px;
+    }
+    .greeting {
+      font-size: 15px;
+      margin-bottom: 20px;
+    }
+    .body-text {
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+    .divider {
+      border: none;
+      border-top: 1px solid #ddd;
+      margin: 20px 0;
+    }
+    .info-block {
+      font-size: 14px;
+      margin: 12px 0;
+    }
+    .info-label {
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .info-content {
+      margin: 0;
+      padding-left: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .notice {
+      font-size: 12px;
+      color: #666;
+      margin-top: 24px;
+      line-height: 1.7;
+    }
+    .footer {
+      font-size: 12px;
+      color: #666;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid #ddd;
+      text-align: center;
+    }
+    .footer a {
+      color: #0077b6;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="content">
+      <p class="greeting">${this.escapeHtml(data.name)} 様</p>
+      
+      <p class="body-text">
+        このたびは TomoTrip（旅友）へ<br>
+        協賛・掲載に関するお問い合わせをいただき、<br>
+        誠にありがとうございます。
+      </p>
+      
+      <p class="body-text">
+        以下の内容で、お問い合わせを受け付けいたしました。
+      </p>
+      
+      <p class="body-text">
+        内容を確認のうえ、<br>
+        担当者より原則 1〜2営業日以内に<br>
+        ご連絡いたします。
+      </p>
+      
+      <hr class="divider">
+      
+      <div class="info-block">
+        <p class="info-label">【ご担当者名】</p>
+        <p class="info-content">${this.escapeHtml(data.name)}</p>
+      </div>
+      
+      <div class="info-block">
+        <p class="info-label">【メールアドレス】</p>
+        <p class="info-content">${data.email}</p>
+      </div>
+      
+      <div class="info-block">
+        <p class="info-label">【お問い合わせ内容】</p>
+        <p class="info-content">${this.escapeHtml(data.message)}</p>
+      </div>
+      
+      <hr class="divider">
+      
+      <div class="notice">
+        <p style="margin: 0 0 8px 0;">※ 本メールは自動送信です。</p>
+        <p style="margin: 0 0 12px 0;">※ 本メールへ直接ご返信いただいても、<br>
+        　内容によっては対応できない場合がございます。</p>
+        <p style="margin: 0;">お急ぎの場合や追加のご相談がございましたら、<br>
+        下記までご連絡ください。</p>
+      </div>
+      
+      <div class="footer">
+        <p style="margin: 0 0 4px 0;">─────────────────</p>
+        <p style="margin: 0 0 8px 0; font-weight: bold;">TomoTrip（旅友）</p>
+        <p style="margin: 0;">
+          公式サイト：<a href="https://tomotrip.com">https://tomotrip.com</a><br>
+          お問い合わせ：<a href="mailto:info@tomotrip.com">info@tomotrip.com</a>
+        </p>
+        <p style="margin: 4px 0 0 0;">─────────────────</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`;
+
+    const text = `${data.name} 様
+
+このたびは TomoTrip（旅友）へ
+協賛・掲載に関するお問い合わせをいただき、
+誠にありがとうございます。
+
+以下の内容で、お問い合わせを受け付けいたしました。
+
+内容を確認のうえ、
+担当者より原則 1〜2営業日以内に
+ご連絡いたします。
+
+─────────────────
+【ご担当者名】 ${data.name}
+【メールアドレス】 ${data.email}
+
+【お問い合わせ内容】
+${data.message}
+─────────────────
+
+※ 本メールは自動送信です。
+※ 本メールへ直接ご返信いただいても、
+　内容によっては対応できない場合がございます。
+
+お急ぎの場合や追加のご相談がございましたら、
+下記までご連絡ください。
 
 ─────────────────
 TomoTrip（旅友）
