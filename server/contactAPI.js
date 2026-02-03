@@ -251,7 +251,7 @@ UserAgent: ${data.userAgent || '不明'}
         const adminSubject = `${this.getSubjectPrefix(type, source)}お問い合わせ｜TomoTrip`;
         const { html: adminHtml, text: adminText } = this.buildEmailContent(contactData);
 
-        const autoReplySubject = '【TomoTrip】お問い合わせありがとうございます（自動返信）';
+        const autoReplySubject = '【TomoTrip】お問い合わせありがとうございます';
         const { html: autoReplyHtml, text: autoReplyText } = this.buildAutoReplyContent(contactData);
 
         const [adminEmailResult, autoReplyResult] = await Promise.all([
