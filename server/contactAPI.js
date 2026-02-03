@@ -49,7 +49,18 @@ class ContactAPIService {
     return `【TomoTrip｜${label}】お問い合わせありがとうございます`;
   }
 
-  buildAutoReplyContent(data) {
+  getAutoReplyGreeting(type) {
+    const greetings = {
+      tourist: 'このたびは TomoTrip（旅友） へお問い合わせいただき、',
+      guide: 'このたびは TomoTrip（旅友）へお問い合わせ（ガイド向け）いただき、',
+      sponsor: 'このたびは TomoTrip（旅友）へお問い合わせ（協賛店向け）いただき、'
+    };
+    return greetings[type] || greetings.tourist;
+  }
+
+  buildAutoReplyContent(data, type = 'tourist') {
+    const greeting = this.getAutoReplyGreeting(type);
+    
     const html = `
 <!DOCTYPE html>
 <html lang="ja">
@@ -128,7 +139,7 @@ class ContactAPIService {
       <p class="greeting">${this.escapeHtml(data.name)} 様</p>
       
       <p class="body-text">
-        このたびは TomoTrip（旅友） へお問い合わせいただき、<br>
+        ${greeting}<br>
         誠にありがとうございます。
       </p>
       
@@ -183,9 +194,10 @@ class ContactAPIService {
 </body>
 </html>`;
 
+    const textGreeting = this.getAutoReplyGreeting(type).replace('、', '');
     const text = `${data.name} 様
 
-このたびは TomoTrip（旅友） へお問い合わせいただき、
+${textGreeting}
 誠にありがとうございます。
 
 以下の内容で、お問い合わせを受け付けいたしました。
@@ -357,7 +369,7 @@ UserAgent: ${data.userAgent || '不明'}
         const { html: adminHtml, text: adminText } = this.buildEmailContent(contactData);
 
         const autoReplySubject = this.getAutoReplySubject(type);
-        const { html: autoReplyHtml, text: autoReplyText } = this.buildAutoReplyContent(contactData);
+        const { html: autoReplyHtml, text: autoReplyText } = this.buildAutoReplyContent(contactData, type);
 
         const [adminEmailResult, autoReplyResult] = await Promise.all([
           this.emailService.sendEmailWithReplyTo(
