@@ -262,11 +262,12 @@ UserAgent: ${data.userAgent || '不明'}
             adminText,
             email
           ),
-          this.emailService.sendEmail(
+          this.emailService.sendEmailWithReplyTo(
             email,
             autoReplySubject,
             autoReplyHtml,
-            autoReplyText
+            autoReplyText,
+            this.contactEmail
           )
         ]).catch(error => {
           console.error(`❌ [CONTACT] Promise.all error: ${error.message}`);
