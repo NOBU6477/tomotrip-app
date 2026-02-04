@@ -39,7 +39,15 @@ class ContactAPIService {
     });
   }
 
-  getAutoReplySubject(type) {
+  getAutoReplySubject(type, lang = 'ja') {
+    if (lang === 'en') {
+      const enSubjects = {
+        tourist: 'Thank you for contacting TomoTrip – We have received your inquiry',
+        guide: 'Thank you for contacting TomoTrip – Guide inquiry received',
+        sponsor: 'Thank you for contacting TomoTrip – Partnership inquiry received'
+      };
+      return enSubjects[type] || enSubjects.tourist;
+    }
     const typeLabels = {
       guide: 'ガイド',
       tourist: '観光客',
@@ -58,7 +66,10 @@ class ContactAPIService {
     return greetings[type] || greetings.tourist;
   }
 
-  buildAutoReplyContent(data, type = 'tourist') {
+  buildAutoReplyContent(data, type = 'tourist', lang = 'ja') {
+    if (lang === 'en') {
+      return this.buildEnglishAutoReplyContent(data, type);
+    }
     if (type === 'sponsor') {
       return this.buildSponsorAutoReplyContent(data);
     }
@@ -407,6 +418,161 @@ TomoTrip（旅友）
     return { html, text };
   }
 
+  buildEnglishAutoReplyContent(data, type = 'tourist') {
+    const bodies = {
+      tourist: {
+        intro: `Thank you very much for contacting TomoTrip.
+We have successfully received your inquiry.
+
+Our team will carefully review your message and get back to you as soon as possible.
+Please note that depending on the content of your inquiry, it may take some time for us to respond.
+
+If you are requesting a local guide experience, we will:
+• Review your request details
+• Check guide availability
+• Contact you with the next steps`,
+        notes: `Important Notes:
+• Please make sure your email address is correct.
+• Our reply may be sent from a different domain.
+• Please check your spam or junk folder just in case.
+
+Thank you for your interest in experiencing local Okinawa with TomoTrip.
+We look forward to helping you create a memorable journey.`
+      },
+      guide: {
+        intro: `Thank you for your interest in becoming a guide with TomoTrip.
+We have successfully received your inquiry.
+
+Our team will review your message and registration details.
+If additional information is required, we may contact you for clarification.
+
+Next steps may include:
+• Confirmation of your information
+• Guidance on the registration process
+• Explanation of how guide activities and rewards work`,
+        notes: `Important Notes:
+• Please ensure your contact details are correct.
+• Our reply may arrive from a different email address.
+• Please check your spam folder if you do not see our response.
+
+We truly appreciate your willingness to share local experiences with travelers.
+Thank you for being part of the TomoTrip community.`
+      },
+      sponsor: {
+        intro: `Thank you for your interest in partnering with TomoTrip.
+We have successfully received your inquiry.
+
+Our team will carefully review your message and follow up with you.
+We may contact you to discuss:
+• Partnership details
+• Promotion opportunities
+• How TomoTrip connects travelers and local businesses`,
+        notes: `Important Notes:
+• Please confirm that your email address is correct.
+• Our reply may be sent from a different domain.
+• Please check your spam or junk folder if necessary.
+
+We look forward to exploring a meaningful partnership that supports
+local businesses and sustainable tourism.`
+      }
+    };
+
+    const content = bodies[type] || bodies.tourist;
+
+    const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.8;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+    .container { 
+      max-width: 560px; 
+      margin: 0 auto; 
+      padding: 24px 16px;
+    }
+    .content { 
+      background: #fff; 
+      padding: 24px;
+      border-radius: 8px;
+    }
+    .greeting {
+      font-size: 15px;
+      margin-bottom: 20px;
+    }
+    .body-text {
+      font-size: 14px;
+      margin-bottom: 20px;
+      white-space: pre-wrap;
+    }
+    .divider {
+      border: none;
+      border-top: 1px solid #ddd;
+      margin: 20px 0;
+    }
+    .footer {
+      font-size: 12px;
+      color: #666;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid #ddd;
+      text-align: center;
+    }
+    .footer a {
+      color: #0077b6;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="content">
+      <p class="greeting">Hello,</p>
+      
+      <p class="body-text">${content.intro.replace(/\n/g, '<br>')}</p>
+      
+      <p class="body-text">${content.notes.replace(/\n/g, '<br>')}</p>
+      
+      <hr class="divider">
+      
+      <div class="footer">
+        <p style="margin: 0 0 8px 0;">Best regards,</p>
+        <p style="margin: 0 0 8px 0; font-weight: bold;">TomoTrip Team</p>
+        <p style="margin: 0; font-style: italic;">Connecting travelers with local friends</p>
+        <p style="margin: 16px 0 0 0;">
+          <a href="https://tomotrip.com">https://tomotrip.com</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`;
+
+    const text = `Hello,
+
+${content.intro}
+
+${content.notes}
+
+Best regards,
+
+TomoTrip Team
+Connecting travelers with local friends
+
+https://tomotrip.com
+`;
+
+    return { html, text };
+  }
+
   buildEmailContent(data) {
     const typeLabels = {
       guide: 'ガイド',
@@ -508,7 +674,8 @@ UserAgent: ${data.userAgent || '不明'}
       
       try {
         const { type, source, name, email, phone, message, pageUrl, userAgent, lang: rawLang } = req.body;
-        const lang = rawLang || 'ja';
+        const normalizedLang = (rawLang || '').toString().trim().toLowerCase();
+        const lang = (normalizedLang === 'en' || normalizedLang === 'ja') ? normalizedLang : 'ja';
 
         if (!name || !email || !message || !type) {
           console.log(`❌ [CONTACT] FAIL reason=MISSING_REQUIRED_FIELDS email=${this.maskEmail(email)} 400`);
@@ -546,8 +713,8 @@ UserAgent: ${data.userAgent || '不明'}
         const adminSubject = `${this.getSubjectPrefix(type, source)}お問い合わせ｜TomoTrip`;
         const { html: adminHtml, text: adminText } = this.buildEmailContent(contactData);
 
-        const autoReplySubject = this.getAutoReplySubject(type);
-        const { html: autoReplyHtml, text: autoReplyText } = this.buildAutoReplyContent(contactData, type);
+        const autoReplySubject = this.getAutoReplySubject(type, lang);
+        const { html: autoReplyHtml, text: autoReplyText } = this.buildAutoReplyContent(contactData, type, lang);
 
         const [adminEmailResult, autoReplyResult] = await Promise.all([
           this.emailService.sendEmailWithReplyTo(
