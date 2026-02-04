@@ -307,6 +307,7 @@
             const form = document.getElementById('contactForm');
             const submitBtn = document.getElementById('submitBtn');
             const alertContainer = document.getElementById('alertContainer');
+            let isSubmitting = false;
             
             function showAlert(message, type) {
                 alertContainer.innerHTML = `
@@ -356,11 +357,17 @@
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
                 
+                if (isSubmitting) {
+                    console.log('[CONTACT] Submission already in progress, ignoring');
+                    return;
+                }
+                
                 if (!validateForm()) {
                     showAlert('入力内容を確認してください', 'danger');
                     return;
                 }
                 
+                isSubmitting = true;
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>送信中...';
                 
@@ -407,6 +414,7 @@
                     console.error('Contact form error:', error);
                     showAlert('通信エラーが発生しました。ネットワーク接続を確認してください。', 'danger');
                 } finally {
+                    isSubmitting = false;
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '送信する';
                 }

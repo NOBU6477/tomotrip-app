@@ -671,31 +671,34 @@ UserAgent: ${data.userAgent || '不明'}
   initRoutes(app) {
     app.post('/api/contact', async (req, res) => {
       const startTime = Date.now();
+      const requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
       
       try {
         const { type, source, name, email, phone, message, pageUrl, userAgent, lang: rawLang } = req.body;
         const normalizedLang = (rawLang || '').toString().trim().toLowerCase();
         const lang = (normalizedLang === 'en' || normalizedLang === 'ja') ? normalizedLang : 'ja';
 
+        console.log(`📩 [CONTACT] START ${requestId} type=${type} lang=${lang} email=${this.maskEmail(email)}`);
+
         if (!name || !email || !message || !type) {
-          console.log(`❌ [CONTACT] FAIL reason=MISSING_REQUIRED_FIELDS email=${this.maskEmail(email)} 400`);
-          return res.status(400).json({ success: false, error: 'MISSING_REQUIRED_FIELDS' });
+          console.log(`❌ [CONTACT] FAIL ${requestId} reason=MISSING_REQUIRED_FIELDS email=${this.maskEmail(email)} 400`);
+          return res.status(400).json({ success: false, error: 'MISSING_REQUIRED_FIELDS', requestId });
         }
 
         if (!this.validateEmail(email)) {
-          console.log(`❌ [CONTACT] FAIL reason=INVALID_EMAIL email=${this.maskEmail(email)} 400`);
-          return res.status(400).json({ success: false, error: 'INVALID_EMAIL' });
+          console.log(`❌ [CONTACT] FAIL ${requestId} reason=INVALID_EMAIL email=${this.maskEmail(email)} 400`);
+          return res.status(400).json({ success: false, error: 'INVALID_EMAIL', requestId });
         }
 
         if (message.trim().length < 10) {
-          console.log(`❌ [CONTACT] FAIL reason=MESSAGE_TOO_SHORT email=${this.maskEmail(email)} 400`);
-          return res.status(400).json({ success: false, error: 'MESSAGE_TOO_SHORT' });
+          console.log(`❌ [CONTACT] FAIL ${requestId} reason=MESSAGE_TOO_SHORT email=${this.maskEmail(email)} 400`);
+          return res.status(400).json({ success: false, error: 'MESSAGE_TOO_SHORT', requestId });
         }
 
         const validTypes = ['guide', 'tourist', 'sponsor'];
         if (!validTypes.includes(type)) {
-          console.log(`❌ [CONTACT] FAIL reason=INVALID_TYPE type=${type} 400`);
-          return res.status(400).json({ success: false, error: 'INVALID_TYPE' });
+          console.log(`❌ [CONTACT] FAIL ${requestId} reason=INVALID_TYPE type=${type} 400`);
+          return res.status(400).json({ success: false, error: 'INVALID_TYPE', requestId });
         }
 
         const contactData = {
@@ -732,7 +735,7 @@ UserAgent: ${data.userAgent || '不明'}
             this.contactEmail
           )
         ]).catch(error => {
-          console.error(`❌ [CONTACT] Promise.all error: ${error.message}`);
+          console.error(`❌ [CONTACT] ${requestId} Promise.all error: ${error.message}`);
           return [{ success: false, error: error.message }, { success: false, error: error.message }];
         });
 
@@ -740,20 +743,21 @@ UserAgent: ${data.userAgent || '不明'}
 
         if (adminEmailResult.success) {
           if (autoReplyResult.success) {
-            console.log(`✅ [CONTACT] OK type=${type} lang=${lang} source=${source || 'app'} email=${this.maskEmail(email)} admin=OK autoreply=OK 201 (${duration}ms)`);
+            console.log(`✅ [CONTACT] OK ${requestId} type=${type} lang=${lang} source=${source || 'app'} email=${this.maskEmail(email)} admin=OK autoreply=OK 201 (${duration}ms)`);
           } else {
-            console.error(`⚠️ [CONTACT] WARN: Auto-reply failed for ${this.maskEmail(email)}: ${autoReplyResult.error}`);
-            console.log(`✅ [CONTACT] OK type=${type} lang=${lang} source=${source || 'app'} email=${this.maskEmail(email)} admin=OK autoreply=FAIL 201 (${duration}ms)`);
+            console.error(`⚠️ [CONTACT] WARN ${requestId}: Auto-reply failed for ${this.maskEmail(email)}: ${autoReplyResult.error}`);
+            console.log(`✅ [CONTACT] OK ${requestId} type=${type} lang=${lang} source=${source || 'app'} email=${this.maskEmail(email)} admin=OK autoreply=FAIL 201 (${duration}ms)`);
           }
           return res.status(201).json({ 
             success: true, 
             mode: adminEmailResult.provider === 'simulation' ? 'simulation' : 'production',
             messageId: adminEmailResult.messageId,
-            autoReply: autoReplyResult.success
+            autoReply: autoReplyResult.success,
+            requestId
           });
         } else {
-          console.error(`❌ [CONTACT] FAIL reason=EMAIL_SEND_ERROR email=${this.maskEmail(email)} error=${adminEmailResult.error}`);
-          return res.status(500).json({ success: false, error: 'EMAIL_SEND_ERROR' });
+          console.error(`❌ [CONTACT] FAIL ${requestId} reason=EMAIL_SEND_ERROR email=${this.maskEmail(email)} error=${adminEmailResult.error}`);
+          return res.status(500).json({ success: false, error: 'EMAIL_SEND_ERROR', requestId });
         }
 
       } catch (error) {
