@@ -210,6 +210,7 @@
             <form id="contactForm" novalidate>
                 <input type="hidden" id="contactType" name="type" value="tourist">
                 <input type="hidden" id="contactSource" name="source" value="app">
+                <input type="hidden" id="contactLang" name="lang" value="ja">
                 
                 <div class="form-group">
                     <label class="form-label" for="name">
@@ -264,9 +265,11 @@
             const params = new URLSearchParams(window.location.search);
             const type = params.get('type') || 'tourist';
             const source = params.get('source') || 'app';
+            const lang = params.get('lang') || 'ja';
             
             document.getElementById('contactType').value = type;
             document.getElementById('contactSource').value = source;
+            document.getElementById('contactLang').value = lang;
             
             const typeConfig = {
                 guide: { 
@@ -364,6 +367,7 @@
                 const formData = {
                     type: document.getElementById('contactType').value,
                     source: document.getElementById('contactSource').value,
+                    lang: document.getElementById('contactLang').value,
                     name: document.getElementById('name').value.trim(),
                     email: document.getElementById('email').value.trim(),
                     phone: document.getElementById('phone').value.trim() || '',

@@ -507,7 +507,8 @@ UserAgent: ${data.userAgent || '不明'}
       const startTime = Date.now();
       
       try {
-        const { type, source, name, email, phone, message, pageUrl, userAgent } = req.body;
+        const { type, source, name, email, phone, message, pageUrl, userAgent, lang: rawLang } = req.body;
+        const lang = rawLang || 'ja';
 
         if (!name || !email || !message || !type) {
           console.log(`❌ [CONTACT] FAIL reason=MISSING_REQUIRED_FIELDS email=${this.maskEmail(email)} 400`);
@@ -533,6 +534,7 @@ UserAgent: ${data.userAgent || '不明'}
         const contactData = {
           type,
           source: source || 'app',
+          lang,
           name,
           email,
           phone,
@@ -571,10 +573,10 @@ UserAgent: ${data.userAgent || '不明'}
 
         if (adminEmailResult.success) {
           if (autoReplyResult.success) {
-            console.log(`✅ [CONTACT] OK type=${type} source=${source || 'app'} email=${this.maskEmail(email)} admin=OK autoreply=OK 201 (${duration}ms)`);
+            console.log(`✅ [CONTACT] OK type=${type} lang=${lang} source=${source || 'app'} email=${this.maskEmail(email)} admin=OK autoreply=OK 201 (${duration}ms)`);
           } else {
             console.error(`⚠️ [CONTACT] WARN: Auto-reply failed for ${this.maskEmail(email)}: ${autoReplyResult.error}`);
-            console.log(`✅ [CONTACT] OK type=${type} source=${source || 'app'} email=${this.maskEmail(email)} admin=OK autoreply=FAIL 201 (${duration}ms)`);
+            console.log(`✅ [CONTACT] OK type=${type} lang=${lang} source=${source || 'app'} email=${this.maskEmail(email)} admin=OK autoreply=FAIL 201 (${duration}ms)`);
           }
           return res.status(201).json({ 
             success: true, 
