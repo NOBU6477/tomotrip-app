@@ -41,7 +41,7 @@
     
     // Set build identifier for debugging - only if not already set by build-id.js
     if (!window.APP_BUILD_ID) {
-        window.APP_BUILD_ID = 'TomoTrip-v2026.01.18-FILTER-FIX-V5';
+        window.APP_BUILD_ID = 'TomoTrip-v2026.02.05-UI-UNIFIED';
     }
     console.info('%c[TomoTrip] BUILD ID:', 'color: #ff6b35; font-weight: bold;', window.APP_BUILD_ID);
     console.info('%c[Environment]:', 'color: #007bff;', location.href);
