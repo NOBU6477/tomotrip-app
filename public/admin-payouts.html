@@ -107,8 +107,8 @@
                         <input type="text" id="contribEvidence" class="form-control form-control-sm" placeholder="任意">
                     </div>
                     <div class="col-md-2" id="sourceIdGroup" style="display:none">
-                        <label class="form-label small">予約/チェックインID</label>
-                        <input type="text" id="contribSourceId" class="form-control form-control-sm" placeholder="任意">
+                        <label class="form-label small">予約/チェックインID（推奨）</label>
+                        <input type="text" id="contribSourceId" class="form-control form-control-sm" placeholder="例：booking-001">
                     </div>
                     <div class="col-md-1">
                         <button class="btn btn-primary btn-sm w-100" onclick="addContribution()">追加</button>
@@ -453,7 +453,14 @@
         };
         if (type === 'A') {
             const sid = document.getElementById('contribSourceId').value.trim();
-            if (sid) data.source_id = sid;
+            if (sid) {
+                data.source_id = sid;
+            } else {
+                if (!confirm('source_id（予約/チェックインID）が未入力です。未入力のまま登録しますか？（重複計上防止のため入力推奨）')) {
+                    document.getElementById('contribSourceId').focus();
+                    return;
+                }
+            }
         }
         if (!data.store_id || !data.guide_id || !data.month) return alert('必須項目を入力してください');
         const result = await adminFetch('/api/admin/payout-contributions', {
