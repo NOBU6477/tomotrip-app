@@ -44,6 +44,7 @@
             <a class="nav-link" data-tab="contributions" href="#"><i class="bi bi-journal-plus me-2"></i>貢献ログ</a>
             <a class="nav-link" data-tab="monthly" href="#"><i class="bi bi-calculator me-2"></i>月次処理</a>
             <a class="nav-link" data-tab="results" href="#"><i class="bi bi-table me-2"></i>配当結果</a>
+            <a class="nav-link" data-tab="guides" href="#"><i class="bi bi-person-badge me-2"></i>ガイド管理</a>
             <a class="nav-link" data-tab="settings" href="#"><i class="bi bi-gear me-2"></i>設定管理</a>
         </nav>
         <div class="p-3 mt-auto border-top border-secondary">
@@ -178,6 +179,63 @@
             </div>
         </div>
 
+        <div id="tab-guides" class="tab-section">
+            <h4 class="mb-3">ガイド管理（言語・連絡先・ダッシュボードリンク）</h4>
+            <div class="card p-3 mb-3">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-6">
+                        <label class="form-label small">ガイド選択</label>
+                        <select id="guideProfileSelect" class="form-select form-select-sm" onchange="loadGuideProfile()"></select>
+                    </div>
+                </div>
+            </div>
+            <div id="guideProfilePanel" class="d-none">
+                <div class="card p-3 mb-3">
+                    <h6 class="mb-3"><i class="bi bi-person me-1"></i> プロフィール設定</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label small">表示言語 (preferred_language)</label>
+                            <select id="gpLang" class="form-select form-select-sm">
+                                <option value="ja">日本語 (ja)</option>
+                                <option value="en">English (en)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">連絡方法 (contact_method)</label>
+                            <select id="gpContact" class="form-select form-select-sm">
+                                <option value="line">LINE</option>
+                                <option value="email">Email</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">メールアドレス</label>
+                            <input type="email" id="gpEmail" class="form-control form-control-sm" placeholder="guide@example.com">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-sm mt-3" onclick="saveGuideProfile()">
+                        <i class="bi bi-save me-1"></i>保存
+                    </button>
+                </div>
+                <div class="card p-3 mb-3">
+                    <h6 class="mb-3"><i class="bi bi-link-45deg me-1"></i> ダッシュボードリンク</h6>
+                    <div class="input-group mb-2">
+                        <span class="input-group-text small">URL</span>
+                        <input type="text" id="gpDashboardUrl" class="form-control form-control-sm" readonly>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="copyDashboardUrl()">
+                            <i class="bi bi-clipboard"></i> コピー
+                        </button>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <button class="btn btn-warning btn-sm" onclick="regenerateKey()">
+                            <i class="bi bi-arrow-repeat me-1"></i>リンクを再発行（旧リンク無効化）
+                        </button>
+                        <small class="text-muted">再発行すると以前のリンクは使えなくなります</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="tab-settings" class="tab-section">
             <h4 class="mb-3">設定管理</h4>
             <div id="settingsContainer"></div>
@@ -257,11 +315,14 @@
         await Promise.all([loadSelects(), loadFounders(), loadContributions(), loadSettings()]);
     }
 
+    let allGuidesCache = [];
+
     async function loadSelects() {
         const [stores, guides] = await Promise.all([
             adminFetch('/api/admin/payout-stores-list'),
             adminFetch('/api/admin/payout-guides-list')
         ]);
+        allGuidesCache = guides || [];
         const storeSelects = ['founderStoreSelect', 'contribStoreSelect'];
         const guideSelects = ['founderGuideSelect', 'contribGuideSelect'];
         storeSelects.forEach(id => {
@@ -281,6 +342,14 @@
                 o.value = g.id; o.textContent = g.guide_name || g.id;
                 sel.appendChild(o);
             });
+        });
+        const gpSel = document.getElementById('guideProfileSelect');
+        gpSel.innerHTML = '<option value="">ガイドを選択...</option>';
+        (guides||[]).forEach(g => {
+            const o = document.createElement('option');
+            o.value = g.id;
+            o.textContent = (g.guide_name || g.id) + ' [' + (g.preferred_language||'ja') + '/' + (g.contact_method||'line') + ']';
+            gpSel.appendChild(o);
         });
     }
 
@@ -428,6 +497,68 @@
             }
         }
         alert('設定を保存しました');
+    }
+
+    let currentGuideId = null;
+
+    async function loadGuideProfile() {
+        const guideId = document.getElementById('guideProfileSelect').value;
+        const panel = document.getElementById('guideProfilePanel');
+        if (!guideId) { panel.classList.add('d-none'); return; }
+        currentGuideId = guideId;
+        const cached = allGuidesCache.find(g => g.id === guideId);
+        if (cached) {
+            document.getElementById('gpLang').value = cached.preferred_language || 'ja';
+            document.getElementById('gpContact').value = cached.contact_method || 'line';
+            document.getElementById('gpEmail').value = cached.email || '';
+            updateDashboardUrl(cached.dashboard_key);
+        }
+        panel.classList.remove('d-none');
+    }
+
+    function updateDashboardUrl(key) {
+        const base = location.origin + '/guide-payouts.html?k=' + (key || '');
+        document.getElementById('gpDashboardUrl').value = base;
+    }
+
+    async function saveGuideProfile() {
+        if (!currentGuideId) return;
+        const data = {
+            preferred_language: document.getElementById('gpLang').value,
+            contact_method: document.getElementById('gpContact').value,
+            email: document.getElementById('gpEmail').value
+        };
+        const result = await adminFetch('/api/admin/guide-profile/' + currentGuideId, {
+            method: 'PUT', body: JSON.stringify(data)
+        });
+        if (result?.error) return alert(result.error);
+        alert('保存しました');
+        await loadSelects();
+        document.getElementById('guideProfileSelect').value = currentGuideId;
+    }
+
+    async function regenerateKey() {
+        if (!currentGuideId) return;
+        if (!confirm('ダッシュボードリンクを再発行しますか？\n以前のリンクは無効になります。')) return;
+        const result = await adminFetch('/api/admin/guide-dashboard-key/' + currentGuideId, {
+            method: 'POST'
+        });
+        if (result?.error) return alert(result.error);
+        updateDashboardUrl(result.dashboard_key);
+        alert('リンクを再発行しました');
+        await loadSelects();
+        document.getElementById('guideProfileSelect').value = currentGuideId;
+    }
+
+    function copyDashboardUrl() {
+        const url = document.getElementById('gpDashboardUrl').value;
+        navigator.clipboard.writeText(url).then(() => {
+            alert('URLをコピーしました');
+        }).catch(() => {
+            const input = document.getElementById('gpDashboardUrl');
+            input.select();
+            document.execCommand('copy');
+        });
     }
     </script>
 </body>

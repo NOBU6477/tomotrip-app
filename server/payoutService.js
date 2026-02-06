@@ -28,6 +28,44 @@ class PayoutService {
     return this.pool.query(text, params);
   }
 
+  async resolveGuideByKey(dashboardKey) {
+    const { rows } = await this.query(
+      'SELECT id, guide_name, preferred_language, contact_method, email FROM tourism_guides WHERE dashboard_key = $1',
+      [dashboardKey]
+    );
+    return rows[0] || null;
+  }
+
+  async regenerateDashboardKey(guideId) {
+    const newKey = require('crypto').randomBytes(24).toString('hex');
+    await this.query('UPDATE tourism_guides SET dashboard_key = $1, updated_at = NOW() WHERE id = $2', [newKey, guideId]);
+    return newKey;
+  }
+
+  async updateGuideProfile(guideId, fields) {
+    const allowed = ['preferred_language', 'contact_method', 'email'];
+    const sets = [];
+    const vals = [];
+    let idx = 1;
+    for (const [k, v] of Object.entries(fields)) {
+      if (allowed.includes(k)) {
+        sets.push(`${k} = $${idx++}`);
+        vals.push(v);
+      }
+    }
+    if (sets.length === 0) return;
+    vals.push(guideId);
+    await this.query(`UPDATE tourism_guides SET ${sets.join(', ')}, updated_at = NOW() WHERE id = $${idx}`, vals);
+  }
+
+  async getGuideProfileForAdmin(guideId) {
+    const { rows } = await this.query(
+      'SELECT id, guide_name, email, preferred_language, contact_method, dashboard_key FROM tourism_guides WHERE id = $1',
+      [guideId]
+    );
+    return rows[0] || null;
+  }
+
   async getSettings() {
     const { rows } = await this.query('SELECT key, value_json FROM payout_settings');
     const settings = {};

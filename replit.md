@@ -58,6 +58,8 @@ User confirmed correct understanding of guide display system:
 - **Architecture**: Comprehensive API endpoints, professional 404 error pages.
 - **Access Control**: Role-based access control (admin/store/guide) using RBAC middleware.
 - **Referral & Payout System**: Guide-to-sponsor-store referral tracking, guide ranking (Bronze/Silver/Gold/Platinum tiers), commission calculation, monthly payout display.
+- **Guide Payout Model**: Perpetual (¥1,000/store) + Contribution (¥4,000/store) monthly batch processing. Rank scoring (S/A/B/C), rookie protection, demotion cap. Dashboard key authentication for nationality-independent access.
+- **Multinational Guide Support**: Dashboard key magic links (no LINE dependency), i18n dictionary (ja/en) for guide payout dashboard, preferred_language/contact_method per guide, admin guide profile management.
 - **Reservation Management**: Full CRUD operations for reservations, status workflow (pending → confirmed → completed / cancelled), email notifications.
 - **Feature Flags**: System for enabling/disabling features like payouts and guide ranking.
 - **Extension Request System**: Tourists can request trip extensions. Guides approve/reject via dashboard.

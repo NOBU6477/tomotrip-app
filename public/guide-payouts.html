@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <title>TomoTrip - ガイド配当ダッシュボード</title>
+    <title id="pageTitle">TomoTrip - ガイド配当ダッシュボード</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
-        body { background: #f8f9fa; font-family: 'Hiragino Kaku Gothic ProN', sans-serif; }
+        body { background: #f8f9fa; font-family: 'Hiragino Kaku Gothic ProN', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
         .card-stat { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); transition: transform 0.2s; }
         .card-stat:hover { transform: translateY(-2px); }
         .rank-badge { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 50%; font-size: 1.5rem; font-weight: 700; color: #fff; }
@@ -19,12 +19,12 @@
         .amount-large { font-size: 2rem; font-weight: 700; }
         .amount-perpetual { color: #28a745; }
         .amount-contrib { color: #007bff; }
-        .history-bar { height: 8px; border-radius: 4px; background: #e9ecef; overflow: hidden; }
-        .history-bar-fill { height: 100%; border-radius: 4px; }
         .type-badge-A { background: #dc3545; color: #fff; }
         .type-badge-B { background: #fd7e14; color: #fff; }
         .type-badge-C { background: #20c997; color: #fff; }
         .navbar-brand img { height: 40px; }
+        .lang-btn { cursor: pointer; font-size: 0.85rem; padding: 4px 12px; border-radius: 20px; border: 1px solid #dee2e6; background: #fff; }
+        .lang-btn:hover { background: #f0f0f0; }
     </style>
 </head>
 <body>
@@ -32,9 +32,10 @@
         <div class="container">
             <a class="navbar-brand d-flex align-items-center gap-2" href="/">
                 <img src="assets/images/tomotrip-logo.png" alt="TomoTrip">
-                <span class="fw-bold">配当ダッシュボード</span>
+                <span class="fw-bold" data-i18n="nav_title">配当ダッシュボード</span>
             </a>
             <div class="d-flex align-items-center gap-3">
+                <button class="lang-btn" id="langToggle" onclick="toggleLang()"></button>
                 <select id="monthSelect" class="form-select form-select-sm" style="width:auto;"></select>
                 <span id="guideName" class="fw-bold text-muted"></span>
             </div>
@@ -42,35 +43,44 @@
     </nav>
 
     <div class="container pb-5">
-        <div id="noGuide" class="alert alert-warning d-none">
-            ガイドIDが指定されていません。URLに <code>?guide_id=xxx</code> を追加してください。
+        <div id="loadingMsg" class="text-center py-5 d-none">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted" data-i18n="loading">読み込み中...</p>
+        </div>
+
+        <div id="noKey" class="alert alert-warning d-none" data-i18n="no_key">
+            アクセスリンクが指定されていません。登録時に届いたリンクからアクセスしてください。
+        </div>
+
+        <div id="invalidKey" class="alert alert-danger d-none" data-i18n="invalid_link">
+            このリンクは無効です。正しいURLを確認してください。
         </div>
 
         <div id="dashboard" class="d-none">
             <div class="row g-3 mb-4">
                 <div class="col-md-3 col-6">
                     <div class="card card-stat p-3 text-center">
-                        <div class="text-muted small mb-1">ランク</div>
+                        <div class="text-muted small mb-1" data-i18n="rank">ランク</div>
                         <div id="rankBadge" class="rank-badge rank-C mx-auto">C</div>
-                        <div id="rankScore" class="mt-2 small text-muted">スコア: -</div>
+                        <div id="rankScore" class="mt-2 small text-muted"></div>
                     </div>
                 </div>
                 <div class="col-md-3 col-6">
                     <div class="card card-stat p-3 text-center">
-                        <div class="text-muted small mb-1">今月合計</div>
+                        <div class="text-muted small mb-1" data-i18n="monthly_total">今月合計</div>
                         <div id="totalAmount" class="amount-large">¥0</div>
                     </div>
                 </div>
                 <div class="col-md-3 col-6">
                     <div class="card card-stat p-3 text-center">
-                        <div class="text-muted small mb-1">永続配当</div>
+                        <div class="text-muted small mb-1" data-i18n="perpetual_payout">永続配当</div>
                         <div id="perpetualAmount" class="amount-large amount-perpetual">¥0</div>
-                        <div id="perpetualStores" class="small text-muted">0 店舗</div>
+                        <div id="perpetualStores" class="small text-muted">0</div>
                     </div>
                 </div>
                 <div class="col-md-3 col-6">
                     <div class="card card-stat p-3 text-center">
-                        <div class="text-muted small mb-1">貢献配当</div>
+                        <div class="text-muted small mb-1" data-i18n="contribution_payout">貢献配当</div>
                         <div id="contribAmount" class="amount-large amount-contrib">¥0</div>
                     </div>
                 </div>
@@ -79,13 +89,13 @@
             <div class="row g-3 mb-4">
                 <div class="col-md-8">
                     <div class="card card-stat p-3">
-                        <h6 class="mb-3"><i class="bi bi-bar-chart me-1"></i>直近3ヶ月の推移</h6>
+                        <h6 class="mb-3"><i class="bi bi-bar-chart me-1"></i><span data-i18n="history_title">直近3ヶ月の推移</span></h6>
                         <div id="historyContainer"></div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="card card-stat p-3">
-                        <h6 class="mb-3"><i class="bi bi-building me-1"></i>永続配当 店舗一覧</h6>
+                        <h6 class="mb-3"><i class="bi bi-building me-1"></i><span data-i18n="founder_stores_title">永続配当 店舗一覧</span></h6>
                         <div id="founderStoresList" class="small">-</div>
                     </div>
                 </div>
@@ -94,13 +104,13 @@
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
                     <div class="card card-stat p-3">
-                        <h6 class="mb-3"><i class="bi bi-cash-coin me-1"></i>貢献配当内訳（店舗別）</h6>
+                        <h6 class="mb-3"><i class="bi bi-cash-coin me-1"></i><span data-i18n="contrib_details_title">貢献配当内訳（店舗別）</span></h6>
                         <div id="contribDetails" class="small">-</div>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="card card-stat p-3">
-                        <h6 class="mb-3"><i class="bi bi-journal-text me-1"></i>今月の行動ログ</h6>
+                        <h6 class="mb-3"><i class="bi bi-journal-text me-1"></i><span data-i18n="activity_title">今月の行動ログ</span></h6>
                         <div id="activityLog" class="small">-</div>
                     </div>
                 </div>
@@ -109,41 +119,108 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/payout-i18n.js"></script>
     <script>
     (function() {
         const params = new URLSearchParams(location.search);
-        const guideId = params.get('guide_id');
-        if (!guideId) {
-            document.getElementById('noGuide').classList.remove('d-none');
+        const dashboardKey = params.get('k');
+        let currentLang = params.get('lang') || 'ja';
+        let guideId = null;
+        let guideName = '';
+
+        function t(key) {
+            return (PAYOUT_I18N[currentLang] || PAYOUT_I18N.ja)[key] || key;
+        }
+
+        function applyI18n() {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                el.textContent = t(el.dataset.i18n);
+            });
+            document.getElementById('pageTitle').textContent = t('page_title');
+            document.getElementById('langToggle').textContent = t('lang_switch');
+            document.documentElement.lang = currentLang;
+        }
+
+        window.toggleLang = function() {
+            currentLang = currentLang === 'ja' ? 'en' : 'ja';
+            const url = new URL(location.href);
+            url.searchParams.set('lang', currentLang);
+            history.replaceState(null, '', url.toString());
+            applyI18n();
+            if (guideId) {
+                populateMonthSelect();
+                loadData(monthSelect.value);
+            }
+        };
+
+        applyI18n();
+
+        if (!dashboardKey) {
+            document.getElementById('noKey').classList.remove('d-none');
             return;
         }
-        document.getElementById('dashboard').classList.remove('d-none');
+
+        document.getElementById('loadingMsg').classList.remove('d-none');
+
+        async function init() {
+            try {
+                const res = await fetch('/api/payouts/resolve?k=' + encodeURIComponent(dashboardKey));
+                if (!res.ok) {
+                    document.getElementById('loadingMsg').classList.add('d-none');
+                    document.getElementById('invalidKey').classList.remove('d-none');
+                    return;
+                }
+                const data = await res.json();
+                guideId = data.guide_id;
+                guideName = data.guide_name;
+                if (!params.get('lang')) {
+                    currentLang = data.preferred_language || 'ja';
+                    applyI18n();
+                }
+
+                document.getElementById('loadingMsg').classList.add('d-none');
+                document.getElementById('dashboard').classList.remove('d-none');
+                document.getElementById('guideName').textContent = guideName || '';
+
+                populateMonthSelect();
+                const initMonth = params.get('month') || monthSelect.value;
+                monthSelect.value = initMonth;
+                loadData(initMonth);
+            } catch (e) {
+                console.error(e);
+                document.getElementById('loadingMsg').classList.add('d-none');
+                document.getElementById('invalidKey').classList.remove('d-none');
+            }
+        }
 
         const monthSelect = document.getElementById('monthSelect');
-        const now = new Date();
-        for (let i = 0; i < 6; i++) {
-            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-            const val = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
-            const opt = document.createElement('option');
-            opt.value = val;
-            opt.textContent = d.getFullYear() + '年' + (d.getMonth()+1) + '月';
-            monthSelect.appendChild(opt);
+
+        function populateMonthSelect() {
+            monthSelect.innerHTML = '';
+            const now = new Date();
+            for (let i = 0; i < 6; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const val = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+                const opt = document.createElement('option');
+                opt.value = val;
+                const mf = PAYOUT_I18N[currentLang]?.month_format;
+                opt.textContent = mf ? mf(d.getFullYear(), d.getMonth()+1) : val;
+                monthSelect.appendChild(opt);
+            }
         }
-        const initMonth = params.get('month') || monthSelect.value;
-        monthSelect.value = initMonth;
-        monthSelect.addEventListener('change', () => loadData(guideId, monthSelect.value));
 
-        loadData(guideId, initMonth);
+        monthSelect.addEventListener('change', () => loadData(monthSelect.value));
 
-        async function loadData(gid, month) {
+        async function loadData(month) {
             try {
+                const authParam = 'k=' + encodeURIComponent(dashboardKey);
                 const [payRes, actRes] = await Promise.all([
-                    fetch('/api/payouts/me?guide_id=' + gid + '&month=' + month),
-                    fetch('/api/activity/me?guide_id=' + gid + '&month=' + month)
+                    fetch('/api/payouts/me?' + authParam + '&month=' + month),
+                    fetch('/api/activity/me?' + authParam + '&month=' + month)
                 ]);
                 const pay = await payRes.json();
                 const act = await actRes.json();
-                if (pay.error) { alert(pay.error); return; }
+                if (pay.error) { console.error(pay.error); return; }
                 render(pay, act);
             } catch(e) { console.error(e); }
         }
@@ -155,12 +232,12 @@
             rankBadge.textContent = rank;
             rankBadge.className = 'rank-badge rank-' + rank + ' mx-auto';
             document.getElementById('rankScore').textContent =
-                'スコア: ' + (score ? Number(score.rank_score).toFixed(1) : '-') +
-                ' (今月: ' + (score ? Number(score.monthly_score).toFixed(1) : '-') + ')';
+                t('score_label') + ': ' + (score ? Number(score.rank_score).toFixed(1) : '-') +
+                ' (' + t('this_month') + ': ' + (score ? Number(score.monthly_score).toFixed(1) : '-') + ')';
 
             document.getElementById('totalAmount').textContent = '¥' + pay.grandTotal.toLocaleString();
             document.getElementById('perpetualAmount').textContent = '¥' + pay.perpetual.total.toLocaleString();
-            document.getElementById('perpetualStores').textContent = pay.perpetual.stores.length + ' 店舗';
+            document.getElementById('perpetualStores').textContent = t('stores_count').replace('{n}', pay.perpetual.stores.length);
             document.getElementById('contribAmount').textContent = '¥' + pay.contribution.total.toLocaleString();
 
             const histC = document.getElementById('historyContainer');
@@ -176,7 +253,7 @@
 
             const fsList = document.getElementById('founderStoresList');
             if (pay.perpetual.stores.length === 0) {
-                fsList.innerHTML = '<span class="text-muted">紐づく店舗はありません</span>';
+                fsList.innerHTML = '<span class="text-muted">' + t('no_founder_stores') + '</span>';
             } else {
                 fsList.innerHTML = pay.perpetual.stores.map(s =>
                     '<div class="d-flex justify-content-between py-1 border-bottom"><span>' + (s.store_name||s.store_id) + '</span><span class="text-success fw-bold">¥1,000</span></div>'
@@ -185,9 +262,9 @@
 
             const cdEl = document.getElementById('contribDetails');
             if (pay.contribution.details.length === 0) {
-                cdEl.innerHTML = '<span class="text-muted">貢献配当はありません</span>';
+                cdEl.innerHTML = '<span class="text-muted">' + t('no_contrib') + '</span>';
             } else {
-                cdEl.innerHTML = '<table class="table table-sm table-borderless mb-0"><thead><tr><th>店舗</th><th>金額</th><th>詳細</th></tr></thead><tbody>' +
+                cdEl.innerHTML = '<table class="table table-sm table-borderless mb-0"><thead><tr><th>' + t('col_store') + '</th><th>' + t('col_amount') + '</th><th>' + t('col_details') + '</th></tr></thead><tbody>' +
                     pay.contribution.details.map(d => {
                         const det = d.details_json || {};
                         return '<tr><td>' + (d.store_name||d.store_id) + '</td><td class="fw-bold text-primary">¥' + d.amount.toLocaleString() + '</td><td class="text-muted">Pts:' + (det.raw_points||'-') + ' ×' + (det.multiplier||'-') + '</td></tr>';
@@ -195,13 +272,12 @@
             }
 
             const alEl = document.getElementById('activityLog');
-            const typeLabels = { A: '送客', B: '利用', C: '拡散' };
             if (!pay.contributions || pay.contributions.length === 0) {
-                alEl.innerHTML = '<span class="text-muted">行動ログはありません</span>';
+                alEl.innerHTML = '<span class="text-muted">' + t('no_activity') + '</span>';
             } else {
-                alEl.innerHTML = '<table class="table table-sm table-borderless mb-0"><thead><tr><th>種類</th><th>店舗</th><th>ポイント</th><th>日時</th></tr></thead><tbody>' +
+                alEl.innerHTML = '<table class="table table-sm table-borderless mb-0"><thead><tr><th>' + t('col_type') + '</th><th>' + t('col_store') + '</th><th>' + t('col_points') + '</th><th>' + t('col_date') + '</th></tr></thead><tbody>' +
                     pay.contributions.map(c =>
-                        '<tr><td><span class="badge type-badge-' + c.type + '">' + (typeLabels[c.type]||c.type) + '</span></td><td>' + (c.store_name||c.store_id) + '</td><td>' + c.base_points + 'pt</td><td>' + new Date(c.created_at).toLocaleDateString('ja') + '</td></tr>'
+                        '<tr><td><span class="badge type-badge-' + c.type + '">' + t('type_' + c.type) + '</span></td><td>' + (c.store_name||c.store_id) + '</td><td>' + c.base_points + 'pt</td><td>' + new Date(c.created_at).toLocaleDateString(currentLang === 'ja' ? 'ja' : 'en') + '</td></tr>'
                     ).join('') + '</tbody></table>';
             }
         }
@@ -218,6 +294,8 @@
                 '</div></div>' +
                 '<div class="small fw-bold mt-1">¥' + total.toLocaleString() + '</div></div>';
         }
+
+        init();
     })();
     </script>
 </body>

@@ -4,12 +4,40 @@ const { payoutService } = require('./payoutService');
 function registerPayoutRoutes(app, adminAuthService) {
   const adminAuth = adminAuthService.requireAuth('operator');
 
+  async function resolveGuide(req, res) {
+    const k = req.query.k;
+    if (k) {
+      const guide = await payoutService.resolveGuideByKey(k);
+      if (!guide) { res.status(404).json({ error: 'INVALID_KEY' }); return null; }
+      return guide;
+    }
+    res.status(400).json({ error: 'k is required' });
+    return null;
+  }
+
+  app.get('/api/payouts/resolve', async (req, res) => {
+    try {
+      const { k } = req.query;
+      if (!k) return res.status(400).json({ error: 'k is required' });
+      const guide = await payoutService.resolveGuideByKey(k);
+      if (!guide) return res.status(404).json({ error: 'INVALID_KEY' });
+      res.json({
+        guide_id: guide.id,
+        guide_name: guide.guide_name,
+        preferred_language: guide.preferred_language || 'ja',
+        contact_method: guide.contact_method || 'line'
+      });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   app.get('/api/payouts/me', async (req, res) => {
     try {
-      const { guide_id, month } = req.query;
-      if (!guide_id) return res.status(400).json({ error: 'guide_id is required' });
-      const m = month || _currentMonth();
-      const summary = await payoutService.getGuidePayoutSummary(guide_id, m);
+      const guide = await resolveGuide(req, res);
+      if (!guide) return;
+      const m = req.query.month || _currentMonth();
+      const summary = await payoutService.getGuidePayoutSummary(guide.id, m);
       res.json(summary);
     } catch (err) {
       console.error('GET /api/payouts/me error:', err);
@@ -19,11 +47,11 @@ function registerPayoutRoutes(app, adminAuthService) {
 
   app.get('/api/activity/me', async (req, res) => {
     try {
-      const { guide_id, month } = req.query;
-      if (!guide_id) return res.status(400).json({ error: 'guide_id is required' });
-      const m = month || _currentMonth();
-      const contributions = await payoutService.getContributions({ guide_id, month: m });
-      const scores = await payoutService.getGuideScores({ guide_id, month: m });
+      const guide = await resolveGuide(req, res);
+      if (!guide) return;
+      const m = req.query.month || _currentMonth();
+      const contributions = await payoutService.getContributions({ guide_id: guide.id, month: m });
+      const scores = await payoutService.getGuideScores({ guide_id: guide.id, month: m });
       res.json({ month: m, contributions, score: scores[0] || null });
     } catch (err) {
       console.error('GET /api/activity/me error:', err);
@@ -153,9 +181,37 @@ function registerPayoutRoutes(app, adminAuthService) {
   app.get('/api/admin/payout-guides-list', adminAuth, async (req, res) => {
     try {
       const { rows } = await payoutService.query(
-        "SELECT id, guide_name FROM tourism_guides WHERE status='active' OR is_available=true ORDER BY guide_name"
+        "SELECT id, guide_name, preferred_language, contact_method, email, dashboard_key FROM tourism_guides WHERE status='active' OR is_available=true ORDER BY guide_name"
       );
       res.json(rows);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get('/api/admin/guide-profile/:guideId', adminAuth, async (req, res) => {
+    try {
+      const profile = await payoutService.getGuideProfileForAdmin(req.params.guideId);
+      if (!profile) return res.status(404).json({ error: 'Guide not found' });
+      res.json(profile);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.put('/api/admin/guide-profile/:guideId', adminAuth, async (req, res) => {
+    try {
+      await payoutService.updateGuideProfile(req.params.guideId, req.body);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post('/api/admin/guide-dashboard-key/:guideId', adminAuth, async (req, res) => {
+    try {
+      const newKey = await payoutService.regenerateDashboardKey(req.params.guideId);
+      res.json({ success: true, dashboard_key: newKey });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
