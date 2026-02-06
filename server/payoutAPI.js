@@ -121,7 +121,7 @@ function registerPayoutRoutes(app, adminAuthService) {
       const result = await payoutService.addContribution(req.body);
       res.json(result);
     } catch (err) {
-      res.status(400).json({ error: err.message });
+      res.status(err.statusCode || 400).json({ error: err.message });
     }
   });
 

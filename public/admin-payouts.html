@@ -106,6 +106,10 @@
                         <label class="form-label small">証跡URL</label>
                         <input type="text" id="contribEvidence" class="form-control form-control-sm" placeholder="任意">
                     </div>
+                    <div class="col-md-2" id="sourceIdGroup" style="display:none">
+                        <label class="form-label small">予約/チェックインID</label>
+                        <input type="text" id="contribSourceId" class="form-control form-control-sm" placeholder="任意">
+                    </div>
                     <div class="col-md-1">
                         <button class="btn btn-primary btn-sm w-100" onclick="addContribution()">追加</button>
                     </div>
@@ -121,7 +125,7 @@
                     </div>
                 </div>
                 <table class="table table-sm table-hover mb-0">
-                    <thead><tr><th>月</th><th>店舗</th><th>ガイド</th><th>種類</th><th>Pts</th><th>証跡</th><th></th></tr></thead>
+                    <thead><tr><th>月</th><th>店舗</th><th>ガイド</th><th>種類</th><th>Pts</th><th>証跡</th><th>Source ID</th><th></th></tr></thead>
                     <tbody id="contribTable"></tbody>
                 </table>
             </div>
@@ -424,28 +428,40 @@
         const data = await adminFetch('/api/admin/payout-contributions?month=' + month);
         const tb = document.getElementById('contribTable');
         if (!data || data.length === 0) {
-            tb.innerHTML = '<tr><td colspan="7" class="text-muted text-center">データなし</td></tr>';
+            tb.innerHTML = '<tr><td colspan="8" class="text-muted text-center">データなし</td></tr>';
             return;
         }
         tb.innerHTML = data.map(c =>
-            '<tr><td>' + c.month + '</td><td>' + (c.store_name||c.store_id) + '</td><td>' + (c.guide_name||c.guide_id) + '</td><td><span class="badge bg-' + ({A:'danger',B:'warning',C:'success'}[c.type]) + '">' + (typeLabels[c.type]||c.type) + '</span></td><td>' + c.base_points + '</td><td>' + (c.evidence_url ? '<a href="'+c.evidence_url+'" target="_blank">link</a>' : '-') + '</td><td><button class="btn btn-outline-danger btn-sm" onclick="deleteContrib('+c.id+')">削除</button></td></tr>'
+            '<tr><td>' + c.month + '</td><td>' + (c.store_name||c.store_id) + '</td><td>' + (c.guide_name||c.guide_id) + '</td><td><span class="badge bg-' + ({A:'danger',B:'warning',C:'success'}[c.type]) + '">' + (typeLabels[c.type]||c.type) + '</span></td><td>' + c.base_points + '</td><td>' + (c.evidence_url ? '<a href="'+c.evidence_url+'" target="_blank">link</a>' : '-') + '</td><td class="small text-muted">' + (c.source_id || '-') + '</td><td><button class="btn btn-outline-danger btn-sm" onclick="deleteContrib('+c.id+')">削除</button></td></tr>'
         ).join('');
     }
 
+    document.getElementById('contribType').addEventListener('change', function() {
+        document.getElementById('sourceIdGroup').style.display = this.value === 'A' ? '' : 'none';
+        if (this.value !== 'A') document.getElementById('contribSourceId').value = '';
+    });
+
     async function addContribution() {
         const month = document.getElementById('contribMonth').value.slice(0,7);
+        const type = document.getElementById('contribType').value;
         const data = {
             store_id: document.getElementById('contribStoreSelect').value,
             guide_id: document.getElementById('contribGuideSelect').value,
             month: month,
-            type: document.getElementById('contribType').value,
+            type: type,
             evidence_url: document.getElementById('contribEvidence').value
         };
+        if (type === 'A') {
+            const sid = document.getElementById('contribSourceId').value.trim();
+            if (sid) data.source_id = sid;
+        }
         if (!data.store_id || !data.guide_id || !data.month) return alert('必須項目を入力してください');
         const result = await adminFetch('/api/admin/payout-contributions', {
             method: 'POST', body: JSON.stringify(data)
         });
         if (result?.error) return alert(result.error);
+        document.getElementById('contribEvidence').value = '';
+        document.getElementById('contribSourceId').value = '';
         loadContributions();
     }
 

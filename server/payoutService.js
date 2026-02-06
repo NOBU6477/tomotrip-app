@@ -144,22 +144,49 @@ class PayoutService {
   async addContribution(data) {
     const pointDefs = await this.getSetting('point_definitions');
     const basePoints = pointDefs?.[data.type]?.base_points || 0;
+    const limits = await this.getSetting('contribution_limits') || {};
 
     if (data.type === 'B') {
-      const limits = await this.getSetting('contribution_limits');
-      const maxB = limits?.B_monthly_per_store || 1;
+      const maxB = limits.B_monthly_per_store || 1;
       const { rows } = await this.query(
         "SELECT COUNT(*) as cnt FROM contributions WHERE guide_id=$1 AND store_id=$2 AND month=$3 AND type='B'",
         [data.guide_id, data.store_id, data.month]
       );
       if (parseInt(rows[0].cnt, 10) >= maxB) {
-        throw new Error(`利用・体験は月${maxB}回/店舗までです`);
+        const err = new Error(`利用・体験（B）は同一店舗につき月${maxB}回までです / B type is limited to ${maxB} time(s) per store per month.`);
+        err.statusCode = 409;
+        throw err;
+      }
+    }
+
+    if (data.type === 'C') {
+      const maxC = limits.C_monthly_per_store || 3;
+      const { rows } = await this.query(
+        "SELECT COUNT(*) as cnt FROM contributions WHERE guide_id=$1 AND store_id=$2 AND month=$3 AND type='C'",
+        [data.guide_id, data.store_id, data.month]
+      );
+      if (parseInt(rows[0].cnt, 10) >= maxC) {
+        const err = new Error(`拡散・認知（C）は同一店舗につき月${maxC}回までです / C type is limited to ${maxC} time(s) per store per month.`);
+        err.statusCode = 409;
+        throw err;
+      }
+    }
+
+    if (data.type === 'A' && data.source_id) {
+      const { rows } = await this.query(
+        "SELECT COUNT(*) as cnt FROM contributions WHERE source_id=$1 AND type='A'",
+        [data.source_id]
+      );
+      if (parseInt(rows[0].cnt, 10) > 0) {
+        const err = new Error(`この予約/チェックインは既に計上済みです / This trip/booking has already been counted.`);
+        err.statusCode = 409;
+        throw err;
       }
     }
 
     const { rows } = await this.query(
-      'INSERT INTO contributions (store_id, guide_id, month, type, base_points, evidence_url, memo) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
-      [data.store_id, data.guide_id, data.month, data.type, basePoints, data.evidence_url || null, data.memo || null]
+      'INSERT INTO contributions (store_id, guide_id, month, type, base_points, evidence_url, memo, source_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
+      [data.store_id, data.guide_id, data.month, data.type, basePoints, data.evidence_url || null, data.memo || null, data.source_id || null]
     );
     return rows[0];
   }
