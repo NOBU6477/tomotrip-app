@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>TomoTrip - 配当管理（Admin）</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body { background: #f0f2f5; font-family: 'Hiragino Kaku Gothic ProN', sans-serif; }
+        .sidebar { width: 220px; min-height: 100vh; background: #1a1a2e; color: #fff; position: fixed; left: 0; top: 0; z-index: 100; }
+        .sidebar .nav-link { color: rgba(255,255,255,0.7); padding: 12px 20px; border-radius: 0; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { color: #fff; background: rgba(255,255,255,0.1); }
+        .main-content { margin-left: 220px; padding: 20px; }
+        .tab-section { display: none; }
+        .tab-section.active { display: block; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .btn-run { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border: none; }
+        .btn-run:hover { background: linear-gradient(135deg, #5a6fd6, #6a4299); color: #fff; }
+        @media (max-width: 768px) {
+            .sidebar { width: 100%; min-height: auto; position: relative; }
+            .main-content { margin-left: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div id="loginOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background:rgba(0,0,0,0.5);z-index:9999;">
+        <div class="card p-4" style="width:360px;">
+            <h5 class="mb-3 text-center">管理者ログイン</h5>
+            <input type="text" id="loginUser" class="form-control mb-2" placeholder="ユーザー名">
+            <input type="password" id="loginPass" class="form-control mb-3" placeholder="パスワード">
+            <button class="btn btn-primary w-100" onclick="doLogin()">ログイン</button>
+            <div id="loginError" class="text-danger small mt-2 d-none"></div>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="p-3 border-bottom border-secondary">
+            <strong><i class="bi bi-cash-coin me-1"></i> 配当管理</strong>
+        </div>
+        <nav class="nav flex-column mt-2">
+            <a class="nav-link active" data-tab="founders" href="#"><i class="bi bi-link-45deg me-2"></i>永続配当 紐付け</a>
+            <a class="nav-link" data-tab="contributions" href="#"><i class="bi bi-journal-plus me-2"></i>貢献ログ</a>
+            <a class="nav-link" data-tab="monthly" href="#"><i class="bi bi-calculator me-2"></i>月次処理</a>
+            <a class="nav-link" data-tab="results" href="#"><i class="bi bi-table me-2"></i>配当結果</a>
+            <a class="nav-link" data-tab="settings" href="#"><i class="bi bi-gear me-2"></i>設定管理</a>
+        </nav>
+        <div class="p-3 mt-auto border-top border-secondary">
+            <a href="/" class="text-white-50 small"><i class="bi bi-arrow-left me-1"></i>トップに戻る</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div id="tab-founders" class="tab-section active">
+            <h4 class="mb-3">永続配当 紐付け管理</h4>
+            <div class="card p-3 mb-3">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small">店舗</label>
+                        <select id="founderStoreSelect" class="form-select form-select-sm"></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small">ガイド（Founder）</label>
+                        <select id="founderGuideSelect" class="form-select form-select-sm"></select>
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-primary btn-sm" onclick="assignFounder()">紐付け登録</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card p-3">
+                <table class="table table-sm table-hover mb-0">
+                    <thead><tr><th>店舗</th><th>Founder ガイド</th><th>設定日</th><th></th></tr></thead>
+                    <tbody id="foundersTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-contributions" class="tab-section">
+            <h4 class="mb-3">貢献ログ管理</h4>
+            <div class="card p-3 mb-3">
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-2">
+                        <label class="form-label small">月</label>
+                        <input type="month" id="contribMonth" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">店舗</label>
+                        <select id="contribStoreSelect" class="form-select form-select-sm"></select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">ガイド</label>
+                        <select id="contribGuideSelect" class="form-select form-select-sm"></select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">種類</label>
+                        <select id="contribType" class="form-select form-select-sm">
+                            <option value="A">A: 送客 (5pt)</option>
+                            <option value="B">B: 利用 (2pt)</option>
+                            <option value="C">C: 拡散 (1pt)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">証跡URL</label>
+                        <input type="text" id="contribEvidence" class="form-control form-control-sm" placeholder="任意">
+                    </div>
+                    <div class="col-md-1">
+                        <button class="btn btn-primary btn-sm w-100" onclick="addContribution()">追加</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card p-3 mb-3">
+                <div class="row g-2 align-items-end mb-2">
+                    <div class="col-auto">
+                        <input type="month" id="contribFilterMonth" class="form-control form-control-sm" onchange="loadContributions()">
+                    </div>
+                    <div class="col-auto">
+                        <button class="btn btn-outline-secondary btn-sm" onclick="loadContributions()">フィルタ</button>
+                    </div>
+                </div>
+                <table class="table table-sm table-hover mb-0">
+                    <thead><tr><th>月</th><th>店舗</th><th>ガイド</th><th>種類</th><th>Pts</th><th>証跡</th><th></th></tr></thead>
+                    <tbody id="contribTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-monthly" class="tab-section">
+            <h4 class="mb-3">月次処理</h4>
+            <div class="card p-4">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label">対象月</label>
+                        <input type="month" id="runMonth" class="form-control">
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-run btn-lg" onclick="runMonthly()">
+                            <i class="bi bi-play-circle me-1"></i> 月次計算を実行
+                        </button>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-warning btn-sm" onclick="unlockMonth()">
+                            <i class="bi bi-unlock me-1"></i> ロック解除
+                        </button>
+                    </div>
+                </div>
+                <div id="runResult" class="mt-3 d-none">
+                    <div class="alert alert-success" id="runResultContent"></div>
+                </div>
+            </div>
+            <div class="card p-3 mt-3">
+                <h6>ランク・スコア一覧</h6>
+                <div class="row g-2 mb-2">
+                    <div class="col-auto">
+                        <input type="month" id="scoresMonth" class="form-control form-control-sm" onchange="loadScores()">
+                    </div>
+                </div>
+                <table class="table table-sm table-hover mb-0">
+                    <thead><tr><th>ガイドID</th><th>月間Score</th><th>3ヶ月平均</th><th>ランクScore</th><th>ランク</th><th>ロック</th></tr></thead>
+                    <tbody id="scoresTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-results" class="tab-section">
+            <h4 class="mb-3">配当結果</h4>
+            <div class="card p-3">
+                <div class="row g-2 mb-3">
+                    <div class="col-auto">
+                        <input type="month" id="resultsMonth" class="form-control form-control-sm" onchange="loadResults()">
+                    </div>
+                </div>
+                <table class="table table-sm table-hover mb-0">
+                    <thead><tr><th>ガイド</th><th>店舗</th><th>種類</th><th>金額</th><th>詳細</th></tr></thead>
+                    <tbody id="resultsTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-settings" class="tab-section">
+            <h4 class="mb-3">設定管理</h4>
+            <div id="settingsContainer"></div>
+            <button class="btn btn-primary mt-3" onclick="saveSettings()">設定を保存</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    let TOKEN = localStorage.getItem('admin_token') || '';
+    const typeLabels = { A: '送客', B: '利用', C: '拡散' };
+
+    if (TOKEN) {
+        document.getElementById('loginOverlay').classList.add('d-none');
+        initApp();
+    }
+
+    async function doLogin() {
+        const user = document.getElementById('loginUser').value;
+        const pass = document.getElementById('loginPass').value;
+        try {
+            const res = await fetch('/api/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user, password: pass, accessLevel: 'operator' })
+            });
+            const data = await res.json();
+            if (data.success && data.token) {
+                TOKEN = data.token;
+                localStorage.setItem('admin_token', TOKEN);
+                document.getElementById('loginOverlay').classList.add('d-none');
+                initApp();
+            } else {
+                document.getElementById('loginError').textContent = data.message || 'ログイン失敗';
+                document.getElementById('loginError').classList.remove('d-none');
+            }
+        } catch(e) {
+            document.getElementById('loginError').textContent = 'ネットワークエラー';
+            document.getElementById('loginError').classList.remove('d-none');
+        }
+    }
+
+    function authHeaders() {
+        return { 'Authorization': 'Bearer ' + TOKEN, 'Content-Type': 'application/json' };
+    }
+
+    async function adminFetch(url, opts = {}) {
+        opts.headers = { ...authHeaders(), ...(opts.headers || {}) };
+        const res = await fetch(url, opts);
+        if (res.status === 401) {
+            TOKEN = '';
+            localStorage.removeItem('admin_token');
+            location.reload();
+            return;
+        }
+        return res.json();
+    }
+
+    document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.querySelectorAll('.sidebar .nav-link').forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+            document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('tab-' + link.dataset.tab).classList.add('active');
+        });
+    });
+
+    const curMonth = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+
+    async function initApp() {
+        document.getElementById('contribMonth').value = curMonth;
+        document.getElementById('contribFilterMonth').value = curMonth;
+        document.getElementById('runMonth').value = curMonth;
+        document.getElementById('scoresMonth').value = curMonth;
+        document.getElementById('resultsMonth').value = curMonth;
+        await Promise.all([loadSelects(), loadFounders(), loadContributions(), loadSettings()]);
+    }
+
+    async function loadSelects() {
+        const [stores, guides] = await Promise.all([
+            adminFetch('/api/admin/payout-stores-list'),
+            adminFetch('/api/admin/payout-guides-list')
+        ]);
+        const storeSelects = ['founderStoreSelect', 'contribStoreSelect'];
+        const guideSelects = ['founderGuideSelect', 'contribGuideSelect'];
+        storeSelects.forEach(id => {
+            const sel = document.getElementById(id);
+            sel.innerHTML = '<option value="">選択...</option>';
+            (stores||[]).forEach(s => {
+                const o = document.createElement('option');
+                o.value = s.id; o.textContent = s.store_name || s.id;
+                sel.appendChild(o);
+            });
+        });
+        guideSelects.forEach(id => {
+            const sel = document.getElementById(id);
+            sel.innerHTML = '<option value="">選択...</option>';
+            (guides||[]).forEach(g => {
+                const o = document.createElement('option');
+                o.value = g.id; o.textContent = g.guide_name || g.id;
+                sel.appendChild(o);
+            });
+        });
+    }
+
+    async function loadFounders() {
+        const data = await adminFetch('/api/admin/payout-founders');
+        const tb = document.getElementById('foundersTable');
+        if (!data || data.length === 0) {
+            tb.innerHTML = '<tr><td colspan="4" class="text-muted text-center">紐付けなし</td></tr>';
+            return;
+        }
+        tb.innerHTML = data.map(f =>
+            '<tr><td>' + (f.store_name||f.store_id) + '</td><td>' + (f.guide_name||f.guide_id) + '</td><td>' + new Date(f.assigned_at).toLocaleDateString('ja') + '</td><td><button class="btn btn-outline-danger btn-sm" onclick="removeFounder(\'' + f.store_id + '\')">削除</button></td></tr>'
+        ).join('');
+    }
+
+    async function assignFounder() {
+        const storeId = document.getElementById('founderStoreSelect').value;
+        const guideId = document.getElementById('founderGuideSelect').value;
+        if (!storeId || !guideId) return alert('店舗とガイドを選択してください');
+        const result = await adminFetch('/api/admin/payout-founders', {
+            method: 'POST', body: JSON.stringify({ store_id: storeId, guide_id: guideId })
+        });
+        if (result?.error) return alert(result.error);
+        loadFounders();
+    }
+
+    async function removeFounder(storeId) {
+        if (!confirm('この紐付けを削除しますか？')) return;
+        await adminFetch('/api/admin/payout-founders/' + storeId, { method: 'DELETE' });
+        loadFounders();
+    }
+
+    async function loadContributions() {
+        const month = document.getElementById('contribFilterMonth').value;
+        const data = await adminFetch('/api/admin/payout-contributions?month=' + month);
+        const tb = document.getElementById('contribTable');
+        if (!data || data.length === 0) {
+            tb.innerHTML = '<tr><td colspan="7" class="text-muted text-center">データなし</td></tr>';
+            return;
+        }
+        tb.innerHTML = data.map(c =>
+            '<tr><td>' + c.month + '</td><td>' + (c.store_name||c.store_id) + '</td><td>' + (c.guide_name||c.guide_id) + '</td><td><span class="badge bg-' + ({A:'danger',B:'warning',C:'success'}[c.type]) + '">' + (typeLabels[c.type]||c.type) + '</span></td><td>' + c.base_points + '</td><td>' + (c.evidence_url ? '<a href="'+c.evidence_url+'" target="_blank">link</a>' : '-') + '</td><td><button class="btn btn-outline-danger btn-sm" onclick="deleteContrib('+c.id+')">削除</button></td></tr>'
+        ).join('');
+    }
+
+    async function addContribution() {
+        const month = document.getElementById('contribMonth').value.slice(0,7);
+        const data = {
+            store_id: document.getElementById('contribStoreSelect').value,
+            guide_id: document.getElementById('contribGuideSelect').value,
+            month: month,
+            type: document.getElementById('contribType').value,
+            evidence_url: document.getElementById('contribEvidence').value
+        };
+        if (!data.store_id || !data.guide_id || !data.month) return alert('必須項目を入力してください');
+        const result = await adminFetch('/api/admin/payout-contributions', {
+            method: 'POST', body: JSON.stringify(data)
+        });
+        if (result?.error) return alert(result.error);
+        loadContributions();
+    }
+
+    async function deleteContrib(id) {
+        if (!confirm('この貢献ログを削除しますか？')) return;
+        await adminFetch('/api/admin/payout-contributions/' + id, { method: 'DELETE' });
+        loadContributions();
+    }
+
+    async function runMonthly() {
+        const month = document.getElementById('runMonth').value.slice(0,7);
+        if (!month) return alert('月を指定してください');
+        if (!confirm(month + ' の月次計算を実行しますか？')) return;
+        const result = await adminFetch('/api/admin/run-monthly', {
+            method: 'POST', body: JSON.stringify({ month })
+        });
+        const el = document.getElementById('runResult');
+        const content = document.getElementById('runResultContent');
+        el.classList.remove('d-none');
+        if (result?.error) {
+            content.className = 'alert alert-danger';
+            content.textContent = 'エラー: ' + result.error;
+        } else {
+            content.className = 'alert alert-success';
+            content.textContent = '完了！ 対象ガイド: ' + result.guides_scored + '名 / 永続配当: ¥' + (result.perpetual_total||0).toLocaleString() + ' / 貢献配当: ¥' + (result.contrib_total||0).toLocaleString() + ' / 合計: ¥' + (result.grand_total||0).toLocaleString();
+        }
+        loadScores();
+    }
+
+    async function unlockMonth() {
+        const month = document.getElementById('runMonth').value.slice(0,7);
+        if (!month) return alert('月を指定してください');
+        if (!confirm(month + ' のロックを解除しますか？')) return;
+        await adminFetch('/api/admin/unlock-month', { method: 'POST', body: JSON.stringify({ month }) });
+        alert('ロック解除しました');
+        loadScores();
+    }
+
+    async function loadScores() {
+        const month = document.getElementById('scoresMonth').value.slice(0,7);
+        const data = await adminFetch('/api/admin/payout-scores?month=' + month);
+        const tb = document.getElementById('scoresTable');
+        if (!data || data.length === 0) {
+            tb.innerHTML = '<tr><td colspan="6" class="text-muted text-center">データなし</td></tr>';
+            return;
+        }
+        tb.innerHTML = data.map(s =>
+            '<tr><td class="small">' + s.guide_id.slice(0,8) + '...</td><td>' + Number(s.monthly_score).toFixed(1) + '</td><td>' + Number(s.avg3_score).toFixed(1) + '</td><td>' + Number(s.rank_score).toFixed(1) + '</td><td><span class="badge bg-' + ({S:'warning',A:'primary',B:'info',C:'secondary'}[s.rank]) + '">' + s.rank + '</span></td><td>' + (s.locked ? '🔒' : '-') + '</td></tr>'
+        ).join('');
+    }
+
+    async function loadResults() {
+        const month = document.getElementById('resultsMonth').value.slice(0,7);
+        const data = await adminFetch('/api/admin/payout-results?month=' + month);
+        const tb = document.getElementById('resultsTable');
+        if (!data || data.length === 0) {
+            tb.innerHTML = '<tr><td colspan="5" class="text-muted text-center">データなし</td></tr>';
+            return;
+        }
+        tb.innerHTML = data.map(p => {
+            const det = p.details_json || {};
+            return '<tr><td>' + (p.guide_name||p.guide_id.slice(0,8)) + '</td><td>' + (p.store_name||p.store_id.slice(0,8)) + '</td><td><span class="badge bg-' + (p.type==='PERPETUAL'?'success':'primary') + '">' + (p.type==='PERPETUAL'?'永続':'貢献') + '</span></td><td class="fw-bold">¥' + p.amount.toLocaleString() + '</td><td class="small text-muted">' + (det.multiplier ? 'x'+det.multiplier : det.reason||'') + '</td></tr>';
+        }).join('');
+    }
+
+    async function loadSettings() {
+        const data = await adminFetch('/api/admin/payout-settings');
+        const container = document.getElementById('settingsContainer');
+        if (!data) return;
+        container.innerHTML = Object.entries(data).map(([key, val]) =>
+            '<div class="card p-3 mb-2"><label class="form-label fw-bold">' + key + '</label><textarea class="form-control form-control-sm" data-key="' + key + '" rows="3">' + JSON.stringify(val, null, 2) + '</textarea></div>'
+        ).join('');
+    }
+
+    async function saveSettings() {
+        const areas = document.querySelectorAll('#settingsContainer textarea');
+        for (const area of areas) {
+            try {
+                const val = JSON.parse(area.value);
+                await adminFetch('/api/admin/payout-settings/' + area.dataset.key, {
+                    method: 'PUT', body: JSON.stringify({ value: val })
+                });
+            } catch(e) {
+                alert(area.dataset.key + ' のJSON形式が正しくありません');
+                return;
+            }
+        }
+        alert('設定を保存しました');
+    }
+    </script>
+</body>
+</html>

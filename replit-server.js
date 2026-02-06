@@ -19,6 +19,7 @@ const { requireRole } = require("./server/rbac");
 const { supabaseAPIService, isSupabaseConfigured } = require("./server/supabaseAPI");
 const { extensionRequestAPIService } = require("./server/extensionRequestAPI");
 const { contactAPIService } = require("./server/contactAPI");
+const { registerPayoutRoutes } = require("./server/payoutAPI");
 
 // Setup multer for file uploads
 const upload = multer({
@@ -430,6 +431,9 @@ app.use((err, req, res, next) => {
     message: err.message || "サーバーエラーが発生しました",
   });
 });
+
+// Payout system routes
+registerPayoutRoutes(app, adminAuthService);
 
 // Fallback to index.html for SPA routing
 app.get("*", (req, res) => {
