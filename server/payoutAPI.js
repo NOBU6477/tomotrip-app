@@ -154,11 +154,29 @@ function registerPayoutRoutes(app, adminAuthService) {
     }
   });
 
+  app.get('/api/admin/month-status', adminAuth, async (req, res) => {
+    try {
+      const { month } = req.query;
+      if (!month || !/^\d{4}-\d{2}$/.test(month)) {
+        return res.status(400).json({ error: 'month format: YYYY-MM' });
+      }
+      const status = await payoutService.getMonthStatus(month);
+      const logs = await payoutService.getAuditLogs(month);
+      res.json({ ...status, auditLogs: logs });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   app.post('/api/admin/run-monthly', adminAuth, async (req, res) => {
     try {
       const { month } = req.body;
       if (!month || !/^\d{4}-\d{2}$/.test(month)) {
         return res.status(400).json({ error: 'month format: YYYY-MM' });
+      }
+      const ms = await payoutService.getMonthStatus(month);
+      if (ms.status === 'locked') {
+        return res.status(409).json({ error: '確定済みの月は再計算できません。先に確定解除してください。' });
       }
       const result = await payoutService.runMonthlyCalculation(month);
       res.json(result);
@@ -167,12 +185,47 @@ function registerPayoutRoutes(app, adminAuthService) {
     }
   });
 
-  app.post('/api/admin/unlock-month', adminAuth, async (req, res) => {
+  app.post('/api/admin/lock-month', adminAuth, async (req, res) => {
     try {
       const { month } = req.body;
-      if (!month) return res.status(400).json({ error: 'month required' });
-      await payoutService.unlockMonth(month);
-      res.json({ success: true });
+      if (!month || !/^\d{4}-\d{2}$/.test(month)) {
+        return res.status(400).json({ error: 'month format: YYYY-MM' });
+      }
+      const adminUser = req.adminUser?.username || 'unknown';
+      const role = req.adminUser?.level || 'unknown';
+      await payoutService.lockMonth(month, adminUser, role);
+      res.json({ success: true, message: month + ' を確定しました' });
+    } catch (err) {
+      if (err.message.includes('既に確定済み')) return res.status(409).json({ error: err.message });
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  const adminOnlyAuth = adminAuthService.requireAuth('admin');
+
+  app.post('/api/admin/unlock-month', adminOnlyAuth, async (req, res) => {
+    try {
+      const { month, reason } = req.body;
+      if (!month || !/^\d{4}-\d{2}$/.test(month)) {
+        return res.status(400).json({ error: 'month format: YYYY-MM' });
+      }
+      if (!reason || reason.trim().length === 0) {
+        return res.status(400).json({ error: '解除理由は必須です' });
+      }
+      const adminUser = req.adminUser?.username || 'unknown';
+      const role = req.adminUser?.level || 'unknown';
+      await payoutService.unlockMonth(month, adminUser, role, reason.trim());
+      res.json({ success: true, message: month + ' の確定を解除しました' });
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  app.get('/api/admin/audit-logs', adminAuth, async (req, res) => {
+    try {
+      const { month } = req.query;
+      const logs = await payoutService.getAuditLogs(month);
+      res.json(logs);
     } catch (err) {
       res.status(500).json({ error: err.message });
     }

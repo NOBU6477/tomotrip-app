@@ -128,39 +128,72 @@
         </div>
 
         <div id="tab-monthly" class="tab-section">
-            <h4 class="mb-3">月次処理</h4>
-            <div class="card p-4">
+            <h4 class="mb-3">月次処理・確定</h4>
+            <div class="card p-4 mb-3">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-3">
                         <label class="form-label">対象月</label>
-                        <input type="month" id="runMonth" class="form-control">
+                        <input type="month" id="runMonth" class="form-control" onchange="loadMonthStatus()">
                     </div>
-                    <div class="col-md-3">
-                        <button class="btn btn-run btn-lg" onclick="runMonthly()">
-                            <i class="bi bi-play-circle me-1"></i> 月次計算を実行
-                        </button>
+                    <div class="col-md-6">
+                        <div id="monthStatusBadge" class="mb-2"></div>
                     </div>
-                    <div class="col-md-3">
-                        <button class="btn btn-warning btn-sm" onclick="unlockMonth()">
-                            <i class="bi bi-unlock me-1"></i> ロック解除
-                        </button>
-                    </div>
+                </div>
+                <div class="d-flex gap-2 mt-3 flex-wrap">
+                    <button class="btn btn-run" id="btnRunCalc" onclick="runMonthly()">
+                        <i class="bi bi-play-circle me-1"></i> 計算実行
+                    </button>
+                    <button class="btn btn-success" id="btnLockMonth" onclick="lockMonth()" style="display:none;">
+                        <i class="bi bi-lock me-1"></i> 確定する
+                    </button>
+                    <button class="btn btn-outline-danger" id="btnUnlockMonth" onclick="showUnlockDialog()" style="display:none;">
+                        <i class="bi bi-unlock me-1"></i> 確定解除（admin専用）
+                    </button>
                 </div>
                 <div id="runResult" class="mt-3 d-none">
                     <div class="alert alert-success" id="runResultContent"></div>
                 </div>
             </div>
-            <div class="card p-3 mt-3">
-                <h6>ランク・スコア一覧</h6>
-                <div class="row g-2 mb-2">
-                    <div class="col-auto">
-                        <input type="month" id="scoresMonth" class="form-control form-control-sm" onchange="loadScores()">
+
+            <div id="unlockDialog" class="card p-3 mb-3 border-danger d-none">
+                <h6 class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i>確定解除</h6>
+                <p class="small text-muted mb-2">解除理由を入力してください（必須・監査ログに記録されます）</p>
+                <div class="row g-2">
+                    <div class="col-md-8">
+                        <input type="text" id="unlockReason" class="form-control form-control-sm" placeholder="例: 貢献ログの修正漏れがあったため">
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-danger btn-sm" onclick="unlockMonth()">解除を実行</button>
+                        <button class="btn btn-outline-secondary btn-sm ms-1" onclick="document.getElementById('unlockDialog').classList.add('d-none')">キャンセル</button>
                     </div>
                 </div>
+            </div>
+
+            <div class="card p-3 mb-3">
+                <h6><i class="bi bi-journal-text me-1"></i>監査ログ</h6>
+                <table class="table table-sm table-hover mb-0">
+                    <thead><tr><th>日時</th><th>操作</th><th>ユーザー</th><th>権限</th><th>理由</th></tr></thead>
+                    <tbody id="auditLogTable"><tr><td colspan="5" class="text-muted text-center small">対象月を選択してください</td></tr></tbody>
+                </table>
+            </div>
+
+            <div class="card p-3 mb-3">
+                <h6>ランク・スコア一覧</h6>
                 <table class="table table-sm table-hover mb-0">
                     <thead><tr><th>ガイドID</th><th>月間Score</th><th>3ヶ月平均</th><th>ランクScore</th><th>ランク</th><th>ロック</th></tr></thead>
                     <tbody id="scoresTable"></tbody>
                 </table>
+            </div>
+
+            <div class="card p-3 mb-3 bg-light">
+                <h6><i class="bi bi-info-circle me-1"></i>月次運用フロー</h6>
+                <ol class="small mb-0">
+                    <li><strong>月末〜翌月5日</strong>：貢献ログの確認・修正（「貢献ログ」タブ）</li>
+                    <li><strong>翌月6日頃</strong>：「計算実行」ボタンで月次計算を実行</li>
+                    <li><strong>結果確認</strong>：「配当結果」タブでガイドごとの金額を確認</li>
+                    <li><strong>問題なければ</strong>：「確定する」ボタンで凍結（以後変更不可）</li>
+                    <li><strong>万が一修正が必要な場合</strong>：admin権限で「確定解除」→ 理由入力 → 再計算 → 再確定</li>
+                </ol>
             </div>
         </div>
 
@@ -314,9 +347,9 @@
         document.getElementById('contribMonth').value = curMonth;
         document.getElementById('contribFilterMonth').value = curMonth;
         document.getElementById('runMonth').value = curMonth;
-        document.getElementById('scoresMonth').value = curMonth;
         document.getElementById('resultsMonth').value = curMonth;
         await Promise.all([loadSelects(), loadFounders(), loadContributions(), loadSettings()]);
+        loadMonthStatus();
     }
 
     let allGuidesCache = [];
@@ -422,9 +455,63 @@
         loadContributions();
     }
 
+    let currentMonthStatus = 'none';
+
+    async function loadMonthStatus() {
+        const month = document.getElementById('runMonth').value.slice(0,7);
+        if (!month) return;
+        const data = await adminFetch('/api/admin/month-status?month=' + month);
+        if (!data) return;
+        currentMonthStatus = data.status;
+
+        const badge = document.getElementById('monthStatusBadge');
+        const btnRun = document.getElementById('btnRunCalc');
+        const btnLock = document.getElementById('btnLockMonth');
+        const btnUnlock = document.getElementById('btnUnlockMonth');
+
+        if (data.status === 'none') {
+            badge.innerHTML = '<span class="badge bg-secondary fs-6">未計算</span>';
+            btnRun.style.display = '';
+            btnRun.disabled = false;
+            btnLock.style.display = 'none';
+            btnUnlock.style.display = 'none';
+        } else if (data.status === 'calculated') {
+            badge.innerHTML = '<span class="badge bg-warning text-dark fs-6">計算済み（未確定）</span>' +
+                '<span class="ms-2 small text-muted">ガイド: ' + data.scoreCount + '名 / 配当: ' + data.payoutCount + '件</span>';
+            btnRun.style.display = '';
+            btnRun.disabled = false;
+            btnLock.style.display = '';
+            btnUnlock.style.display = 'none';
+        } else if (data.status === 'locked') {
+            const lockDate = data.lockedAt ? new Date(data.lockedAt).toLocaleString('ja') : '';
+            badge.innerHTML = '<span class="badge bg-success fs-6">✅ 確定済み</span>' +
+                '<span class="ms-2 small text-muted">確定日: ' + lockDate + ' / ガイド: ' + data.scoreCount + '名</span>';
+            btnRun.style.display = '';
+            btnRun.disabled = true;
+            btnLock.style.display = 'none';
+            btnUnlock.style.display = '';
+        }
+
+        const alTb = document.getElementById('auditLogTable');
+        if (data.auditLogs && data.auditLogs.length > 0) {
+            alTb.innerHTML = data.auditLogs.map(l =>
+                '<tr><td class="small">' + new Date(l.created_at).toLocaleString('ja') + '</td>' +
+                '<td><span class="badge bg-' + (l.action==='LOCK'?'success':'danger') + '">' + l.action + '</span></td>' +
+                '<td>' + l.admin_user + '</td><td>' + l.role + '</td>' +
+                '<td class="small">' + (l.reason||'-') + '</td></tr>'
+            ).join('');
+        } else {
+            alTb.innerHTML = '<tr><td colspan="5" class="text-muted text-center small">ログなし</td></tr>';
+        }
+
+        document.getElementById('unlockDialog').classList.add('d-none');
+        loadScores();
+    }
+
     async function runMonthly() {
         const month = document.getElementById('runMonth').value.slice(0,7);
         if (!month) return alert('月を指定してください');
+        if (currentMonthStatus === 'locked') return alert('確定済みの月は再計算できません。先に確定解除してください。');
         if (!confirm(month + ' の月次計算を実行しますか？')) return;
         const result = await adminFetch('/api/admin/run-monthly', {
             method: 'POST', body: JSON.stringify({ month })
@@ -439,20 +526,42 @@
             content.className = 'alert alert-success';
             content.textContent = '完了！ 対象ガイド: ' + result.guides_scored + '名 / 永続配当: ¥' + (result.perpetual_total||0).toLocaleString() + ' / 貢献配当: ¥' + (result.contrib_total||0).toLocaleString() + ' / 合計: ¥' + (result.grand_total||0).toLocaleString();
         }
-        loadScores();
+        loadMonthStatus();
+    }
+
+    async function lockMonth() {
+        const month = document.getElementById('runMonth').value.slice(0,7);
+        if (!month) return alert('月を指定してください');
+        if (!confirm(month + ' の配当を確定しますか？\n確定後は計算の再実行ができなくなります。')) return;
+        const result = await adminFetch('/api/admin/lock-month', {
+            method: 'POST', body: JSON.stringify({ month })
+        });
+        if (result?.error) return alert('エラー: ' + result.error);
+        alert(result.message || '確定しました');
+        loadMonthStatus();
+    }
+
+    function showUnlockDialog() {
+        document.getElementById('unlockReason').value = '';
+        document.getElementById('unlockDialog').classList.remove('d-none');
     }
 
     async function unlockMonth() {
         const month = document.getElementById('runMonth').value.slice(0,7);
+        const reason = document.getElementById('unlockReason').value.trim();
         if (!month) return alert('月を指定してください');
-        if (!confirm(month + ' のロックを解除しますか？')) return;
-        await adminFetch('/api/admin/unlock-month', { method: 'POST', body: JSON.stringify({ month }) });
-        alert('ロック解除しました');
-        loadScores();
+        if (!reason) return alert('解除理由は必須です');
+        if (!confirm(month + ' の確定を解除しますか？\n理由: ' + reason)) return;
+        const result = await adminFetch('/api/admin/unlock-month', {
+            method: 'POST', body: JSON.stringify({ month, reason })
+        });
+        if (result?.error) return alert('エラー: ' + result.error);
+        alert(result.message || '確定を解除しました');
+        loadMonthStatus();
     }
 
     async function loadScores() {
-        const month = document.getElementById('scoresMonth').value.slice(0,7);
+        const month = document.getElementById('runMonth').value.slice(0,7);
         const data = await adminFetch('/api/admin/payout-scores?month=' + month);
         const tb = document.getElementById('scoresTable');
         if (!data || data.length === 0) {

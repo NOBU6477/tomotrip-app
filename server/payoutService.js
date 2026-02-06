@@ -230,13 +230,6 @@ class PayoutService {
   }
 
   async runMonthlyCalculation(month) {
-    const { rows: locked } = await this.query(
-      'SELECT COUNT(*) as cnt FROM monthly_guide_scores WHERE month=$1 AND locked=true', [month]
-    );
-    if (parseInt(locked[0].cnt, 10) > 0) {
-      throw new Error(`${month}は既にロック済みです。管理者が解除してから再実行してください。`);
-    }
-
     await this.query('DELETE FROM payouts WHERE month=$1', [month]);
     await this.query('DELETE FROM monthly_guide_scores WHERE month=$1', [month]);
 
@@ -384,8 +377,6 @@ class PayoutService {
       }
     }
 
-    await this.query('UPDATE monthly_guide_scores SET locked=true WHERE month=$1', [month]);
-
     const { rows: summary } = await this.query(`
       SELECT
         (SELECT COUNT(*) FROM monthly_guide_scores WHERE month=$1) as guides_scored,
@@ -402,9 +393,74 @@ class PayoutService {
     };
   }
 
-  async unlockMonth(month) {
+  async getMonthStatus(month) {
+    const { rows: scoreRows } = await this.query(
+      'SELECT COUNT(*) as cnt, bool_or(locked) as any_locked FROM monthly_guide_scores WHERE month=$1', [month]
+    );
+    const { rows: payoutRows } = await this.query(
+      'SELECT COUNT(*) as cnt FROM payouts WHERE month=$1', [month]
+    );
+    const scoreCount = parseInt(scoreRows[0].cnt, 10);
+    const payoutCount = parseInt(payoutRows[0].cnt, 10);
+    const isLocked = scoreRows[0].any_locked === true;
+
+    let status = 'none';
+    let calculatedAt = null;
+    let lockedAt = null;
+
+    if (scoreCount > 0 || payoutCount > 0) {
+      status = isLocked ? 'locked' : 'calculated';
+    }
+
+    if (status !== 'none') {
+      const { rows: calcRows } = await this.query(
+        'SELECT MIN(created_at) as first_calc FROM monthly_guide_scores WHERE month=$1', [month]
+      );
+      calculatedAt = calcRows[0]?.first_calc || null;
+    }
+
+    if (status === 'locked') {
+      const { rows: lockRows } = await this.query(
+        "SELECT created_at FROM payout_audit_logs WHERE month=$1 AND action='LOCK' ORDER BY created_at DESC LIMIT 1", [month]
+      );
+      lockedAt = lockRows[0]?.created_at || calculatedAt;
+    }
+
+    return { month, status, scoreCount, payoutCount, calculatedAt, lockedAt };
+  }
+
+  async lockMonth(month, adminUser, role) {
+    const ms = await this.getMonthStatus(month);
+    if (ms.status === 'none') throw new Error('未計算の月は確定できません');
+    if (ms.status === 'locked') throw new Error('既に確定済みです');
+
+    await this.query('UPDATE monthly_guide_scores SET locked=true WHERE month=$1', [month]);
+    await this.query('UPDATE payouts SET locked=true WHERE month=$1', [month]);
+    await this.query(
+      'INSERT INTO payout_audit_logs (month, action, admin_user, role, reason) VALUES ($1, $2, $3, $4, $5)',
+      [month, 'LOCK', adminUser, role, '月次確定']
+    );
+  }
+
+  async unlockMonth(month, adminUser, role, reason) {
+    const ms = await this.getMonthStatus(month);
+    if (ms.status !== 'locked') throw new Error('確定されていない月は解除できません');
+
     await this.query('UPDATE monthly_guide_scores SET locked=false WHERE month=$1', [month]);
     await this.query('UPDATE payouts SET locked=false WHERE month=$1', [month]);
+    await this.query(
+      'INSERT INTO payout_audit_logs (month, action, admin_user, role, reason) VALUES ($1, $2, $3, $4, $5)',
+      [month, 'UNLOCK', adminUser, role, reason]
+    );
+  }
+
+  async getAuditLogs(month) {
+    const sql = month
+      ? 'SELECT * FROM payout_audit_logs WHERE month=$1 ORDER BY created_at DESC'
+      : 'SELECT * FROM payout_audit_logs ORDER BY created_at DESC LIMIT 50';
+    const params = month ? [month] : [];
+    const { rows } = await this.query(sql, params);
+    return rows;
   }
 
   _subtractMonths(monthStr, n) {

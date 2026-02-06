@@ -34,19 +34,19 @@ class AdminAuthService {
     const adminCredentials = [
       { 
         username: 'admin', 
-        passwordHash: '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/lewKlRAhMzJNnyYUe', // tomotrip2024
+        passwordHash: '$2b$12$/DQeBPyq8WkVsZzU3a6iU.nK0Ygjg9f0Q08I2XeiaFUi77VssiGCi', // tomotrip2024
         level: 'admin', 
         name: '管理者' 
       },
       { 
         username: 'operator', 
-        passwordHash: '$2b$12$qvM7wT4XoK2GsBQskR5gzOyrM6v9S2YhNczEpKnYKVtpUa2.rglXC', // operator123
+        passwordHash: '$2b$12$IZIvFPYyhOwRp12BYpYUsOEMN6m/.eumvZudgckR9U2oEaSouO1mS', // operator123
         level: 'operator', 
         name: '運営者' 
       },
       { 
         username: 'support', 
-        passwordHash: '$2b$12$E54.Bdf7O9zGMjwGY.E4VeaJhKIiG.tPVUxrqBJYbvZV3M7T9Q8jG', // support123
+        passwordHash: '$2b$12$XTw0vH2OLRzmgfgWzjcJae9SkNdSuaLZsBfr/OE9Ya5sutKY.QLru', // support123
         level: 'support', 
         name: 'サポート' 
       }
