@@ -219,14 +219,18 @@
                 </div>
                 <div class="card p-3 mb-3">
                     <h6 class="mb-3"><i class="bi bi-link-45deg me-1"></i> ダッシュボードリンク</h6>
-                    <div class="input-group mb-2">
+                    <div class="mb-2">
+                        <span class="text-muted small">キー: </span>
+                        <span id="gpKeyMasked" class="fw-bold font-monospace"></span>
+                    </div>
+                    <div class="input-group mb-2 d-none" id="gpFullUrlGroup">
                         <span class="input-group-text small">URL</span>
                         <input type="text" id="gpDashboardUrl" class="form-control form-control-sm" readonly>
-                        <button class="btn btn-outline-secondary btn-sm" onclick="copyDashboardUrl()">
-                            <i class="bi bi-clipboard"></i> コピー
-                        </button>
                     </div>
-                    <div class="d-flex gap-2 align-items-center">
+                    <div class="d-flex gap-2 align-items-center flex-wrap">
+                        <button class="btn btn-outline-primary btn-sm" onclick="revealAndCopyUrl()">
+                            <i class="bi bi-clipboard me-1"></i>フルURLを表示＆コピー
+                        </button>
                         <button class="btn btn-warning btn-sm" onclick="regenerateKey()">
                             <i class="bi bi-arrow-repeat me-1"></i>リンクを再発行（旧リンク無効化）
                         </button>
@@ -500,6 +504,7 @@
     }
 
     let currentGuideId = null;
+    let currentFullKey = null;
 
     async function loadGuideProfile() {
         const guideId = document.getElementById('guideProfileSelect').value;
@@ -511,14 +516,31 @@
             document.getElementById('gpLang').value = cached.preferred_language || 'ja';
             document.getElementById('gpContact').value = cached.contact_method || 'line';
             document.getElementById('gpEmail').value = cached.email || '';
-            updateDashboardUrl(cached.dashboard_key);
+            currentFullKey = cached.dashboard_key || '';
+            updateKeyDisplay(currentFullKey);
         }
+        document.getElementById('gpFullUrlGroup').classList.add('d-none');
         panel.classList.remove('d-none');
     }
 
-    function updateDashboardUrl(key) {
+    function updateKeyDisplay(key) {
+        const masked = key ? '••••••••••••' + key.slice(-4) : '（未発行）';
+        document.getElementById('gpKeyMasked').textContent = masked;
         const base = location.origin + '/guide-payouts.html?k=' + (key || '');
         document.getElementById('gpDashboardUrl').value = base;
+    }
+
+    function revealAndCopyUrl() {
+        if (!currentFullKey) { alert('キーが未発行です'); return; }
+        document.getElementById('gpFullUrlGroup').classList.remove('d-none');
+        const url = document.getElementById('gpDashboardUrl').value;
+        navigator.clipboard.writeText(url).then(() => {
+            alert('URLをコピーしました（※共有後は画面を閉じてください）');
+        }).catch(() => {
+            const input = document.getElementById('gpDashboardUrl');
+            input.select();
+            document.execCommand('copy');
+        });
     }
 
     async function saveGuideProfile() {
@@ -544,21 +566,12 @@
             method: 'POST'
         });
         if (result?.error) return alert(result.error);
-        updateDashboardUrl(result.dashboard_key);
-        alert('リンクを再発行しました');
+        currentFullKey = result.dashboard_key;
+        updateKeyDisplay(currentFullKey);
+        document.getElementById('gpFullUrlGroup').classList.add('d-none');
+        alert('リンクを再発行しました（旧リンクは無効化済み）');
         await loadSelects();
         document.getElementById('guideProfileSelect').value = currentGuideId;
-    }
-
-    function copyDashboardUrl() {
-        const url = document.getElementById('gpDashboardUrl').value;
-        navigator.clipboard.writeText(url).then(() => {
-            alert('URLをコピーしました');
-        }).catch(() => {
-            const input = document.getElementById('gpDashboardUrl');
-            input.select();
-            document.execCommand('copy');
-        });
     }
     </script>
 </body>

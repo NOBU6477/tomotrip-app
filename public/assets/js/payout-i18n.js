@@ -31,6 +31,7 @@ const PAYOUT_I18N = {
     lang_switch: 'English',
     loading: '読み込み中...',
     error_loading: 'データの読み込みに失敗しました',
+    privacy_notice: 'このリンクはあなた専用です。他人に共有しないでください。',
   },
   en: {
     page_title: 'TomoTrip - Guide Performance Dashboard',
@@ -64,6 +65,7 @@ const PAYOUT_I18N = {
     lang_switch: '日本語',
     loading: 'Loading...',
     error_loading: 'Failed to load data',
+    privacy_notice: 'This link is private. Do not share it with others.',
   }
 };
 

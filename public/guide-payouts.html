@@ -57,6 +57,9 @@
         </div>
 
         <div id="dashboard" class="d-none">
+            <div class="alert alert-light border py-2 px-3 mb-3 small text-muted" data-i18n="privacy_notice">
+                このリンクはあなた専用です。他人に共有しないでください。
+            </div>
             <div class="row g-3 mb-4">
                 <div class="col-md-3 col-6">
                     <div class="card card-stat p-3 text-center">
@@ -124,7 +127,8 @@
     (function() {
         const params = new URLSearchParams(location.search);
         const dashboardKey = params.get('k');
-        let currentLang = params.get('lang') || 'ja';
+        const savedLang = localStorage.getItem('tomotrip_payout_lang');
+        let currentLang = params.get('lang') || savedLang || 'ja';
         let guideId = null;
         let guideName = '';
 
@@ -143,6 +147,7 @@
 
         window.toggleLang = function() {
             currentLang = currentLang === 'ja' ? 'en' : 'ja';
+            localStorage.setItem('tomotrip_payout_lang', currentLang);
             const url = new URL(location.href);
             url.searchParams.set('lang', currentLang);
             history.replaceState(null, '', url.toString());
