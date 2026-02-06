@@ -426,7 +426,19 @@ class PayoutService {
       lockedAt = lockRows[0]?.created_at || calculatedAt;
     }
 
-    return { month, status, scoreCount, payoutCount, calculatedAt, lockedAt };
+    let hasSourceData = true;
+    if (status === 'none') {
+      const { rows: srcRows } = await this.query(`
+        SELECT
+          (SELECT COUNT(*) FROM store_founders) as founder_count,
+          (SELECT COUNT(*) FROM contributions WHERE month=$1) as contrib_count
+      `, [month]);
+      const fc = parseInt(srcRows[0].founder_count, 10);
+      const cc = parseInt(srcRows[0].contrib_count, 10);
+      hasSourceData = (fc > 0 || cc > 0);
+    }
+
+    return { month, status, scoreCount, payoutCount, calculatedAt, lockedAt, hasSourceData };
   }
 
   async lockMonth(month, adminUser, role) {

@@ -469,7 +469,18 @@
         const btnLock = document.getElementById('btnLockMonth');
         const btnUnlock = document.getElementById('btnUnlockMonth');
 
-        if (data.status === 'none') {
+        if (data.status === 'none' && data.hasSourceData === false) {
+            badge.innerHTML = '<span class="badge bg-info text-dark fs-6">データなし</span>' +
+                '<div class="alert alert-light border mt-2 mb-0 small">' +
+                '<i class="bi bi-info-circle me-1"></i>' +
+                'この月は協賛店・ガイド・配当データが存在しないため、計算対象がありません。<br>' +
+                '<span class="text-muted">This month has no stores, guides, or payout data. There is nothing to calculate.</span>' +
+                '</div>';
+            btnRun.style.display = '';
+            btnRun.disabled = false;
+            btnLock.style.display = 'none';
+            btnUnlock.style.display = 'none';
+        } else if (data.status === 'none') {
             badge.innerHTML = '<span class="badge bg-secondary fs-6">未計算</span>';
             btnRun.style.display = '';
             btnRun.disabled = false;
