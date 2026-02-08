@@ -288,6 +288,7 @@
     <script>
     let TOKEN = localStorage.getItem('admin_token') || '';
     const typeLabels = { A: '送客', B: '利用', C: '拡散' };
+    const curMonth = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
 
     if (TOKEN) {
         document.getElementById('loginOverlay').classList.add('d-none');
@@ -345,8 +346,6 @@
         });
     });
 
-    const curMonth = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
-
     async function initApp() {
         document.getElementById('contribMonth').value = curMonth;
         document.getElementById('contribFilterMonth').value = curMonth;
@@ -359,37 +358,48 @@
     let allGuidesCache = [];
 
     async function loadSelects() {
-        const [stores, guides] = await Promise.all([
-            adminFetch('/api/admin/payout-stores-list'),
-            adminFetch('/api/admin/payout-guides-list')
-        ]);
+        let stores, guides;
+        try {
+            [stores, guides] = await Promise.all([
+                adminFetch('/api/admin/payout-stores-list'),
+                adminFetch('/api/admin/payout-guides-list')
+            ]);
+        } catch (e) {
+            console.error('店舗/ガイド一覧の取得に失敗:', e);
+            alert('店舗・ガイド一覧の取得に失敗しました。ページを再読み込みしてください。');
+            return;
+        }
         allGuidesCache = guides || [];
         const storeSelects = ['founderStoreSelect', 'contribStoreSelect'];
         const guideSelects = ['founderGuideSelect', 'contribGuideSelect'];
+        const validStores = (stores||[]).filter(s => { if (!s.id) { console.warn('店舗データにIDなし:', s); return false; } return true; });
+        const validGuides = (guides||[]).filter(g => { if (!g.id) { console.warn('ガイドデータにIDなし:', g); return false; } return true; });
         storeSelects.forEach(id => {
             const sel = document.getElementById(id);
             sel.innerHTML = '<option value="">選択...</option>';
-            (stores||[]).forEach(s => {
+            validStores.forEach(s => {
                 const o = document.createElement('option');
-                o.value = s.id; o.textContent = s.store_name || s.id;
+                o.value = s.id;
+                o.textContent = (s.store_name || '(名前未設定)') + ' (' + s.id + ')';
                 sel.appendChild(o);
             });
         });
         guideSelects.forEach(id => {
             const sel = document.getElementById(id);
             sel.innerHTML = '<option value="">選択...</option>';
-            (guides||[]).forEach(g => {
+            validGuides.forEach(g => {
                 const o = document.createElement('option');
-                o.value = g.id; o.textContent = g.guide_name || g.id;
+                o.value = g.id;
+                o.textContent = (g.guide_name || '(名前未設定)') + ' (' + g.id + ')';
                 sel.appendChild(o);
             });
         });
         const gpSel = document.getElementById('guideProfileSelect');
         gpSel.innerHTML = '<option value="">ガイドを選択...</option>';
-        (guides||[]).forEach(g => {
+        validGuides.forEach(g => {
             const o = document.createElement('option');
             o.value = g.id;
-            o.textContent = (g.guide_name || g.id) + ' [' + (g.preferred_language||'ja') + '/' + (g.contact_method||'line') + ']';
+            o.textContent = (g.guide_name || '(名前未設定)') + ' (' + g.id + ') [' + (g.preferred_language||'ja') + '/' + (g.contact_method||'line') + ']';
             gpSel.appendChild(o);
         });
     }
@@ -456,10 +466,13 @@
             if (sid) {
                 data.source_id = sid;
             } else {
-                if (!confirm('source_id（予約/チェックインID）が未入力です。未入力のまま登録しますか？（重複計上防止のため入力推奨）')) {
+                if (!confirm('source_id（予約/チェックインID）が未入力です。\n自動採番で登録しますか？（重複計上防止のため手入力推奨）\n\nOK → 自動採番で登録\nキャンセル → 手入力に戻る')) {
                     document.getElementById('contribSourceId').focus();
                     return;
                 }
+                const now = new Date();
+                const ts = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '-' + String(now.getHours()).padStart(2,'0') + String(now.getMinutes()).padStart(2,'0') + String(now.getSeconds()).padStart(2,'0');
+                data.source_id = 'manual-' + ts + '-' + Math.random().toString(36).slice(2,6);
             }
         }
         if (!data.store_id || !data.guide_id || !data.month) return alert('必須項目を入力してください');
