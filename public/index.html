@@ -5785,10 +5785,25 @@
             color: #4ecdc4 !important;
             text-decoration: underline !important;
         }
+
+        body {
+            padding-bottom: 140px !important;
+        }
+
+        #main-footer {
+            position: relative !important;
+            z-index: 20000 !important;
+        }
+
+        #main-footer a {
+            position: relative;
+            z-index: 20001;
+            pointer-events: auto;
+        }
     </style>
 
     <!-- Footer -->
-    <footer id="main-footer" style="background-color: #212529 !important; color: white !important; padding: 3rem 0 !important; margin-top: 2rem !important; position: relative !important; z-index: 100 !important; width: 100% !important; clear: both !important; display: block !important; visibility: visible !important; opacity: 1 !important;">
+    <footer id="main-footer" style="background-color: #212529 !important; color: white !important; padding: 3rem 0 !important; margin-top: 2rem !important; position: relative !important; z-index: 20000 !important; width: 100% !important; clear: both !important; display: block !important; visibility: visible !important; opacity: 1 !important;">
         <div class="container">
             <div class="row">
                 <!-- Company Info -->
