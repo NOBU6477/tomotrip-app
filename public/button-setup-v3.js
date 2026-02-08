@@ -1135,12 +1135,19 @@ function setupGuideCardButtons() {
  */
 function setupAdminModeToggle() {
     const adminToggleBtn = document.getElementById('adminModeToggleBtn');
+    const adminToggleBtnMobile = document.getElementById('adminModeToggleBtnMobile');
     
     if (adminToggleBtn) {
         adminToggleBtn.removeEventListener('click', handleAdminModeToggle);
         adminToggleBtn.addEventListener('click', handleAdminModeToggle);
-        console.log('✅ Admin mode toggle button handler attached');
-    } else {
+        console.log('✅ Admin mode toggle button handler attached (desktop)');
+    }
+    if (adminToggleBtnMobile) {
+        adminToggleBtnMobile.removeEventListener('click', handleAdminModeToggle);
+        adminToggleBtnMobile.addEventListener('click', handleAdminModeToggle);
+        console.log('✅ Admin mode toggle button handler attached (mobile)');
+    }
+    if (!adminToggleBtn && !adminToggleBtnMobile) {
         console.warn('⚠️ Admin mode toggle button not found');
     }
 }

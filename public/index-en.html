@@ -1115,8 +1115,11 @@
     <!-- Management Center Button - Mobile -->
     <button class="management-center-mobile d-lg-none position-fixed" id="managementBtnMobile" title="Management Center" style="bottom: 80px; right: 20px; z-index: 1000; width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #ffd700, #ffed4e); border: none; font-size: 20px; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4); transition: all 0.3s ease; cursor: pointer;">🏆</button>
 
-    <!-- Admin Mode Toggle Button -->
-    <button class="admin-mode-toggle d-none d-lg-block" id="adminModeToggleBtn" data-action="toggle-admin-mode" title="Management者モード" style="position: fixed; bottom: 30px; right: 110px; z-index: 1000; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #dc3545, #c82333); border: none; font-size: 24px; color: white; box-shadow: 0 4px 20px rgba(220, 53, 69, 0.4); transition: all 0.3s ease; cursor: pointer;">⚙️</button>
+    <!-- Admin Mode Toggle Button - Desktop -->
+    <button class="admin-mode-toggle d-none d-lg-block" id="adminModeToggleBtn" data-action="toggle-admin-mode" title="Admin Mode" style="position: fixed; bottom: 30px; right: 110px; z-index: 1000; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #dc3545, #c82333); border: none; font-size: 24px; color: white; box-shadow: 0 4px 20px rgba(220, 53, 69, 0.4); transition: all 0.3s ease; cursor: pointer;">⚙️</button>
+
+    <!-- Admin Mode Toggle Button - Mobile -->
+    <button class="admin-mode-toggle-mobile d-lg-none position-fixed" id="adminModeToggleBtnMobile" data-action="toggle-admin-mode" title="Admin Mode" style="bottom: 80px; right: 80px; z-index: 1000; width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #dc3545, #c82333); border: none; font-size: 20px; color: white; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4); transition: all 0.3s ease; cursor: pointer;">⚙️</button>
 
     <!-- Main Content Section -->
     <section class="main-content" style="padding: 80px 0; background: #f8f9fa;">
@@ -5905,28 +5908,21 @@
         }
 
         body {
-            padding-bottom: 140px !important;
+            padding-bottom: 220px !important;
         }
 
         #main-footer {
             position: relative !important;
-            z-index: 20000 !important;
+            z-index: 50 !important;
         }
 
         #main-footer a {
             position: relative;
-            z-index: 20001;
             pointer-events: auto !important;
         }
 
         #main-footer * {
             pointer-events: auto !important;
-        }
-
-        #managementBtn,
-        #managementBtnMobile,
-        #adminModeToggleBtn {
-            pointer-events: auto;
         }
 
         .sponsor-buttons {
@@ -5955,7 +5951,7 @@
     </style>
 
     <!-- Footer -->
-    <footer id="main-footer" style="background-color: #212529 !important; color: white !important; padding: 3rem 0 !important; margin-top: 2rem !important; position: relative !important; z-index: 20000 !important; width: 100% !important; clear: both !important; display: block !important; visibility: visible !important; opacity: 1 !important;">
+    <footer id="main-footer" style="background-color: #212529 !important; color: white !important; padding: 3rem 0 !important; margin-top: 2rem !important; position: relative !important; z-index: 50 !important; width: 100% !important; clear: both !important; display: block !important; visibility: visible !important; opacity: 1 !important;">
         <div class="container">
             <div class="row">
                 <!-- Company Info -->
