@@ -5916,7 +5916,41 @@
         #main-footer a {
             position: relative;
             z-index: 20001;
+            pointer-events: auto !important;
+        }
+
+        #main-footer * {
+            pointer-events: auto !important;
+        }
+
+        #managementBtn,
+        #managementBtnMobile,
+        #adminModeToggleBtn {
             pointer-events: auto;
+        }
+
+        .sponsor-buttons {
+            pointer-events: none !important;
+        }
+        .sponsor-buttons .sponsor-btn,
+        .sponsor-buttons button,
+        .sponsor-buttons a {
+            pointer-events: auto !important;
+        }
+
+        .admin-toolbar,
+        #adminToolbar {
+            pointer-events: none !important;
+        }
+        .admin-toolbar button,
+        .admin-toolbar a,
+        .admin-toolbar input,
+        .admin-toolbar select,
+        #adminToolbar button,
+        #adminToolbar a,
+        #adminToolbar input,
+        #adminToolbar select {
+            pointer-events: auto !important;
         }
     </style>
 
