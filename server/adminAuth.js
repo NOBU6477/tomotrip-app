@@ -151,8 +151,11 @@ class AdminAuthService {
         };
       }
 
-      // Verify access level
-      if (admin.level !== accessLevel) {
+      // Verify access level (hierarchy: admin > operator > support)
+      const levelHierarchy = { 'support': 1, 'operator': 2, 'admin': 3 };
+      const userLevel = levelHierarchy[admin.level] || 0;
+      const reqLevel = levelHierarchy[accessLevel] || 0;
+      if (userLevel < reqLevel) {
         this.recordFailedAttempt(username, clientIP);
         return {
           success: false,
