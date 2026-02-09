@@ -42,15 +42,10 @@ function updateAdminOnlyElements() {
     els.forEach((el, i) => {
         if (isAdminMode) {
             el.style.removeProperty('display');
-            const hasResponsive = el.classList.contains('d-lg-block') || el.classList.contains('d-lg-none');
-            if (!hasResponsive) {
-                el.classList.remove('d-none');
-            }
         } else {
             el.style.setProperty('display', 'none', 'important');
         }
-        const cs = window.getComputedStyle(el).display;
-        console.log(`  [${i}] tag=${el.tagName} id=${el.id||'(none)'} computedDisplay=${cs}`);
+        console.log(`  [${i}] id=${el.id||'(none)'} classes=${el.className}`);
     });
 }
 
@@ -350,31 +345,26 @@ export function getAdminModeState() {
     };
 }
 
-// 管理者モードの状態をAppStateに保存
+// 管理者モードの状態をlocalStorageに保存（単一ソース）
 function saveAdminState() {
-    if (window.AppState) {
-        window.AppState.adminMode = {
-            isAdminMode,
-            selectedGuides: Array.from(selectedGuides)
-        };
-    }
     try {
         localStorage.setItem('tomotrip_adminMode', isAdminMode ? 'on' : 'off');
     } catch(e) { /* ignore */ }
-    console.log('💾 Admin state saved to AppState:', { isAdminMode, selectedCount: selectedGuides.size });
+    if (window.AppState) {
+        window.AppState.adminMode = { isAdminMode, selectedGuides: Array.from(selectedGuides) };
+    }
+    console.log('💾 Admin state saved:', { isAdminMode, selectedCount: selectedGuides.size });
 }
 
-// AppStateから管理者モード状態を読み込み
+// localStorageから管理者モード状態を読み込み、全UIを更新
 function loadAdminState() {
-    if (window.AppState && window.AppState.adminMode) {
-        isAdminMode = window.AppState.adminMode.isAdminMode || false;
-        selectedGuides = new Set(window.AppState.adminMode.selectedGuides || []);
-        console.log('📂 Admin state loaded from AppState:', { isAdminMode, selectedCount: selectedGuides.size });
-    } else {
-        try {
-            isAdminMode = localStorage.getItem('tomotrip_adminMode') === 'on';
-        } catch(e) { /* ignore */ }
+    try {
+        isAdminMode = localStorage.getItem('tomotrip_adminMode') === 'on';
+    } catch(e) {
+        isAdminMode = false;
     }
+    console.log('📂 Admin state loaded from localStorage:', { isAdminMode });
+    updateAdminToolbar();
     updateAdminOnlyElements();
     updateAdminModeIndicator(false);
 }
