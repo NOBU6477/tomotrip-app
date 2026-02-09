@@ -1109,11 +1109,11 @@
     </section>
 
 
-    <!-- Management Center Button - Desktop -->
-    <button class="management-center d-none d-lg-block" id="managementBtn" title="Management Center" style="position: fixed; bottom: 30px; right: 30px; z-index: 1000; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #ffd700, #ffed4e); border: none; font-size: 24px; box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4); transition: all 0.3s ease; cursor: pointer;">🏆</button>
+    <!-- Management Center Button - Desktop (admin-only) -->
+    <button class="management-center admin-only d-none d-lg-block" id="managementBtn" title="Management Center" style="display:none; position: fixed; bottom: 30px; right: 30px; z-index: 1000; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #ffd700, #ffed4e); border: none; font-size: 24px; box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4); transition: all 0.3s ease; cursor: pointer;">🏆</button>
     
-    <!-- Management Center Button - Mobile -->
-    <button class="management-center-mobile d-lg-none position-fixed" id="managementBtnMobile" title="Management Center" style="bottom: 80px; right: 20px; z-index: 1000; width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #ffd700, #ffed4e); border: none; font-size: 20px; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4); transition: all 0.3s ease; cursor: pointer;">🏆</button>
+    <!-- Management Center Button - Mobile (admin-only) -->
+    <button class="management-center-mobile admin-only d-lg-none position-fixed" id="managementBtnMobile" title="Management Center" style="display:none; bottom: 80px; right: 20px; z-index: 1000; width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #ffd700, #ffed4e); border: none; font-size: 20px; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4); transition: all 0.3s ease; cursor: pointer;">🏆</button>
 
     <!-- Admin Mode Toggle Button - Desktop -->
     <button class="admin-mode-toggle d-none d-lg-block" id="adminModeToggleBtn" data-action="toggle-admin-mode" title="Admin Mode" style="position: fixed; bottom: 30px; right: 110px; z-index: 1000; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #dc3545, #c82333); border: none; font-size: 24px; color: white; box-shadow: 0 4px 20px rgba(220, 53, 69, 0.4); transition: all 0.3s ease; cursor: pointer;">⚙️</button>
@@ -5986,7 +5986,7 @@
                         <li class="mb-2"><a href="/tourist-registration-simple-en.html" class="text-muted text-decoration-none hover-link" target="_blank">Tourist Registration</a></li>
                         <li class="mb-2"><a href="#" class="text-muted text-decoration-none hover-link" onclick="showManagementCenter()">Booking Management</a></li>
                         <li class="mb-2"><a href="sponsor-registration-en.html" class="text-muted text-decoration-none hover-link">Sponsor Registration</a></li>
-                        <li class="mb-2"><a href="/admin-payouts.html" class="text-muted text-decoration-none hover-link" onclick="window.location.href='/admin-payouts.html'" style="position:relative;z-index:9999;pointer-events:auto;">🔐 Admin Login</a></li>
+                        <li class="mb-2 admin-only" style="display:none;"><a href="/admin-payouts.html" class="text-muted text-decoration-none hover-link" onclick="window.location.href='/admin-payouts.html'" style="position:relative;pointer-events:auto;">🔐 Admin Login</a></li>
                     </ul>
                 </div>
 

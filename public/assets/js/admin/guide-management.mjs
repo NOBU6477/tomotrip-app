@@ -28,8 +28,21 @@ export function toggleAdminMode() {
     // ツールバーの表示/非表示
     updateAdminToolbar();
     
+    // 管理者専用UI要素の表示/非表示
+    updateAdminOnlyElements();
+    
     console.log(`${isAdminMode ? '✅ 管理者モード有効' : '❌ 管理者モード無効'}`);
     return isAdminMode;
+}
+
+function updateAdminOnlyElements() {
+    document.querySelectorAll('.admin-only').forEach(el => {
+        if (isAdminMode) {
+            el.style.removeProperty('display');
+        } else {
+            el.style.setProperty('display', 'none', 'important');
+        }
+    });
 }
 
 // 管理者ツールバーの更新
@@ -301,6 +314,7 @@ function loadAdminState() {
         selectedGuides = new Set(window.AppState.adminMode.selectedGuides || []);
         console.log('📂 Admin state loaded from AppState:', { isAdminMode, selectedCount: selectedGuides.size });
     }
+    updateAdminOnlyElements();
 }
 
 // 管理者モードの初期化（グローバル関数として公開）
