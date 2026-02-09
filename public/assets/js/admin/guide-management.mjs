@@ -30,6 +30,7 @@ export function toggleAdminMode() {
     
     // 管理者専用UI要素の表示/非表示
     updateAdminOnlyElements();
+    updateAdminModeIndicator(true);
     
     console.log(`${isAdminMode ? '✅ 管理者モード有効' : '❌ 管理者モード無効'}`);
     return isAdminMode;
@@ -48,6 +49,51 @@ function updateAdminOnlyElements() {
         const cs = window.getComputedStyle(el).display;
         console.log(`  [${i}] tag=${el.tagName} id=${el.id||'(none)'} computedDisplay=${cs}`);
     });
+}
+
+function isEnglishPage() {
+    return document.documentElement.lang === 'en' || window.location.pathname.includes('-en');
+}
+
+function updateAdminModeIndicator(showToast) {
+    const badge = document.getElementById('adminModeBadge');
+    if (!badge) return;
+
+    if (isAdminMode) {
+        badge.style.display = 'flex';
+    } else {
+        badge.style.display = 'none';
+    }
+
+    if (showToast) {
+        const en = isEnglishPage();
+        const msg = isAdminMode
+            ? (en ? 'Admin mode enabled' : '管理者モードを有効化しました')
+            : (en ? 'Admin mode disabled' : '管理者モードを無効化しました');
+        showAdminToast(msg);
+    }
+}
+
+function showAdminToast(message) {
+    let container = document.getElementById('adminToastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'adminToastContainer';
+        container.style.cssText = 'position:fixed;top:70px;right:16px;z-index:10100;pointer-events:none;';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.cssText = 'background:rgba(0,0,0,0.85);color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.3);opacity:0;transition:opacity 0.3s ease;margin-bottom:8px;pointer-events:auto;';
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => { toast.style.opacity = '1'; });
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => { toast.remove(); }, 300);
+    }, 3000);
 }
 
 // 管理者ツールバーの更新
@@ -320,6 +366,7 @@ function loadAdminState() {
         console.log('📂 Admin state loaded from AppState:', { isAdminMode, selectedCount: selectedGuides.size });
     }
     updateAdminOnlyElements();
+    updateAdminModeIndicator(false);
 }
 
 // 管理者モードの初期化（グローバル関数として公開）
@@ -491,9 +538,9 @@ async function handleAdminLogin(e) {
             
             updateAdminToolbar();
             updateAdminOnlyElements();
+            updateAdminModeIndicator(true);
             
             console.log('✅ 管理者認証成功');
-            alert('管理者モードが有効になりました。');
             
         } else {
             // 認証失敗
@@ -545,6 +592,7 @@ function logoutAdmin() {
     
     // 管理者専用UI要素を非表示
     updateAdminOnlyElements();
+    updateAdminModeIndicator(true);
     
     // ガイドカードを再描画（チェックボックスを非表示）
     if (window.AppState && window.AppState.guides && window.renderGuideCards) {
@@ -552,7 +600,6 @@ function logoutAdmin() {
     }
     
     console.log('👋 管理者ログアウト完了');
-    alert('管理者モードを終了しました。セキュリティ情報もクリアされました。');
 }
 
 // グローバル関数として公開
