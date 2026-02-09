@@ -22,6 +22,26 @@
             .sidebar { width: 100%; min-height: auto; position: relative; }
             .main-content { margin-left: 0; }
         }
+        .admin-guard-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(128,128,128,0.35); z-index: 8000;
+            display: flex; align-items: flex-start; justify-content: center;
+            padding-top: 80px;
+        }
+        .admin-guard-banner {
+            background: #fff; border: 2px solid #dc3545; border-radius: 12px;
+            padding: 28px 36px; max-width: 560px; width: 90%;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18); text-align: center;
+        }
+        .admin-guard-banner .guard-icon { font-size: 2.4rem; color: #dc3545; }
+        .admin-guard-banner h5 { margin: 12px 0 8px; color: #333; }
+        .admin-guard-banner p { color: #666; margin-bottom: 16px; font-size: 0.95rem; }
+        .admin-guard-banner .guard-hint {
+            background: #f8f9fa; border-radius: 8px; padding: 10px 14px;
+            font-size: 0.85rem; color: #555;
+        }
+        .main-content.guarded { pointer-events: none; opacity: 0.45; user-select: none; }
+        .sidebar.guarded { pointer-events: none; opacity: 0.6; }
     </style>
 </head>
 <body>
@@ -32,6 +52,20 @@
             <input type="password" id="loginPass" class="form-control mb-3" placeholder="パスワード">
             <button class="btn btn-primary w-100" onclick="doLogin()">ログイン</button>
             <div id="loginError" class="text-danger small mt-2 d-none"></div>
+        </div>
+    </div>
+
+    <div id="adminModeGuard" class="admin-guard-overlay" style="display:none;">
+        <div class="admin-guard-banner">
+            <div class="guard-icon"><i class="bi bi-shield-exclamation"></i></div>
+            <h5>管理者モードがOFFです</h5>
+            <p>⚠ 管理者モードがOFFです。この画面を操作するには管理者モードをONにしてください。</p>
+            <p class="small text-muted mb-3">⚠ Admin mode is OFF. Please enable admin mode to use this page.</p>
+            <div class="guard-hint">
+                <i class="bi bi-gear me-1"></i>
+                トップページの <strong>⚙️ ボタン</strong> から管理者モードをONにしてください。<br>
+                <span class="text-muted">Use the ⚙️ button on the top page to enable admin mode.</span>
+            </div>
         </div>
     </div>
 
@@ -728,6 +762,64 @@
         alert('リンクを再発行しました（旧リンクは無効化済み）');
         await loadSelects();
         document.getElementById('guideProfileSelect').value = currentGuideId;
+    }
+
+    // ========== 管理者モード OFF ガード ==========
+    function isAdminModeOn() {
+        try {
+            return localStorage.getItem('tomotrip_adminMode') === 'on';
+        } catch(e) { return false; }
+    }
+
+    function applyAdminGuard() {
+        const guardEl = document.getElementById('adminModeGuard');
+        const mainContent = document.querySelector('.main-content');
+        const sidebar = document.querySelector('.sidebar');
+        const loginVisible = !document.getElementById('loginOverlay').classList.contains('d-none');
+        if (loginVisible) {
+            guardEl.style.display = 'none';
+            mainContent.classList.remove('guarded');
+            sidebar.classList.remove('guarded');
+            return;
+        }
+        if (isAdminModeOn()) {
+            guardEl.style.display = 'none';
+            mainContent.classList.remove('guarded');
+            sidebar.classList.remove('guarded');
+            console.log('🛡️ Admin guard: OFF (admin mode ON)');
+        } else {
+            guardEl.style.display = 'flex';
+            mainContent.classList.add('guarded');
+            sidebar.classList.add('guarded');
+            console.log('🛡️ Admin guard: ON (admin mode OFF)');
+        }
+    }
+
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'tomotrip_adminMode') {
+            console.log('🔄 Admin mode changed via storage event:', e.newValue);
+            applyAdminGuard();
+        }
+    });
+
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            applyAdminGuard();
+        }
+    });
+
+    window.addEventListener('focus', function() {
+        applyAdminGuard();
+    });
+
+    const _origInitApp = initApp;
+    initApp = async function() {
+        await _origInitApp();
+        applyAdminGuard();
+    };
+
+    if (TOKEN) {
+        applyAdminGuard();
     }
     </script>
 </body>

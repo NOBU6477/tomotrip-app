@@ -355,6 +355,9 @@ function saveAdminState() {
             selectedGuides: Array.from(selectedGuides)
         };
     }
+    try {
+        localStorage.setItem('tomotrip_adminMode', isAdminMode ? 'on' : 'off');
+    } catch(e) { /* ignore */ }
     console.log('💾 Admin state saved to AppState:', { isAdminMode, selectedCount: selectedGuides.size });
 }
 
@@ -364,6 +367,10 @@ function loadAdminState() {
         isAdminMode = window.AppState.adminMode.isAdminMode || false;
         selectedGuides = new Set(window.AppState.adminMode.selectedGuides || []);
         console.log('📂 Admin state loaded from AppState:', { isAdminMode, selectedCount: selectedGuides.size });
+    } else {
+        try {
+            isAdminMode = localStorage.getItem('tomotrip_adminMode') === 'on';
+        } catch(e) { /* ignore */ }
     }
     updateAdminOnlyElements();
     updateAdminModeIndicator(false);
