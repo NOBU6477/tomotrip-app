@@ -36,12 +36,17 @@ export function toggleAdminMode() {
 }
 
 function updateAdminOnlyElements() {
-    document.querySelectorAll('.admin-only').forEach(el => {
+    const els = document.querySelectorAll('.admin-only');
+    console.log(`🔍 updateAdminOnlyElements: isAdminMode=${isAdminMode}, found ${els.length} elements`);
+    els.forEach((el, i) => {
         if (isAdminMode) {
             el.style.removeProperty('display');
+            el.classList.remove('d-none');
         } else {
             el.style.setProperty('display', 'none', 'important');
         }
+        const cs = window.getComputedStyle(el).display;
+        console.log(`  [${i}] tag=${el.tagName} id=${el.id||'(none)'} computedDisplay=${cs}`);
     });
 }
 
@@ -485,6 +490,7 @@ async function handleAdminLogin(e) {
             }
             
             updateAdminToolbar();
+            updateAdminOnlyElements();
             
             console.log('✅ 管理者認証成功');
             alert('管理者モードが有効になりました。');
@@ -536,6 +542,9 @@ function logoutAdmin() {
     if (toolbar) {
         toolbar.style.display = 'none';
     }
+    
+    // 管理者専用UI要素を非表示
+    updateAdminOnlyElements();
     
     // ガイドカードを再描画（チェックボックスを非表示）
     if (window.AppState && window.AppState.guides && window.renderGuideCards) {
