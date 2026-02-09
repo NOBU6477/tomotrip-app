@@ -23,25 +23,30 @@
             .main-content { margin-left: 0; }
         }
         .admin-guard-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(128,128,128,0.35); z-index: 8000;
-            display: flex; align-items: flex-start; justify-content: center;
-            padding-top: 80px;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(80, 80, 80, 0.55); z-index: 8000;
+            display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
         }
         .admin-guard-banner {
-            background: #fff; border: 2px solid #dc3545; border-radius: 12px;
-            padding: 28px 36px; max-width: 560px; width: 90%;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.18); text-align: center;
+            background: #fff; border: 3px solid #dc3545; border-radius: 16px;
+            padding: 32px 40px; max-width: 560px; width: 90%;
+            box-shadow: 0 12px 48px rgba(0,0,0,0.3); text-align: center;
+            animation: guardFadeIn 0.3s ease-out;
         }
-        .admin-guard-banner .guard-icon { font-size: 2.4rem; color: #dc3545; }
-        .admin-guard-banner h5 { margin: 12px 0 8px; color: #333; }
-        .admin-guard-banner p { color: #666; margin-bottom: 16px; font-size: 0.95rem; }
+        @keyframes guardFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .admin-guard-banner .guard-icon { font-size: 3rem; color: #dc3545; }
+        .admin-guard-banner h5 { margin: 14px 0 10px; color: #222; font-weight: 700; font-size: 1.3rem; }
+        .admin-guard-banner p { color: #555; margin-bottom: 16px; font-size: 1rem; line-height: 1.6; }
         .admin-guard-banner .guard-hint {
-            background: #f8f9fa; border-radius: 8px; padding: 10px 14px;
-            font-size: 0.85rem; color: #555;
+            background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px;
+            padding: 12px 16px; font-size: 0.9rem; color: #664d03;
         }
-        .main-content.guarded { pointer-events: none; opacity: 0.45; user-select: none; }
-        .sidebar.guarded { pointer-events: none; opacity: 0.6; }
+        .main-content.guarded { pointer-events: none; opacity: 0.3; user-select: none; filter: grayscale(0.4); }
+        .sidebar.guarded { pointer-events: none; opacity: 0.4; filter: grayscale(0.4); }
     </style>
 </head>
 <body>
@@ -59,12 +64,12 @@
         <div class="admin-guard-banner">
             <div class="guard-icon"><i class="bi bi-shield-exclamation"></i></div>
             <h5>管理者モードがOFFです</h5>
-            <p>⚠ 管理者モードがOFFです。この画面を操作するには管理者モードをONにしてください。</p>
-            <p class="small text-muted mb-3">⚠ Admin mode is OFF. Please enable admin mode to use this page.</p>
+            <p>管理者モードがOFFです。⚙️をONにしてください。</p>
+            <p class="small text-muted mb-3">Admin mode is OFF. Please turn it ON using ⚙️.</p>
             <div class="guard-hint">
                 <i class="bi bi-gear me-1"></i>
                 トップページの <strong>⚙️ ボタン</strong> から管理者モードをONにしてください。<br>
-                <span class="text-muted">Use the ⚙️ button on the top page to enable admin mode.</span>
+                <span class="text-muted">Use the ⚙️ button on the top page to turn ON admin mode.</span>
             </div>
         </div>
     </div>
@@ -814,13 +819,22 @@
 
     const _origInitApp = initApp;
     initApp = async function() {
-        await _origInitApp();
-        applyAdminGuard();
+        try {
+            await _origInitApp();
+        } catch(e) {
+            console.error('initApp error:', e);
+        } finally {
+            applyAdminGuard();
+        }
     };
 
     if (TOKEN) {
         applyAdminGuard();
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        if (TOKEN) { applyAdminGuard(); }
+    });
     </script>
 </body>
 </html>
