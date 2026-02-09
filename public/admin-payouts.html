@@ -50,7 +50,7 @@
     </style>
 </head>
 <body>
-    <div id="loginOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background:rgba(0,0,0,0.5);z-index:9999;">
+    <div id="loginOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background:rgba(0,0,0,0.5);z-index:7000;">
         <div class="card p-4" style="width:360px;">
             <h5 class="mb-3 text-center">管理者ログイン</h5>
             <input type="text" id="loginUser" class="form-control mb-2" placeholder="ユーザー名">
@@ -780,13 +780,6 @@
         const guardEl = document.getElementById('adminModeGuard');
         const mainContent = document.querySelector('.main-content');
         const sidebar = document.querySelector('.sidebar');
-        const loginVisible = !document.getElementById('loginOverlay').classList.contains('d-none');
-        if (loginVisible) {
-            guardEl.style.display = 'none';
-            mainContent.classList.remove('guarded');
-            sidebar.classList.remove('guarded');
-            return;
-        }
         if (isAdminModeOn()) {
             guardEl.style.display = 'none';
             mainContent.classList.remove('guarded');
@@ -828,13 +821,7 @@
         }
     };
 
-    if (TOKEN) {
-        applyAdminGuard();
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        if (TOKEN) { applyAdminGuard(); }
-    });
+    applyAdminGuard();
     </script>
 </body>
 </html>

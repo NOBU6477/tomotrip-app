@@ -42,7 +42,10 @@ function updateAdminOnlyElements() {
     els.forEach((el, i) => {
         if (isAdminMode) {
             el.style.removeProperty('display');
-            el.classList.remove('d-none');
+            const hasResponsive = el.classList.contains('d-lg-block') || el.classList.contains('d-lg-none');
+            if (!hasResponsive) {
+                el.classList.remove('d-none');
+            }
         } else {
             el.style.setProperty('display', 'none', 'important');
         }
