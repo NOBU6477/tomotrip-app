@@ -1,201 +1,112 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>運営管理者ログイン - TomoTrip</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <style>
-        body {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .login-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-            max-width: 450px;
-            width: 100%;
-        }
-        
-        .login-header {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 2rem;
-            text-align: center;
-        }
-        
-        .login-body {
-            padding: 2rem;
-        }
-        
-        .form-floating {
-            margin-bottom: 1rem;
-        }
-        
-        .btn-admin {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border: none;
-            padding: 12px;
-            border-radius: 10px;
-            color: white;
-            font-weight: 600;
-            width: 100%;
-        }
-        
-        .btn-admin:hover {
-            background: linear-gradient(135deg, #5a67d8, #6b46c1);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        .alert-info {
-            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-            border: none;
-            border-radius: 15px;
-        }
-
-        .access-levels {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 1rem;
-            margin: 1rem 0;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>運営管理 - TomoTrip</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .redirect-card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      max-width: 480px;
+      width: 90%;
+      text-align: center;
+      overflow: hidden;
+    }
+    .redirect-header {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 2rem;
+    }
+    .redirect-header h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .redirect-header p { opacity: 0.9; font-size: 0.9rem; }
+    .redirect-body { padding: 2.5rem 2rem; }
+    .redirect-body .icon { font-size: 3rem; margin-bottom: 1rem; }
+    .redirect-body p {
+      color: #555;
+      margin-bottom: 1.5rem;
+      line-height: 1.8;
+      font-size: 0.95rem;
+    }
+    .countdown {
+      color: #667eea;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 1.5rem;
+    }
+    .redirect-btn {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      padding: 14px 40px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+    .redirect-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+      color: white;
+    }
+    .back-link {
+      display: block;
+      margin-top: 1.5rem;
+      color: #999;
+      text-decoration: none;
+      font-size: 0.85rem;
+    }
+    .back-link:hover { color: #667eea; }
+  </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-header">
-            <h2><i class="bi bi-shield-lock-fill me-2"></i>運営管理者ログイン</h2>
-            <p class="mb-0">TomoTrip 管理システム</p>
-        </div>
-        
-        <div class="login-body">
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle me-2"></i>
-                <strong>運営者専用</strong><br>
-                このシステムは TomoTrip 運営チーム専用です。不正アクセスは記録されます。
-            </div>
-
-            <form id="adminLoginForm">
-                <div class="form-floating">
-                    <input type="text" class="form-control" id="adminUsername" required placeholder="ユーザー名">
-                    <label for="adminUsername"><i class="bi bi-person me-1"></i>ユーザー名</label>
-                </div>
-                
-                <div class="form-floating">
-                    <input type="password" class="form-control" id="adminPassword" required placeholder="パスワード">
-                    <label for="adminPassword"><i class="bi bi-lock me-1"></i>パスワード</label>
-                </div>
-
-                <div class="form-floating">
-                    <select class="form-control" id="accessLevel" required>
-                        <option value="">アクセスレベルを選択</option>
-                        <option value="admin">管理者（全権限）</option>
-                        <option value="operator">運営者（限定権限）</option>
-                        <option value="support">サポート（閲覧のみ）</option>
-                    </select>
-                    <label for="accessLevel"><i class="bi bi-key me-1"></i>アクセスレベル</label>
-                </div>
-                
-                <div class="access-levels">
-                    <h6 class="text-primary mb-2">アクセスレベル説明</h6>
-                    <div class="small text-muted">
-                        <div><strong>管理者：</strong>全店舗・ガイド・予約管理、設定変更</div>
-                        <div><strong>運営者：</strong>店舗・ガイド管理、レポート閲覧</div>
-                        <div><strong>サポート：</strong>データ閲覧、お問い合わせ対応</div>
-                    </div>
-                </div>
-
-                <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="rememberMe">
-                    <label class="form-check-label" for="rememberMe">
-                        ログイン状態を保持する（24時間）
-                    </label>
-                </div>
-                
-                <button type="submit" class="btn btn-admin">
-                    <i class="bi bi-box-arrow-in-right me-2"></i>管理システムにログイン
-                </button>
-                
-                <div class="text-center mt-3">
-                    <a href="index.html" class="text-muted text-decoration-none">
-                        <i class="bi bi-arrow-left me-1"></i>メインサイトに戻る
-                    </a>
-                </div>
-            </form>
-        </div>
+  <div class="redirect-card">
+    <div class="redirect-header">
+      <h1>TomoTrip 管理システム</h1>
+      <p>Administration System</p>
     </div>
+    <div class="redirect-body">
+      <div class="icon">🔐</div>
+      <p>
+        管理画面は専用サーバーに移行しました。<br>
+        自動的に管理システムへ移動します。
+      </p>
+      <div class="countdown" id="countdown">3秒後に自動遷移します...</div>
+      <a href="https://31176088-3ca0-49de-9098-7b5f0f0a1c9a-00-1jhrgwtjgmb39.kirk.replit.dev/admin-login.html"
+         class="redirect-btn" id="redirectBtn">管理画面へ移動</a>
+      <a href="index.html" class="back-link">← トップページに戻る</a>
+    </div>
+  </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Demo admin credentials
-        const adminCredentials = {
-            'admin': { password: 'tomotrip2024', level: 'admin', name: '管理者' },
-            'operator': { password: 'operator123', level: 'operator', name: '運営者' },
-            'support': { password: 'support123', level: 'support', name: 'サポート' }
-        };
-
-        document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const username = document.getElementById('adminUsername').value;
-            const password = document.getElementById('adminPassword').value;
-            const accessLevel = document.getElementById('accessLevel').value;
-            const rememberMe = document.getElementById('rememberMe').checked;
-            
-            // Validate credentials
-            if (adminCredentials[username] && 
-                adminCredentials[username].password === password && 
-                adminCredentials[username].level === accessLevel) {
-                
-                // Create admin session
-                const adminSession = {
-                    username: username,
-                    level: accessLevel,
-                    name: adminCredentials[username].name,
-                    loginTime: new Date().toISOString(),
-                    expires: rememberMe ? 
-                        new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : // 24 hours
-                        new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString()    // 8 hours
-                };
-                
-                // Store session
-                localStorage.setItem('adminSession', JSON.stringify(adminSession));
-                sessionStorage.setItem('adminAuthenticated', 'true');
-                
-                // Log access
-                console.log('管理者ログイン成功:', {
-                    user: username,
-                    level: accessLevel,
-                    time: new Date().toLocaleString('ja-JP')
-                });
-                
-                alert(`${adminSession.name}としてログインしました。\n管理ダッシュボードを開きます。`);
-                
-                // Redirect to admin dashboard
-                window.location.href = 'sponsor-dashboard.html';
-                
-            } else {
-                alert('ログイン情報が正しくありません。\n\nデモ用認証情報:\n• admin / tomotrip2024 (管理者)\n• operator / operator123 (運営者)\n• support / support123 (サポート)');
-            }
-        });
-
-        // Show demo credentials for testing
-        window.addEventListener('load', function() {
-            console.log('🔐 管理者ログインページ（デモ用認証情報）');
-            console.log('admin / tomotrip2024 (管理者)');
-            console.log('operator / operator123 (運営者)');
-            console.log('support / support123 (サポート)');
-        });
-    </script>
+  <script>
+    (function() {
+      var url = 'https://31176088-3ca0-49de-9098-7b5f0f0a1c9a-00-1jhrgwtjgmb39.kirk.replit.dev/admin-login.html';
+      var sec = 3;
+      var el = document.getElementById('countdown');
+      var timer = setInterval(function() {
+        sec--;
+        if (sec <= 0) {
+          clearInterval(timer);
+          el.textContent = 'リダイレクト中...';
+          window.location.href = url;
+        } else {
+          el.textContent = sec + '秒後に自動遷移します...';
+        }
+      }, 1000);
+    })();
+  </script>
 </body>
 </html>
